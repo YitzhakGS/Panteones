@@ -1,0 +1,17 @@
+<?php return array (
+  'color-base' => '#87293a',
+  'color-primario' => '#87293a',
+  'color-secundario' => '#b79159',
+  'color-complemento' => '#dec9a3',
+  'colorFuenteB' => '#ffffff',
+  'colorFuenteN' => '#000000',
+  'tamanio-texto' => '16px',
+  'fuente' => 'font-family: "Lato", sans-serif; font-weight: 400;',
+  'anio' => 2023,
+  'extra' => 'variable comodin',
+  'favicon' => 'https://innovaciongubernamental.tulancingo.gob.mx/logos/logo1.png',
+  'logoblanco' => 'https://innovaciongubernamental.tulancingo.gob.mx/logos/logo2.png',
+  'logocolor' => 'https://innovaciongubernamental.tulancingo.gob.mx/logos/logo2x.png',
+  'usermujer' => 'https://innovaciongubernamental.tulancingo.gob.mx/logos/perfilmujer.png',
+  'userhombre' => 'https://innovaciongubernamental.tulancingo.gob.mx/logos/perfilhombre.png',
+);
