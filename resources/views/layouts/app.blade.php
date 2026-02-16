@@ -23,11 +23,11 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-    @yield('script')
 </head>
 
 <body data-layout="detached" data-topbar="colored">
     @include('layouts.style')
+    
     <!-- Preloader -->
     <div id="preloader">
         <div id="ctn-preloader" class="ctn-preloader"> <br><br><br>
@@ -77,6 +77,7 @@
     <footer class="footer">
         @include('adminmenu.layouts.partials.footer')
     </footer>
+    @stack('scripts')
 </body>
 
 </html>

@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Route;
 
 use Illuminate\Support\Facades\Auth;
 
+
+use App\Http\Controllers\SeccionesController;
+use App\Models\CatSeccion;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -39,3 +43,24 @@ Route::post('/Gconfiguracion', [App\Http\Controllers\ConfiguracionController::cl
 Route::resource('users', UserController::class);
 Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggleStatus');
 Route::resource('rol', rolController::class);
+
+
+
+Route::resource('secciones', SeccionesController::class)
+    ->parameters([
+        'secciones' => 'seccion'
+    ]);
+
+//Route::post('/edit','SeccionesController@update');
+
+Route::get('/secciones/{seccion}/data', [SeccionesController::class, 'getData'])->name('secciones.data');
+
+Route::get('/test-seccion/{seccion}', function (CatSeccion $seccion){
+    return $seccion;
+});
+
+/*
+| esta ultima funcion fue para verificar si podia obtener los datos de un elemento en la tabla seleccion, y lo hace de manera correcta
+*/
+
+

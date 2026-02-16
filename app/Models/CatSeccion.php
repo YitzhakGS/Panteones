@@ -12,6 +12,8 @@ class CatSeccion extends Model
 
     protected $table = 'cat_secciones';
     protected $primaryKey = 'id_seccion';
+    protected $keyType = 'int';
+    public $incrementing = true;
 
     protected $fillable = ['nombre'];
 

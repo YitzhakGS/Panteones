@@ -13,8 +13,12 @@ return new class extends Migration
     {
         Schema::create('cat_cuadrillas', function (Blueprint $table) {
             $table->id('id_cuadrilla');
-            $table->foreignId('id_seccion')
-                ->constrained('cat_secciones');
+
+            $table->unsignedBigInteger('id_seccion');
+
+            $table->foreign('id_seccion')
+                ->references('id_seccion')
+                ->on('cat_secciones');
             
             $table->string('nombre');
 

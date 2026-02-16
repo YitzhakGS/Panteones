@@ -13,12 +13,17 @@ return new class extends Migration
     {
         Schema::create('espacios_fisicos', function (Blueprint $table) {
             $table->id('id_espacio_fisico');
-            
-            $table->foreignId('id_cuadrilla')
-                ->constrained('cat_cuadrillas');
 
-            $table->foreignId('id_tipo_espacio_fisico')
-                ->constrained('cat_tipos_espacio_fisico');  
+            $table->unsignedBigInteger('id_cuadrilla');
+            $table->unsignedBigInteger('id_tipo_espacio_fisico');
+            
+            $table->foreign('id_cuadrilla')
+                ->references('id_cuadrilla')
+                ->on('cat_cuadrillas');
+
+            $table->foreign('id_tipo_espacio_fisico')
+                ->references('id_tipo_espacio_fisico')
+                ->on('cat_tipos_espacio_fisico');             
 
             $table->string('nombre');
             $table->string('descripcion')->nullable();
@@ -33,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('areas');
+        Schema::dropIfExists('espacios_fisicos');
     }
 };

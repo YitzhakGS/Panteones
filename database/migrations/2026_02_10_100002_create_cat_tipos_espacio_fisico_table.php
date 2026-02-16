@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cat_tipos_espacio_fisico', function (Blueprint $table) {
-            $table->id('id_tipo_espacio_fisicoS');
+            $table->id('id_tipo_espacio_fisico');
             $table->string('nombre');
             $table->timestamps();
         });
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cat_tipos_espacio');
+        Schema::dropIfExists('cat_tipos_espacio_fisico');
     }
 };

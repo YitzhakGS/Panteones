@@ -14,14 +14,16 @@ return new class extends Migration
         Schema::create('lotes', function (Blueprint $table) {
             $table->id('id_lote');
 
-            $table->foreignId('id_espacio_fisico')
-                ->constrained('espacios_fisicos');
+            $table->unsignedBigInteger('id_espacio_fisico');
+            $table->unsignedBigInteger('id_estado_lote');
 
-            $table->foreignId('id_tipo_espacio')
-                ->constrained('cat_tipos_espacio');
+            $table->foreign('id_espacio_fisico')
+                ->references('id_espacio_fisico')
+                ->on('espacios_fisicos');
 
             $table->foreign('id_estado_lote')
-                ->constrained('cat_estado_lote');
+                ->references('id_estado_lote')
+                ->on('cat_estado_lote');
 
             $table->string('numero');
 

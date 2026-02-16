@@ -13,7 +13,7 @@ class CatCuadrilla extends Model
     protected $table = 'cat_cuadrillas';
     protected $primaryKey = 'id_cuadrilla';
 
-    protected $Fillable = [
+    protected $fillable = [
         'id_seccion',
         'nombre'
     ];
