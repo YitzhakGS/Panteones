@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\SeccionesController;
 use App\Models\CatSeccion;
+use App\Http\Controllers\CuadrillasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,20 +46,28 @@ Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatu
 Route::resource('rol', rolController::class);
 
 
-
+// Rutas para el catálogo de secciones
 Route::resource('secciones', SeccionesController::class)
     ->parameters([
         'secciones' => 'seccion'
     ]);
+Route::get('/secciones/{seccion}/data', 
+    [SeccionesController::class, 'getData']
+)->name('secciones.data');
 
-//Route::post('/edit','SeccionesController@update');
+// Rutas para el catálogo de cuadrillas
+Route::resource('cuadrillas', CuadrillasController::class)
+    ->parameters([
+        'cuadrillas' => 'cuadrilla'
+    ]);
 
-Route::get('/secciones/{seccion}/data', [SeccionesController::class, 'getData'])->name('secciones.data');
+Route::get('/cuadrillas/{cuadrilla}/data',
+    [CuadrillasController::class, 'getData']
+)->name('cuadrillas.data');
 
 Route::get('/test-seccion/{seccion}', function (CatSeccion $seccion){
     return $seccion;
 });
-
 /*
 | esta ultima funcion fue para verificar si podia obtener los datos de un elemento en la tabla seleccion, y lo hace de manera correcta
 */

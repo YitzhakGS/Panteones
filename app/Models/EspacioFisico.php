@@ -10,7 +10,7 @@ class EspacioFisico extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'espacio_fisico';
+    protected $table = 'espacios_fisicos';
     protected $primaryKey = 'id_espacio_fisico';
 
     protected $fillable = [
