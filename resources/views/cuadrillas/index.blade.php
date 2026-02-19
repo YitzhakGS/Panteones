@@ -105,60 +105,74 @@
 @include('cuadrillas.show')
 
 @endsection
-
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('JS DE CUADRILLAS (EDIT) CARGADO');
 
-    const modal = document.getElementById('editCuadrillaModal');
+    console.log('JS SECCIONES CARGADO');
 
-    modal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
+    // ========= MODALES =========
+    const modales = {
+        edit: document.getElementById('editSeccionModal'),
+        show: document.getElementById('showSeccionModal')
+    };
 
-        const id = button.getAttribute('data-id');
-        const nombre = button.getAttribute('data-nombre');
-        const idSeccion = button.getAttribute('data-id_seccion');
+    // ========= INIT =========
+    if (modales.edit) {
+        modales.edit.addEventListener('show.bs.modal', handleEditModal);
+    }
 
-        document.getElementById('edit_nombre').value = nombre;
-        document.getElementById('edit_id_seccion').value = idSeccion;
-
-        const form = document.getElementById('editCuadrillaForm');
-        form.action = `/cuadrillas/${id}`;
-    });
+    if (modales.show) {
+        modales.show.addEventListener('show.bs.modal', handleShowModal);
+    }
 });
-</script>
-@endpush
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const modal = document.getElementById('showCuadrillaModal');
+/* ==============================
+   HANDLERS
+================================ */
 
-    modal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
+function handleEditModal(event) {
+    const button = event.relatedTarget;
+    const data = getDataset(button);
 
-        const nombre = button.getAttribute('data-nombre');
-        const seccion = button.getAttribute('data-seccion');
-        const espacios = JSON.parse(button.getAttribute('data-espacios'));
+    fillEditModal(data);
+}
 
-        document.getElementById('show_cuadrilla_nombre').textContent = nombre;
-        document.getElementById('show_seccion_nombre').textContent = seccion;
+function handleShowModal(event) {
+    const button = event.relatedTarget;
+    const data = getDataset(button);
 
-        const contenedor = document.getElementById('show_espacios_fisicos');
-        contenedor.innerHTML = '';
+    fillShowModal(data);
+}
 
-        if (espacios.length === 0) {
-            contenedor.innerHTML = '<span class="text-muted">Sin espacios físicos</span>';
-        } else {
-            espacios.forEach(espacio => {
-                const badge = document.createElement('span');
-                badge.className = 'badge bg-success me-1 mb-1';
-                badge.textContent = espacio.nombre ?? 'Espacio';
-                contenedor.appendChild(badge);
-            });
-        }
-    });
-});
+/* ==============================
+   HELPERS
+================================ */
+
+function getDataset(button) {
+    return {
+        id: button.dataset.id,
+        nombre: button.dataset.nombre
+    };
+}
+
+/* ==============================
+   MODAL EDIT
+================================ */
+
+function fillEditModal(data) {
+    document.getElementById('edit_nombre').value = data.nombre;
+
+    const form = document.getElementById('editSeccionForm');
+    form.action = `/secciones/${data.id}`;
+}
+
+/* ==============================
+   MODAL SHOW
+================================ */
+
+function fillShowModal(data) {
+    document.getElementById('show_nombre').textContent = data.nombre;
+}
 </script>
 @endpush

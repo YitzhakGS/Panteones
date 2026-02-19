@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Auth;
 
 
 use App\Http\Controllers\SeccionesController;
-use App\Models\CatSeccion;
 use App\Http\Controllers\CuadrillasController;
+use App\Http\Controllers\EspaciosFisicosController;
+use App\Http\Controllers\TitularesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,11 +66,25 @@ Route::get('/cuadrillas/{cuadrilla}/data',
     [CuadrillasController::class, 'getData']
 )->name('cuadrillas.data');
 
-Route::get('/test-seccion/{seccion}', function (CatSeccion $seccion){
-    return $seccion;
-});
-/*
-| esta ultima funcion fue para verificar si podia obtener los datos de un elemento en la tabla seleccion, y lo hace de manera correcta
-*/
 
+// Rutas para el catálogo de espacios físicos
+Route::resource('espacios_fisicos', EspaciosFisicosController::class)
+    ->parameters([
+        'espacios_fisicos' => 'espacio_fisico'
+    ]);
+
+Route::get('/espacios_fisicos/{espacio_fisico}/data',
+    [EspaciosFisicosController::class, 'getData']
+)->name('espacios_fisicos.data');
+
+
+// Rutas para el catálogo de titulares
+Route::resource('titulares', TitularesController::class)
+    ->parameters([
+        'titulares' => 'titular'
+    ]);
+
+Route::get('titulares/{titular}/data', 
+    [TitularesController::class, 'getData']
+)->name('titulares.data');
 

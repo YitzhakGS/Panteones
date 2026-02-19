@@ -9,7 +9,7 @@ class CatTipoEspacioFisico extends Model
 {
     use HasFactory;
 
-    protected $table = 'cat_tipo_espacio_fisico';
+    protected $table = 'cat_tipos_espacio_fisico';
     protected $primaryKey = 'id_tipo_espacio_fisico';
 
     protected $fillable = [
