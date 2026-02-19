@@ -1,2 +1,2 @@
 # Panteones
-Sistema de Gestion de
+Sistema de Gestion de Panteones 
