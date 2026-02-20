@@ -15,7 +15,6 @@ class Lote extends Model
 
     protected $fillable = [
         'id_espacio_fisico',
-        'id_tipo_espacio',
         'id_estado_lote',
         'numero',
     ];
@@ -23,11 +22,6 @@ class Lote extends Model
     public function espacioFisico()
     {
         return $this->belongsTo(EspacioFisico::class, 'id_espacio_fisico');
-    }
-
-    public function tipoEspacio()
-    {
-        return $this->belongsTo(CatTipoEspacio::class, 'id_tipo_espacio');
     }
 
     public function estadoLote()

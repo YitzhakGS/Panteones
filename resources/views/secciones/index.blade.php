@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+<head>
+    <link rel="stylesheet" href="{{ asset('css/css-view/css_tables.css') }}">
+</head>
+
 @section('content')
 <div class="row">
     <div class="col-12">
@@ -16,69 +20,91 @@
     <i class="bi bi-plus-circle"></i> Nueva Sección
 </button>
 
-<div class="card p-3">
-    <table class="table table-bordered table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>#</th>
-                <th>Sección</th>
-                <th>Cuadrillas</th>
-                <th>Espacios Físicos</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-        @forelse ($secciones as $seccion)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td><strong>{{ $seccion->nombre }}</strong></td>
-                <td>
-                    @forelse ($seccion->cuadrillas as $cuadrilla)
-                        <span class="badge bg-primary">{{ $cuadrilla->nombre }}</span>
-                    @empty
-                        <span class="text-muted">Sin cuadrillas</span>
-                    @endforelse
-                </td>
-                <td>
-                    @php
-                        $totalEspacios = $seccion->cuadrillas->sum(fn($c) => $c->espaciosFisicos->count());
-                    @endphp
-                    <span class="badge bg-success">{{ $totalEspacios }} espacios</span>
-                </td>
-                <td>
-                    <!-- Botones que abren modales -->
-                    <button type="button" 
-                            class="btn bg-base text-white btn-show"
-                            data-bs-toggle="modal"
-                            data-bs-target="#showSeccionModal" 
-                            data-id="{{ $seccion->id_seccion }}"
-                            data-nombre="{{  $seccion->nombre }}">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                    <button type="button"
-                            class="btn bg-base text-white btn-edit"
-                            data-bs-toggle="modal"
-                            data-bs-target="#editSeccionModal"
-                            data-id="{{ $seccion->id_seccion }}"
-                            data-nombre="{{  $seccion->nombre }}"> 
-                        <i class="bi bi-pencil-square"></i>
-                    </button>
-                    <form action="{{ route('secciones.destroy', $seccion->id_seccion) }}" method="POST" style="display: inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                            class="btn btn-danger"
-                            onclick="return confirm('¿Deseas eliminar esta sección?');">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        @empty
-            <tr><td colspan="5" class="text-danger text-center">No hay Secciones registradas.</td></tr>
-        @endforelse
-        </tbody>
-    </table>
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0"> <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center" style="width: 5%">#</th>
+                        <th class="column-highlight" style="width: 25%">Sección</th>
+                        <th style="width: 30%">Cuadrillas Relacionadas</th>
+                        <th style="width: 20%">Resumen Espacios</th>
+                        <th class="text-end" style="width: 20%; padding-right: 20px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @forelse ($secciones as $seccion)
+                    <tr>
+                        <td class="text-center text-muted small">{{ $loop->iteration }}</td>
+                        
+                        <td class="column-highlight">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-diagram-3 text-primary me-2"></i>
+                                <span>{{ $seccion->nombre }}</span>
+                            </div>
+                        </td>
+
+                        <td>
+                            @forelse ($seccion->cuadrillas as $cuadrilla)
+                                <span class="badge rounded-pill border text-dark fw-normal bg-light">
+                                    {{ $cuadrilla->nombre }}
+                                </span>
+                            @empty
+                                <span class="text-muted small italic">Sin cuadrillas</span>
+                            @endforelse
+                        </td>
+
+                        <td>
+                            @php
+                                $totalEspacios = $seccion->cuadrillas->sum(fn($c) => $c->espaciosFisicos->count());
+                            @endphp
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                <i class="bi bi-geo-alt me-1"></i>{{ $totalEspacios }} espacios
+                            </span>
+                        </td>
+
+                        <td class="text-end" style="padding-right: 20px;">
+                                <button type="button"  
+                                    class="btn btn-secondary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#showSeccionModal" 
+                                    data-id="{{ $seccion->id_seccion }}"
+                                    data-nombre="{{ $seccion->nombre }}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+
+                                <button type="button"
+                                    class="btn  btn-secondary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editSeccionModal"
+                                    data-id="{{ $seccion->id_seccion }}"
+                                    data-nombre="{{ $seccion->nombre }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                                <form action="{{ route('secciones.destroy', $seccion->id_seccion) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" 
+                                        class="btn btn-danger"
+                                        onclick="return confirm('¿Deseas eliminar esta sección?');">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-info-circle d-block mb-2" style="font-size: 2rem;"></i>
+                            No hay Secciones registradas actualmente.
+                        </td>
+                    </tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- Incluir modales -->
@@ -87,49 +113,73 @@
 @include('secciones.show')
 
 @endsection
-@push('scripts')
-<script>
-    console.log('JS DE SECCIONES CARGADO');
-    
-    document.addEventListener('DOMContentLoaded', function () {
-    const modal = document.getElementById('editSeccionModal');
-
-    modal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-
-        var id_secciones = button.getAttribute('data-id');
-        var nombre_update = button.getAttribute('data-nombre');
-
-        // Inputs del modal
-        document.getElementById('edit_nombre').value = nombre_update;
-
-        // Action del formulario
-        const form = document.getElementById('editSeccionForm');
-        form.action = `/secciones/${id_secciones}`;
-    });
-
-});
-</script>
-@endpush
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-        console.log('JS DE SECCIONES CARGADO');
-        const modal = document.getElementById('showSeccionModal');
-        modal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            console.log('Botón que abrió el modal:', button);
+    console.log('JS DE SECCIONES UNIFICADO Y CARGADO');
 
-            var id_secciones = button.getAttribute('data-id');
-            var nombre_show = button.getAttribute('data-nombre');
-            console.log('ID de sección:', id_secciones);
-            console.log('Nombre de sección:', nombre_show);
+    // 1. Referencias a los modales
+    const modales = {
+        edit: document.getElementById('editSeccionModal'),
+        show: document.getElementById('showSeccionModal')
+    };
 
-            // Inputs del modal
-            document.getElementById('show_nombre').textContent = nombre_show;
-        });
+    // 2. Inicialización de Listeners
+    if (modales.edit) {
+        modales.edit.addEventListener('show.bs.modal', handleEditModal);
+    }
 
-    })
+    if (modales.show) {
+        modales.show.addEventListener('show.bs.modal', handleShowModal);
+    }
+});
+
+/* ==============================
+   HANDLERS
+================================ */
+
+function handleEditModal(event) {
+    const data = getDataset(event.relatedTarget);
+    fillEditModal(data);
+}
+
+function handleShowModal(event) {
+    const data = getDataset(event.relatedTarget);
+    fillShowModal(data);
+}
+
+/* ==============================
+   HELPERS (Extracción de datos)
+================================ */
+
+function getDataset(button) {
+    return {
+        id: button.dataset.id,
+        nombre: button.dataset.nombre
+    };
+}
+
+/* ==============================
+   MODAL EDIT
+================================ */
+
+function fillEditModal(data) {
+    // Llenar el input
+    document.getElementById('edit_nombre').value = data.nombre;
+
+    // Ajustar la ruta del formulario
+    const form = document.getElementById('editSeccionForm');
+    form.action = `/secciones/${data.id}`;
+}
+
+/* ==============================
+   MODAL SHOW
+================================ */
+
+function fillShowModal(data) {
+    // Llenar el texto estático
+    document.getElementById('show_nombre').textContent = data.nombre;
+}
 </script>
 @endpush

@@ -29,13 +29,17 @@ class EspaciosFisicosController extends Controller
      */
     public function index(): View
     {
+        // Mantenemos los catálogos con get() porque suelen ser pocos para los selects de los modales
         $cuadrillas = CatCuadrilla::with('seccion')->orderBy('nombre')->get();
         $tiposEspacioFisico = CatTipoEspacioFisico::orderBy('nombre')->get();
 
+        // Cambiamos get() por paginate() para activar la paginación de Laravel
         $espaciosFisicos = EspacioFisico::with([
             'cuadrilla.seccion',
             'tipoEspacioFisico'
-        ])->get();
+        ])
+        ->orderBy('id_espacio_fisico', 'desc') // Opcional: mostrar los más nuevos primero
+        ->paginate(10); // Esto genera los links y limita la consulta SQL
 
         return view(
             'espacios_fisicos.index',
@@ -70,7 +74,7 @@ class EspaciosFisicosController extends Controller
 
         $request->validate([
             'id_cuadrilla'               => 'required|exists:cat_cuadrillas,id_cuadrilla',
-            'id_tipo_espacio_fisico'     => 'required|exists:cat_tipo_espacio_fisico,id_tipo_espacio_fisico',
+            'id_tipo_espacio_fisico'     => 'required|exists:cat_tipos_espacio_fisico,id_tipo_espacio_fisico',
             'nombre'                     => 'required|string|max:255',
             'descripcion'                => 'nullable|string',
         ]);
@@ -134,7 +138,7 @@ class EspaciosFisicosController extends Controller
     {
         $request->validate([
             'id_cuadrilla'               => 'required|exists:cat_cuadrillas,id_cuadrilla',
-            'id_tipo_espacio_fisico'     => 'required|exists:cat_tipo_espacio_fisico,id_tipo_espacio_fisico',
+            'id_tipo_espacio_fisico'     => 'required|exists:cat_tipos_espacio_fisico,id_tipo_espacio_fisico',
             'nombre'                     => 'required|string|max:255',
             'descripcion'                => 'nullable|string',
         ]);

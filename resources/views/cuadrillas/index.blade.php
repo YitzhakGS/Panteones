@@ -1,9 +1,13 @@
 @extends('layouts.app')
 
+<head>
+    <link rel="stylesheet" href="{{ asset('css/css-view/css_tables.css') }}">
+</head>
+
 @section('content')
 <div class="row">
     <div class="col-12">
-        <div class="page-title-box mb-0 d-flex align-items-center justify-content-between">
+        <div class="page-title-box mb-2 d-flex align-items-center justify-content-between">
             <h4 class="page-title mb-0 font-size-18">
                 <i class="bi bi-collection"></i> Cuadrillas
             </h4>
@@ -11,168 +15,174 @@
     </div>
 </div>
 
-<!-- Botón para abrir modal de creación -->
-<button type="button"
-        class="btn bg-base text-white mb-3"
-        data-bs-toggle="modal"
-        data-bs-target="#createCuadrillaModal">
-    <i class="bi bi-plus-circle"></i> Nueva Cuadrilla
-</button>
+{{-- Envolvemos todo en el wrapper para controlar la altura total --}}
+<div class="espacios-wrapper">
+    
+    {{-- Sección de botones (Header de la vista) --}}
+    <div class="mb-3">
+        <button type="button" class="btn bg-base text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#createCuadrillaModal">
+            <i class="bi bi-plus-circle"></i> Nueva Cuadrilla
+        </button>
+    </div>
 
-<div class="card p-3">
-    <table class="table table-bordered table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>#</th>
-                <th>Cuadrilla</th>
-                <th>Sección</th>
-                <th>Espacios Físicos</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-        @forelse ($cuadrillas as $cuadrilla)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
+    {{-- Área de la Tabla con scroll --}}
+    <div class="card-area">
+        <div class="cards-scroll-container border rounded bg-white">
+            <table class="table table-hover align-middle mb-0">
+                {{-- La clase sticky-top ahora funcionará gracias al CSS que preparamos --}}
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center" style="width: 5%">#</th>
+                        <th style="width: 20%">Sección</th>
+                        <th class="column-highlight" style="width: 25%">Cuadrilla</th>
+                        <th style="width: 30%">Espacios Físicos</th>
+                        <th class="text-end" style="width: 20%; padding-right: 20px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @forelse ($cuadrillas as $cuadrilla)
+                    <tr>
+                        <td class="text-center text-muted small">{{ $loop->iteration }}</td>
+                        
+                        <td>
+                            <span class="badge rounded-pill border text-dark fw-normal bg-light">
+                                {{ $cuadrilla->seccion->nombre }}
+                            </span>
+                        </td>
 
-                <td>
-                    <strong>{{ $cuadrilla->nombre }}</strong>
-                </td>
+                        <td class="column-highlight">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-columns-gap me-2 text-primary"></i>
+                                <span class="fw-bold">{{ $cuadrilla->nombre }}</span>
+                            </div>
+                        </td>
 
-                <td>
-                    <span class="badge bg-primary">
-                        {{ $cuadrilla->seccion->nombre }}
-                    </span>
-                </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                @forelse ($cuadrilla->espaciosFisicos as $espacio)
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle " style="margin-bottom: 5px;>
+                                        <small class="d-block" style="font-size: 0.6rem; text-transform: uppercase; opacity: 0.8;">
+                                            {{ $espacio->tipoEspacioFisico->nombre }}
+                                        </small>
+                                        {{ $espacio->nombre }}
+                                    </span>
+                                @empty
+                                    <span class="text-muted small italic">Sin espacios asignados</span>
+                                @endforelse
+                            </div>
+                        </td>
 
-                <td>
-                    <span class="badge bg-success">
-                        {{ $cuadrilla->espaciosFisicos->count() }} espacios
-                    </span>
-                </td>
+                        <td class="text-end" style="padding-right: 20px;">
+                            <button type="button" class="btn btn-secondary "
+                                data-bs-toggle="modal" data-bs-target="#editCuadrillaModal"
+                                data-id="{{ $cuadrilla->id_cuadrilla }}"
+                                data-nombre="{{ $cuadrilla->nombre }}"
+                                data-id_seccion="{{ $cuadrilla->id_seccion }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
 
-                <td>
-                    <!-- SHOW -->
-                    <button type="button"
-                        class="btn bg-base text-white btn-show"
-                        data-bs-toggle="modal"
-                        data-bs-target="#showCuadrillaModal"
-                        data-nombre="{{ $cuadrilla->nombre }}"
-                        data-seccion="{{ $cuadrilla->seccion->nombre }}"
-                        data-espacios='@json($cuadrilla->espaciosFisicos)'>
-                        <i class="bi bi-eye"></i>
-                    </button>
+                            <form action="{{ route('cuadrillas.destroy', $cuadrilla->id_cuadrilla) }}" method="POST" class="d-inline">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-danger " onclick="return confirm('¿Eliminar?')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">No hay Cuadrillas registradas.</td>
+                    </tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
 
-                    <!-- EDIT -->
-                    <button type="button"
-                            class="btn bg-base text-white btn-edit"
-                            data-bs-toggle="modal"
-                            data-bs-target="#editCuadrillaModal"
-                            data-id="{{ $cuadrilla->id_cuadrilla }}"
-                            data-nombre="{{ $cuadrilla->nombre }}"
-                            data-id_seccion="{{ $cuadrilla->id_seccion }}">
-                        <i class="bi bi-pencil-square"></i>
-                    </button>
 
-                    <!-- DELETE -->
-                    <form action="{{ route('cuadrillas.destroy', $cuadrilla->id_cuadrilla) }}"
-                          method="POST"
-                          style="display:inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                                class="btn btn-danger"
-                                onclick="return confirm('¿Deseas eliminar esta cuadrilla?');">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="5" class="text-danger text-center">
-                    No hay Cuadrillas registradas.
-                </td>
-            </tr>
-        @endforelse
-        </tbody>
-    </table>
+    </div>
 </div>
 
-<!-- Modales -->
 @include('cuadrillas.create')
 @include('cuadrillas.edit')
 @include('cuadrillas.show')
 
 @endsection
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
+    @push('scripts')
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('JS CUADRILLAS CARGADO');
 
-    console.log('JS SECCIONES CARGADO');
+        const modales = {
+            edit: document.getElementById('editCuadrillaModal'),
+            show: document.getElementById('showCuadrillaModal')
+        };
 
-    // ========= MODALES =========
-    const modales = {
-        edit: document.getElementById('editSeccionModal'),
-        show: document.getElementById('showSeccionModal')
-    };
+        if (modales.edit) {
+            modales.edit.addEventListener('show.bs.modal', handleEditModal);
+        }
 
-    // ========= INIT =========
-    if (modales.edit) {
-        modales.edit.addEventListener('show.bs.modal', handleEditModal);
+        if (modales.show) {
+            modales.show.addEventListener('show.bs.modal', handleShowModal);
+        }
+    });
+
+    /* ==============================
+    HANDLERS (Manejadores)
+    ================================ */
+
+    function handleEditModal(event) {
+        const data = getDataset(event.relatedTarget);
+        fillEditModal(data);
     }
 
-    if (modales.show) {
-        modales.show.addEventListener('show.bs.modal', handleShowModal);
+    function handleShowModal(event) {
+        const data = getDataset(event.relatedTarget);
+        fillShowModal(data);
     }
-});
 
-/* ==============================
-   HANDLERS
-================================ */
+    /* ==============================
+    HELPERS (Extracción de datos)
+    ================================ */
 
-function handleEditModal(event) {
-    const button = event.relatedTarget;
-    const data = getDataset(button);
+    function getDataset(button) {
+        // Aquí centralizamos la captura de datos
+        return {
+            id: button.dataset.id,
+            nombre: button.dataset.nombre,
+            idSeccion: button.dataset.id_seccion,
+            seccionNombre: button.dataset.seccion,
+            // Manejamos el JSON de forma segura
+            espacios: button.dataset.espacios ? JSON.parse(button.dataset.espacios) : []
+        };
+    }
 
-    fillEditModal(data);
-}
+    /* ==============================
+    MODAL EDIT (Llenar formulario)
+    ================================ */
 
-function handleShowModal(event) {
-    const button = event.relatedTarget;
-    const data = getDataset(button);
+    function fillEditModal(data) {
+        document.getElementById('edit_nombre').value = data.nombre;
+        document.getElementById('edit_id_seccion').value = data.idSeccion;
 
-    fillShowModal(data);
-}
+        const form = document.getElementById('editCuadrillaForm');
+        // Asegúrate de que el nombre del recurso sea el correcto (plural/singular)
+        form.action = `/cuadrillas/${data.id}`;
+    }
 
-/* ==============================
-   HELPERS
-================================ */
+    /* ==============================
+    MODAL SHOW (Mostrar información)
+    ================================ */
 
-function getDataset(button) {
-    return {
-        id: button.dataset.id,
-        nombre: button.dataset.nombre
-    };
-}
+    function fillShowModal(data) {
+        document.getElementById('show_cuadrilla_nombre').textContent = data.nombre;
+        document.getElementById('show_seccion_nombre').textContent = data.seccionNombre;
 
-/* ==============================
-   MODAL EDIT
-================================ */
-
-function fillEditModal(data) {
-    document.getElementById('edit_nombre').value = data.nombre;
-
-    const form = document.getElementById('editSeccionForm');
-    form.action = `/secciones/${data.id}`;
-}
-
-/* ==============================
-   MODAL SHOW
-================================ */
-
-function fillShowModal(data) {
-    document.getElementById('show_nombre').textContent = data.nombre;
-}
-</script>
-@endpush
+        const lista = document.getElementById('show_espacios_fisicos');
+        if (lista) {
+            lista.innerHTML = data.espacios.length > 0 
+                ? data.espacios.map(e => `<li class="list-group-item">${e.nombre}</li>`).join('')
+                : '<li class="list-group-item text-muted">Sin espacios asignados</li>';
+        }
+    }
+    </script>
+    @endpush

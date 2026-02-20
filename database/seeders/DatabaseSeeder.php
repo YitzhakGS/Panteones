@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
                 PermissionSeeder::class,
                 RoleSeeder::class,
                 SuperAdminSeeder::class,
+                CatTipoEspacioFisicoSeeder::class,
                
             ]);
         }

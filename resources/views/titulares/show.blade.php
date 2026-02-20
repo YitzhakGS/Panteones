@@ -83,11 +83,13 @@
 
                     {{-- Botones --}}
                     <div class="col-md-6 mb-3 text-end">
-                        <button type="button"
-                                class="btn btn-outline-danger me-2"
-                                onclick="confirmarEliminacion({{ $titular->id_titular }})">
-                            <i class="bi bi-trash"></i> Eliminar
-                        </button>
+                        @if (isset($titular->id_titular)
+                            <button type="button"
+                                    class="btn btn-outline-danger me-2"
+                                    onclick="confirmarEliminacion({{ $titular->id_titular }})">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        @endif
                         <form id="delete-form-{{ $titular->id_titular }}" 
                             action="{{ route('titulares.destroy', $titular->id_titular) }}" 
                             method="POST" style="display:none;">

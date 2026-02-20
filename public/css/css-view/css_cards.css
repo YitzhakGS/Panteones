@@ -26,20 +26,14 @@
 .cards-scroll-container {
     flex: 1;
     overflow-y: auto;
-    padding: 10px;
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-bottom: 30px !important; /* Asegura espacio para la paginación */
     min-height: 0;
     background-color: #f8f9fa;
 }
 
-.card-container {
-    display: flex;
-    flex-direction: column;
-    gap: 16px; 
-    padding-bottom: 80px; 
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-top: 5px;
-}
 
 /* Scrollbar elegante - Ahora aplicado al contenedor correcto */
 .cards-scroll-container::-webkit-scrollbar {
@@ -139,4 +133,55 @@
     display: inline-block; /* Permite un mejor manejo del espacio */
     margin-left: 5px;
     font-size: 0.65rem;    /* Un poco más pequeño que la etiqueta principal */
+}
+
+
+/* Contenedor de la paginación */
+.pagination-container nav {
+    width: 100%;
+}
+
+/* 1. Estilo para el texto "Mostrando x de y resultados" */
+.pagination-container nav .flex.items-center.justify-between, 
+.pagination-container nav div:first-child {
+    display: block;
+    text-align: center;
+    margin-bottom: 10px; /* Separa el texto de los botones */
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+/* 2. Asegurar que los botones estén centrados y sin puntos/listas */
+.pagination-container .pagination {
+    justify-content: center;
+    margin-top: 5px;
+    gap: 2px; /* Espacio mínimo entre cuadritos de números */
+}
+
+/* 3. Estética de los botones (opcional) */
+.pagination-container .page-link {
+    border-radius: 6px !important; /* Bordes más suaves */
+    margin: 0 2px;
+    padding: 6px 12px;
+    border: 1px solid #dee2e6;
+    color: #495057;
+}
+
+.pagination-container .page-item.active .page-link {
+    background-color: #6c757d; /* Color gris como tus cabeceras */
+    border-color: #6c757d;
+    color: white;
+}
+
+/* Reduce la prioridad de las capas de la paginación */
+.pagination-container .page-item.active .page-link,
+.pagination-container .page-item .page-link {
+    z-index: 0 !important; /* Baja el nivel para que no traspase headers/footers */
+}
+
+/* Asegura que el contenedor de la paginación no se desborde */
+.pagination-container {
+    position: relative;
+    z-index: 0; 
+    overflow: hidden; /* Corta cualquier sombra que quiera salir del área */
 }
