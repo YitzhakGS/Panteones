@@ -26,7 +26,7 @@
     </div>
 
     {{-- Área de la Tabla con scroll --}}
-    <div class="card-area">
+    <div class="card-area" style="padding: 20px;">
         <div class="cards-scroll-container border rounded bg-white">
             <table class="table table-hover align-middle mb-0">
                 {{-- La clase sticky-top ahora funcionará gracias al CSS que preparamos --}}

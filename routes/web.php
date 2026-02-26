@@ -16,6 +16,8 @@ use App\Http\Controllers\SeccionesController;
 use App\Http\Controllers\CuadrillasController;
 use App\Http\Controllers\EspaciosFisicosController;
 use App\Http\Controllers\TitularesController;
+use App\Http\Controllers\LotesController;
+use App\Http\Controllers\EspacioFisicoLoteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,7 +80,7 @@ Route::get('/espacios_fisicos/{espacio_fisico}/data',
 )->name('espacios_fisicos.data');
 
 
-// Rutas para el catálogo de titulares
+// Rutas para loa titulares
 Route::resource('titulares', TitularesController::class)
     ->parameters([
         'titulares' => 'titular'
@@ -88,3 +90,24 @@ Route::get('titulares/{titular}/data',
     [TitularesController::class, 'getData']
 )->name('titulares.data');
 
+
+// Rutas para los lotes
+Route::resource('lotes', LotesController::class)
+    ->parameters([
+        'lotes' => 'lote'
+    ]);
+
+Route::get('/lotes/{lote}/data',
+    [LotesController::class, 'getData']
+)->name('lotes.data');
+
+
+// Rutas para la gestión de asignaciones entre lotes y espacios físicos
+Route::post('/espacio-fisico-lote',
+    [EspacioFisicoLoteController::class, 'store']
+)->name('espacio_fisico_lote.store');
+
+//Ruta para obtener los espacios fisicos filtrados por cuadrilla
+// Ruta para obtener los espacios físicos filtrados por cuadrilla
+Route::get('/api/cuadrillas/{id_cuadrilla}/espacios', [LotesController::class, 'getEspaciosByCuadrilla'])
+    ->name('api.espacios.por.cuadrilla');

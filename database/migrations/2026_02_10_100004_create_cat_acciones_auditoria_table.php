@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('titulars', function (Blueprint $table) {
-            $table->id();
+        Schema::create('cat_acciones_auditoria', function (Blueprint $table) {
+            $table->id('id_accion');
+            $table->string('nombre')->unique();
             $table->timestamps();
         });
     }
@@ -22,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('titulars');
+        Schema::dropIfExists('cat_acciones_auditoria');
     }
 };

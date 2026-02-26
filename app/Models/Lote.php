@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use PhpParser\Node\Expr\Cast;
 class Lote extends Model
 {
     use HasFactory, SoftDeletes;
@@ -14,19 +14,59 @@ class Lote extends Model
     protected $primaryKey = 'id_lote';
 
     protected $fillable = [
-        'id_espacio_fisico',
-        'id_estado_lote',
         'numero',
+        'metros_cuadrados',
+        'col_norte',
+        'col_sur',
+        'col_oriente',
+        'col_poniente',
+        'med_norte',
+        'med_sur',
+        'med_oriente',
+        'med_poniente',
+        'referencias',
     ];
 
-    public function espacioFisico()
+    // 📜 Historial completo
+    public function espaciosFisicosLotes()
     {
-        return $this->belongsTo(EspacioFisico::class, 'id_espacio_fisico');
+        return $this->hasMany(
+            EspacioFisicoLote::class,
+            'id_lote',
+            'id_lote'
+        );
     }
 
-    public function estadoLote()
+    public function espaciosActuales()
     {
-        return $this->belongsTo(CatEstadoLote::class, 'id_estado_lote');
+        return $this->belongsToMany(
+                EspacioFisico::class,
+                'espacio_fisico_lote',
+                'id_lote',
+                'id_espacio_fisico'
+            )
+            ->withPivot('fecha_inicio', 'fecha_fin')
+            ->wherePivotNull('fecha_fin');
     }
 
+    public function getEspacioActualAttribute()
+    {
+        return $this->espaciosActuales->first();
+    }
+
+    public function getUbicacionFormateadaAttribute(): ?string
+    {
+        $espacio = $this->espacioActual;
+
+        if (! $espacio) {
+            return null;
+        }
+
+        $seccion   = optional($espacio->cuadrilla->seccion)->nombre;
+        $cuadrilla = optional($espacio->cuadrilla)->nombre;
+        $tipo      = optional($espacio->tipoEspacioFisico)->nombre;
+        $nombre    = $espacio->nombre;
+
+        return trim("{$seccion}\n{$cuadrilla}\n{$tipo} {$nombre}");
+    }
 }

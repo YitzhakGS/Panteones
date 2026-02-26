@@ -16,8 +16,8 @@ class CatTipoEspacioFisicoSeeder extends Seeder
         $tipos = [
             'Area',
             'Manzana',
-            'Gaveta',
-            'Barda', 
+            'Barda',
+            'Mitad del area de ',
         ];
 
         foreach ($tipos as $tipo) {

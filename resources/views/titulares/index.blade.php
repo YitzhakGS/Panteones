@@ -2,7 +2,6 @@
 <head>
     <!-- CSS global -->
     <link rel="stylesheet" href="{{ asset('css/css-view/css_cards.css') }}">
-
     @stack('styles')
 </head>
 

@@ -30,7 +30,14 @@ class EspaciosFisicosController extends Controller
     public function index(): View
     {
         // Mantenemos los catálogos con get() porque suelen ser pocos para los selects de los modales
-        $cuadrillas = CatCuadrilla::with('seccion')->orderBy('nombre')->get();
+        $cuadrillas = CatCuadrilla::join('cat_secciones', 'cat_cuadrillas.id_seccion', '=', 'cat_secciones.id_seccion')
+            ->select('cat_cuadrillas.*') // Evita que los IDs de secciones sobrescriban los de cuadrillas
+            ->with('seccion') // Mantienes la relación para el Blade
+            ->orderBy('cat_secciones.nombre', 'asc')
+            ->orderBy('cat_cuadrillas.nombre', 'asc')
+            ->get();
+
+
         $tiposEspacioFisico = CatTipoEspacioFisico::orderBy('nombre')->get();
 
         // Cambiamos get() por paginate() para activar la paginación de Laravel

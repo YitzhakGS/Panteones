@@ -32,6 +32,26 @@ class EspacioFisico extends Model
 
     public function lotes()
     {
-        return $this->hasMany(Lote::class, 'id_espacio_fisico');
+        return $this->belongsToMany(
+            Lote::class,
+            'espacio_fisico_lote',
+            'id_espacio_fisico',
+            'id_lote'
+        )->withPivot(['fecha_inicio', 'fecha_fin'])
+            ->withTimestamps();
+    }
+
+    public function lotesVigentes()
+    {
+        return $this->lotes()->wherePivotNull('fecha_fin');
+    }
+
+    public function espacioFisicoLotes()
+    {
+        return $this->hasMany(
+            EspacioFisicoLote::class,
+            'id_espacio_fisico',
+            'id_espacio_fisico'
+        );
     }
 }

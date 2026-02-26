@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CatEstadoLote extends Model
+class CatUsoFunerario extends Model
 {
     use HasFactory;
 
-    protected $table = 'cat_estado_lote';
-    protected $primaryKey = 'id_estado_lote';
+    protected $table = 'cat_usos_funerarios';
+    protected $primaryKey = 'id_uso_funerario';
 
     protected $fillable = [
         'nombre',
@@ -18,6 +18,6 @@ class CatEstadoLote extends Model
 
     public function lotes()
     {
-        return $this->hasMany(Lote::class, 'id_estado_lote');
+        //return $this->hasMany(Concesion::class, 'id_uso_funerario');
     }
 }

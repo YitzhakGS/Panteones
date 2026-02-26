@@ -83,7 +83,7 @@
 
                     {{-- Botones --}}
                     <div class="col-md-6 mb-3 text-end">
-                        @if (isset($titular->id_titular)
+                        @if (isset($titular->id_titular))
                             <button type="button"
                                     class="btn btn-outline-danger me-2"
                                     onclick="confirmarEliminacion({{ $titular->id_titular }})">

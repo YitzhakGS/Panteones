@@ -25,30 +25,30 @@
 
                 <div class="modal-body">
 
-                    <!-- CUADRILLA -->
                     <div class="mb-3">
-                        <label for="id_cuadrilla" class="form-label">Cuadrilla</label>
+                    <label for="id_cuadrilla" class="form-label">Seccion - Cuadrilla</label>
 
-                        <select
-                            name="id_cuadrilla"
-                            id="id_cuadrilla"
-                            class="form-select @error('id_cuadrilla') is-invalid @enderror"
-                            required
-                        >
-                            <option value="">Seleccione una cuadrilla</option>
+                    <select
+                        name="id_cuadrilla"
+                        id="id_cuadrilla"
+                        class="form-select @error('id_cuadrilla') is-invalid @enderror"
+                        required
+                    >
+                        <option value="">Seleccione Seccion y Cuadrilla</option>
 
-                            @foreach ($cuadrillas as $cuadrilla)
-                                <option value="{{ $cuadrilla->id_cuadrilla }}"
-                                    {{ old('id_cuadrilla') == $cuadrilla->id_cuadrilla ? 'selected' : '' }}>
-                                    {{ $cuadrilla->nombre }} — {{ $cuadrilla->seccion->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
+                        @foreach ($cuadrillas as $cuadrilla)
+                            <option value="{{ $cuadrilla->id_cuadrilla }}"
+                                {{ old('id_cuadrilla') == $cuadrilla->id_cuadrilla ? 'selected' : '' }}>
+                                {{-- Formato solicitado: Seccion - Cuadrilla --}}
+                                {{ $cuadrilla->seccion->nombre }} — {{ $cuadrilla->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                        @error('id_cuadrilla')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                    @error('id_cuadrilla')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
                     <!-- TIPO ESPACIO FÍSICO -->
                     <div class="mb-3">

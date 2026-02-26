@@ -64,15 +64,6 @@
                         </td>
 
                         <td class="text-end" style="padding-right: 20px;">
-                                <button type="button"  
-                                    class="btn btn-secondary"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#showSeccionModal" 
-                                    data-id="{{ $seccion->id_seccion }}"
-                                    data-nombre="{{ $seccion->nombre }}">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-
                                 <button type="button"
                                     class="btn  btn-secondary"
                                     data-bs-toggle="modal"

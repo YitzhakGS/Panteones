@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cat_estado_lote', function (Blueprint $table) {
-            $table->id('id_estado_lote');
+        Schema::create('uso_funerario', function (Blueprint $table) {
+            $table->id('id_uso_funerario');
             $table->string('nombre');
             $table->timestamps();
         });
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cat_estado_lote');
+        Schema::dropIfExists('uso_funerario');
     }
 };

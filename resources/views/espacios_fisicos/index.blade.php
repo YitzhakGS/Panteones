@@ -27,7 +27,7 @@
     </div>
 
     {{-- Área de la Tabla --}}
-    <div class="card-area">
+    <div class="card-area" style="padding: 20px;">
         <div class="cards-scroll-container border rounded bg-white">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -50,7 +50,7 @@
                             </td>
                             <td>
                                 <div class="badge rounded-pill border text-dark fw-normal bg-light">
-                                    <i class="bi bi-people me-2 text-muted"></i>
+                                    <i class=" me-2 text-muted"></i>
                                     <span>{{ $espacio->cuadrilla->nombre }}</span>
                                 </div>
                             </td>
@@ -64,7 +64,7 @@
                                 </div>
                             </td>
                             <td class="text-end" style="padding-right: 20px;">
-                                <button type="button" class="btn btn-secondary btn-sm" 
+                                <button type="button" class="btn btn-secondary " 
                                     data-bs-toggle="modal" data-bs-target="#editEspacioFisicoModal"
                                     data-id="{{ $espacio->id_espacio_fisico }}"
                                     data-nombre="{{ $espacio->nombre }}"
@@ -74,7 +74,7 @@
                                 </button>
                                 <form action="{{ route('espacios_fisicos.destroy', $espacio) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar?')">
+                                    <button type="submit" class="btn btn-danger " onclick="return confirm('¿Eliminar?')">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
@@ -177,7 +177,7 @@ function fillEditModal(data) {
     document.getElementById('edit_id_tipo_espacio_fisico').value = data.idTipo;
 
     const form = document.getElementById('editEspacioFisicoForm');
-    form.action = `/espacios-fisicos/${data.id}`;
+    form.action = `/espacios_fisicos/${data.id}`;
 }
 
 /* ==============================

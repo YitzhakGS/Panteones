@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
                 RoleSeeder::class,
                 SuperAdminSeeder::class,
                 CatTipoEspacioFisicoSeeder::class,
-               
+                UsoFunerarioSeeder::class,
             ]);
         }
     }
