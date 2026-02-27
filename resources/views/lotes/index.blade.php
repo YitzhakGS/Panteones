@@ -3,6 +3,7 @@
 <head>
     <link rel="stylesheet" href="{{ asset('css/css-view/css_tables.css') }}">
     <link rel="stylesheet" href="{{ asset('css/css-view/css_show_modal.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/css-view/css_cards.css') }}">
 </head>
 
 @section('content')
@@ -21,13 +22,21 @@
 <div class="espacios-wrapper">
 
     {{-- Acciones --}}
-    <div class="mb-3">
-        <button type="button"
-                class="btn bg-base text-white shadow-sm"
-                data-bs-toggle="modal"
-                data-bs-target="#createLoteModal">
-            <i class="bi bi-plus-circle"></i> Nuevo Lote
-        </button>
+    
+    <div class="mb-3 row align-items-center" style="padding-top:10px; padding-left:10px; padding-right:10px;">
+        <div class="col-md-4 text-start">
+            <button type="button"
+                    class="btn bg-base text-white shadow-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createLoteModal">
+                <i class="bi bi-plus-circle"></i> Nuevo Lote
+            </button>
+        </div>
+        
+        <div class="col-md-8">
+            <input type="text" id="searchLote" class="form-control form-control-lg"
+                placeholder="Buscar por número de lote, ubicacion o colindancias...">
+        </div>
     </div>
 
     {{-- Tabla --}}
@@ -165,7 +174,14 @@
                     </tr>
                 @endforelse
                 </tbody>
+
             </table>
+            {{-- Paginación --}}
+            @if(method_exists($lotes, 'links'))
+                <div class="pagination-container d-flex justify-content-center mt-3">
+                    {{ $lotes->links() }}
+                </div>
+            @endif
         </div>
     </div>
 </div>
@@ -179,6 +195,25 @@
 
 @push('scripts')
 <script>
+
+document.getElementById('searchLote').addEventListener('keyup', function () {
+    const value = this.value.toLowerCase();
+
+    document.querySelectorAll('tbody tr').forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value)
+            ? ''
+            : 'none';
+    });
+});
+
+
+document.querySelectorAll('.pagination a').forEach(link => {
+    link.addEventListener('click', () => {
+        document.querySelector('.cards-scroll-container')
+            ?.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+});
+
 document.addEventListener('DOMContentLoaded', function () {
 
     const showModal = document.getElementById('showLoteModal');

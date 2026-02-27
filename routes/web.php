@@ -107,7 +107,6 @@ Route::post('/espacio-fisico-lote',
     [EspacioFisicoLoteController::class, 'store']
 )->name('espacio_fisico_lote.store');
 
-//Ruta para obtener los espacios fisicos filtrados por cuadrilla
 // Ruta para obtener los espacios físicos filtrados por cuadrilla
 Route::get('/api/cuadrillas/{id_cuadrilla}/espacios', [LotesController::class, 'getEspaciosByCuadrilla'])
     ->name('api.espacios.por.cuadrilla');

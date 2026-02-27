@@ -1,4 +1,52 @@
+
+
+
 @if(Auth::user()->rol == 1)
+
+<li class="list-group-item bg-base border-secondary py-3 px-4">
+    <a href="{{ route('secciones.index') }}"
+        class="d-flex align-items-center text-white text-decoration-none p-2 rounded
+        {{ Route::is('secciones.*') ? 'fw-bold text-warning bg-primario' : '' }}">
+        <i class="bi bi-diagram-3 fs-4 me-2"></i>
+        Secciones
+    </a>
+</li>
+
+<li class="list-group-item bg-base border-secondary py-3 px-4">
+    <a href="{{ route('cuadrillas.index') }}"
+        class="d-flex align-items-center text-white text-decoration-none p-2 rounded
+        {{ Route::is('cuadrillas.*') ? 'fw-bold text-warning bg-primario' : '' }}">
+        <i class="bi bi-folder2-open fs-4 me-2"></i>
+        Cuadrillas
+    </a>
+</li>
+
+<li class="list-group-item bg-base border-secondary py-3 px-4">
+    <a href="{{ route('espacios_fisicos.index') }}"
+        class="d-flex align-items-center text-white text-decoration-none p-2 rounded
+        {{ Route::is('espacios_fisicos.*') ? 'fw-bold text-warning bg-primario' : '' }}">
+        <i class="bi bi-bounding-box fs-4 me-2"></i>
+        Espacios físicos
+    </a>
+</li>
+
+<li class="list-group-item bg-base border-secondary py-3 px-4">
+    <a href="{{ route('titulares.index') }}"
+        class="d-flex align-items-center text-white text-decoration-none p-2 rounded
+        {{ Route::is('titulares.*') ? 'fw-bold text-warning bg-primario' : '' }}">
+        <i class="bi bi-person-badge fs-4 me-2"></i>
+        Titulares
+    </a>
+</li>
+
+<li class="list-group-item bg-base border-secondary py-3 px-4">
+    <a href="{{ route('lotes.index') }}"
+        class="d-flex align-items-center text-white text-decoration-none p-2 rounded
+        {{ Route::is('lotes.*') ? 'fw-bold text-warning bg-primario' : '' }}">
+        <i class="bi bi-grid-3x3-gap fs-4 me-2"></i>
+        Lotes
+    </a>
+</li>
 
 
 @elseif(Auth::user()->rol == 2)

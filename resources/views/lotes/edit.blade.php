@@ -130,8 +130,8 @@
                     {{-- =============================
                      UBICACIÓN DINÁMICA (EDIT)
                     ============================== --}}
-                    <div class="mb-4 p-3 bg-light rounded border">
-                        <h6 class="text-muted mb-3"><i class="fas fa-map-marker-alt"></i> Ubicación del Lote</h6>
+                    <div class="mb-4 pt-3 ">
+                        <h6 class="text-muted mb-3"> Ubicación del Lote</h6>
                         <div class="row">
                             {{-- Select 1: Cuadrilla --}}
                             <div class="col-md-6 mb-2">
