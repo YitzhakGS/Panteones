@@ -113,44 +113,32 @@ class LotesController extends Controller
      * @param Lote $lote
      * @return RedirectResponse
      */
-    public function update(Request $request, Lote $lote): RedirectResponse
+    public function update(Request $request, Lote $lote, LoteService $loteService): RedirectResponse
     {
         $request->validate([
-            'numero'            => 'required|string|max:50',
-            'metros_cuadrados'  => 'nullable|numeric|min:0',
+            'numero' => 'required|string|max:50',
+            'metros_cuadrados' => 'nullable|numeric|min:0',
+            'id_espacio_fisico' => 'required|exists:espacios_fisicos,id_espacio_fisico',
 
-            'col_norte'         => 'nullable|string|max:255',
-            'col_sur'           => 'nullable|string|max:255',
-            'col_oriente'       => 'nullable|string|max:255',
-            'col_poniente'      => 'nullable|string|max:255',
+            'col_norte' => 'nullable|string|max:255',
+            'col_sur' => 'nullable|string|max:255',
+            'col_oriente' => 'nullable|string|max:255',
+            'col_poniente' => 'nullable|string|max:255',
 
-            'med_norte'         => 'nullable|numeric|min:0',
-            'med_sur'           => 'nullable|numeric|min:0',
-            'med_oriente'       => 'nullable|numeric|min:0',
-            'med_poniente'      => 'nullable|numeric|min:0',
+            'med_norte' => 'nullable|numeric|min:0',
+            'med_sur' => 'nullable|numeric|min:0',
+            'med_oriente' => 'nullable|numeric|min:0',
+            'med_poniente' => 'nullable|numeric|min:0',
 
-            'referencias'       => 'nullable|string',
+            'referencias' => 'nullable|string',
         ]);
 
-        $lote->update($request->only([
-            'numero',
-            'metros_cuadrados',
-            'col_norte',
-            'col_sur',
-            'col_oriente',
-            'col_poniente',
-            'med_norte',
-            'med_sur',
-            'med_oriente',
-            'med_poniente',
-            'referencias',
-        ]));
+        $loteService->update($lote, $request->all());
 
         return redirect()
             ->route('lotes.index')
             ->with('success', 'Lote actualizado correctamente.');
     }
-
     /**
      * Elimina un lote del sistema (Soft Delete).
      *

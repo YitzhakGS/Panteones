@@ -113,39 +113,53 @@
 
 
 <script>
+/**
+ * Lógica de interacción para la vista de detalle de Titulares.
+ * Incluye la confirmación de borrado y el traspaso de datos entre modales.
+ */
+
+/**
+ * Muestra una alerta de confirmación estética antes de eliminar un registro.
+ * Utiliza la librería SweetAlert2.
+ * * @param {number|string} id - El identificador único del registro a eliminar.
+ */
 function confirmarEliminacion(id) {
     Swal.fire({
         title: '¿Eliminar registro?',
         text: 'Esta acción no se puede deshacer',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
+        confirmButtonColor: '#d33', // Rojo para peligro
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
     }).then((result) => {
+        // Si el usuario confirma, se dispara el envío del formulario oculto
         if (result.isConfirmed) {
             document.getElementById(`delete-form-${id}`).submit();
         }
     });
 }
-</script>
 
-<script>
+/**
+ * Manejador para el botón "Editar" dentro del modal de visualización.
+ * Transfiere los datos del modal 'Show' al modal 'Edit' para evitar peticiones AJAX extra.
+ */
 document.getElementById('btnEditarTitular').addEventListener('click', function () {
 
+    // 1. Obtener el ID del registro desde el campo oculto del modal actual
     const id = document.getElementById('show_id').value;
 
-    // Cerrar modal show
-    bootstrap.Modal.getInstance(
-        document.getElementById('showTitularModal')
-    ).hide();
+    // 2. Cerrar el modal de visualización (Show) usando la instancia de Bootstrap
+    const modalShowElement = document.getElementById('showTitularModal');
+    bootstrap.Modal.getInstance(modalShowElement).hide();
 
-    // Set action del form
+    // 3. Configurar el formulario de edición
     const form = document.getElementById('editTitularForm');
-    form.action = `/titulares/${id}`;
+    form.action = `/titulares/${id}`; // Ruta RESTful para el Update
 
-    // Pasar datos
+    // 4. Traspaso de valores entre elementos del DOM
+    // Se toma el valor de los campos de 'show' y se asigna a los de 'edit'
     document.getElementById('edit_id').value        = id;
     document.getElementById('edit_familia').value   = document.getElementById('show_familia').value;
     document.getElementById('edit_domicilio').value = document.getElementById('show_domicilio').value;
@@ -155,8 +169,10 @@ document.getElementById('btnEditarTitular').addEventListener('click', function (
     document.getElementById('edit_estado').value    = document.getElementById('show_estado').value;
     document.getElementById('edit_telefono').value  = document.getElementById('show_telefono').value;
 
-    // Abrir modal edit
-    new bootstrap.Modal(document.getElementById('editTitularModal')).show();
+    // 5. Inicializar y mostrar el modal de edición
+    const modalEditElement = document.getElementById('editTitularModal');
+    const modalEdit = new bootstrap.Modal(modalEditElement);
+    modalEdit.show();
 });
 </script>
 

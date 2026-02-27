@@ -123,18 +123,34 @@
 
 
 @endsection
-
 @push('scripts')
 <script>
+/**
+ * Gestión del Módulo de Titulares
+ * Este script maneja el filtrado dinámico de tarjetas, el scroll de paginación
+ * y la carga de datos detallados en el modal de visualización.
+ */
+
+/**
+ * Buscador en tiempo real para las tarjetas de Titulares.
+ * Filtra las tarjetas basándose en el texto ingresado (insensible a mayúsculas).
+ */
 document.getElementById('searchTitular').addEventListener('keyup', function () {
     const value = this.value.toLowerCase();
+    
+    // Iteramos sobre todas las tarjetas de titulares disponibles en el DOM
     document.querySelectorAll('.titular-card').forEach(card => {
+        // Mostramos u ocultamos la tarjeta según si el texto coincide
         card.style.display = card.innerText.toLowerCase().includes(value)
             ? ''
             : 'none';
     });
 });
 
+/**
+ * Manejador de scroll para la paginación.
+ * Asegura que al cambiar de página, la vista regrese al inicio del contenedor.
+ */
 document.querySelectorAll('.pagination a').forEach(link => {
     link.addEventListener('click', () => {
         document.querySelector('.cards-scroll-container')
@@ -142,22 +158,33 @@ document.querySelectorAll('.pagination a').forEach(link => {
     });
 });
 
+/**
+ * Inicialización de eventos al cargar el DOM.
+ */
 document.addEventListener('DOMContentLoaded', function () {
 
     const showModal = document.getElementById('showTitularModal');
 
     if (showModal) {
+        /**
+         * Evento de Bootstrap que se dispara antes de mostrar el modal.
+         * @param {Event} event - El evento de Bootstrap que contiene el disparador.
+         */
         showModal.addEventListener('show.bs.modal', function (event) {
+            // Elemento (tarjeta o botón) que activó el modal
             const card = event.relatedTarget;
 
-            document.getElementById('show_id').value           = card.dataset.id;
-            document.getElementById('show_familia').value         = card.dataset.familia;
-            document.getElementById('show_domicilio').value       = card.dataset.domicilio;
-            document.getElementById('show_colonia').value         = card.dataset.colonia;
-            document.getElementById('show_cp').value              = card.dataset.cp;
-            document.getElementById('show_municipio').value       = card.dataset.municipio;
-            document.getElementById('show_estado').value          = card.dataset.estado;
-            document.getElementById('show_telefono').value        = card.dataset.telefono ?? '—';
+            // Llenado de los campos del formulario de visualización (lectura)
+            document.getElementById('show_id').value        = card.dataset.id;
+            document.getElementById('show_familia').value   = card.dataset.familia;
+            document.getElementById('show_domicilio').value = card.dataset.domicilio;
+            document.getElementById('show_colonia').value   = card.dataset.colonia;
+            document.getElementById('show_cp').value        = card.dataset.cp;
+            document.getElementById('show_municipio').value = card.dataset.municipio;
+            document.getElementById('show_estado').value    = card.dataset.estado;
+            
+            // Uso de Operador Nullish (??) para mostrar un guion si no hay teléfono
+            document.getElementById('show_telefono').value  = card.dataset.telefono ?? '—';
         });
     }
 });

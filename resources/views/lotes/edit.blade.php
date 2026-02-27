@@ -13,7 +13,9 @@
                   method="POST">
                 @csrf
                 @method('PUT')
-
+                <input type="hidden"
+                    id="current_espacio_id"
+                    value="{{ optional($lote->espacioActual)->id_espacio_fisico }}">
                 <div class="modal-body">
 
                     {{-- =============================
@@ -130,7 +132,7 @@
                     {{-- =============================
                      UBICACIÓN DINÁMICA (EDIT)
                     ============================== --}}
-                    <div class="mb-4 pt-3 ">
+                    <div class="mb-4 pt-3 border-top">
                         <h6 class="text-muted mb-3"> Ubicación del Lote</h6>
                         <div class="row">
                             {{-- Select 1: Cuadrilla --}}
@@ -200,61 +202,100 @@
 
 
 <script>
-// Lógica para el Modal de EDIT
+/**
+ * Lógica Interactiva para el Formulario de Edición de Lotes.
+ * Gestiona la carga dinámica de áreas mediante AJAX y el cálculo
+ * automático de superficie basado en las medidas perimetrales.
+ */
+
+/* ==========================================================================
+   SELECTS DEPENDIENTES (Cuadrilla -> Espacio)
+   ========================================================================== */
+
+/**
+ * Escucha cambios en el select de Cuadrilla para actualizar el select de Espacios.
+ * Implementa un estado de carga y manejo de errores.
+ */
 document.getElementById('edit-select-cuadrilla-ajax').addEventListener('change', function() {
     const idCuadrilla = this.value;
     const selectEspacio = document.getElementById('edit-select-espacio-ajax');
 
+    // Estado visual de carga
     selectEspacio.innerHTML = '<option value="">Cargando áreas...</option>';
     selectEspacio.disabled = true;
 
+    // Si se limpia la selección de cuadrilla
     if (!idCuadrilla) {
         selectEspacio.innerHTML = '<option value="">Primero elija una cuadrilla...</option>';
         return;
     }
 
-    fetch(`/api/cuadrillas/${idCuadrilla}/espacios`)
-        .then(response => response.json())
-        .then(data => {
-            selectEspacio.innerHTML = '<option value="">-- Seleccione el Área Específica --</option>';
-            data.forEach(espacio => {
-                const option = document.createElement('option');
-                option.value = espacio.id;
-                option.textContent = `${espacio.tipo} ${espacio.nombre}`;
-                selectEspacio.appendChild(option);
-            });
-            selectEspacio.disabled = false;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            selectEspacio.innerHTML = '<option value="">Error al cargar áreas</option>';
+    // Petición asíncrona a la API de espacios físicos
+   fetch(`/api/cuadrillas/${idCuadrilla}/espacios`)
+    .then(response => response.json())
+    .then(data => {
+        selectEspacio.innerHTML = '<option value="">-- Seleccione el Área Específica --</option>';
+
+        const currentEspacioId =
+            document.getElementById('current_espacio_id')?.value;
+
+        data.forEach(espacio => {
+            const option = document.createElement('option');
+            option.value = espacio.id;
+            option.textContent = `${espacio.tipo} ${espacio.nombre}`;
+
+            // 🔥 AQUÍ ESTÁ LA MAGIA
+            if (currentEspacioId && espacio.id == currentEspacioId) {
+                option.selected = true;
+            }
+
+            selectEspacio.appendChild(option);
         });
+
+        selectEspacio.disabled = false;
+    })
+    .catch(error => {
+        console.error('Error al obtener espacios:', error);
+        selectEspacio.innerHTML = '<option value="">Error al cargar áreas</option>';
+    });
 });
+
+/* ==========================================================================
+   CÁLCULO AUTOMÁTICO DE SUPERFICIE
+   ========================================================================== */
 
 const editModal = document.getElementById('editLoteModal');
 
+/**
+ * Escucha cualquier entrada de texto en el modal de edición.
+ * Filtra los eventos 'input' para disparar el cálculo solo en campos de medidas.
+ */
 editModal.addEventListener('input', function (e) {
-    if (
-        e.target.name === 'med_norte' ||
-        e.target.name === 'med_sur' ||
-        e.target.name === 'med_oriente' ||
-        e.target.name === 'med_poniente'
-    ) {
+    const camposMedidas = ['med_norte', 'med_sur', 'med_oriente', 'med_poniente'];
+    
+    if (camposMedidas.includes(e.target.name)) {
         calcularSuperficieEdit();
     }
 });
 
+/**
+ * Calcula la superficie (m²) del lote usando el promedio de sus lados.
+ * Aplica la fórmula: ((Norte + Sur) / 2) * ((Oriente + Poniente) / 2)
+ */
 function calcularSuperficieEdit() {
+    // Obtención de valores y conversión a flotante (0 si es inválido)
     const norte    = parseFloat(document.querySelector('#editLoteModal [name="med_norte"]').value) || 0;
     const sur      = parseFloat(document.querySelector('#editLoteModal [name="med_sur"]').value) || 0;
     const oriente  = parseFloat(document.querySelector('#editLoteModal [name="med_oriente"]').value) || 0;
     const poniente = parseFloat(document.querySelector('#editLoteModal [name="med_poniente"]').value) || 0;
 
+    // Validación: Se requiere al menos un valor de eje vertical y uno horizontal
     if ((norte > 0 || sur > 0) && (oriente > 0 || poniente > 0)) {
         const anchoPromedio = (norte + sur) / 2;
         const largoPromedio = (oriente + poniente) / 2;
         const superficie = anchoPromedio * largoPromedio;
 
+        // Actualización del campo de metros cuadrados con 2 decimales
         document.getElementById('edit_metros_cuadrados').value =
             superficie > 0 ? superficie.toFixed(2) : '';
     }

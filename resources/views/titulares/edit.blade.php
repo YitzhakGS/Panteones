@@ -79,15 +79,33 @@
 </div>
 
 <script>
+/**
+ * Control de flujo para el Modal de Edición de Titulares.
+ * Este script garantiza que si el usuario cierra el modal sin guardar cambios,
+ * sea redirigido automáticamente a la lista principal para limpiar el estado de la vista.
+ */
+
+/** * @type {boolean} formSubmitted - Bandera para rastrear si el usuario hizo clic en "Guardar".
+ */
 let formSubmitted = false;
 
+/**
+ * Escucha el evento de envío del formulario.
+ * Si el formulario pasa las validaciones y se envía, desactivamos la redirección automática.
+ */
 document.getElementById('editTitularForm').addEventListener('submit', () => {
     formSubmitted = true;
 });
 
+/**
+ * Evento de Bootstrap que se dispara cuando el modal termina de ocultarse.
+ * Se encarga de la redirección si la edición fue cancelada.
+ */
 document.getElementById('editTitularModal')
     .addEventListener('hidden.bs.modal', function () {
 
+        // Si el modal se cerró (clic fuera, botón X o Cancelar) 
+        // pero NO se envió el formulario, forzamos el regreso al index.
         if (!formSubmitted) {
             window.location.href = "{{ route('titulares.index') }}";
         }

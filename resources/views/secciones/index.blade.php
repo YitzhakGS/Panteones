@@ -107,16 +107,23 @@
 
 @push('scripts')
 <script>
+/**
+ * Gestión del Módulo de Secciones
+ * Script encargado de la lógica para visualizar y editar las secciones
+ * administrativas del sistema mediante modales de Bootstrap.
+ */
+
 document.addEventListener('DOMContentLoaded', function () {
     console.log('JS DE SECCIONES UNIFICADO Y CARGADO');
 
-    // 1. Referencias a los modales
+    /** * @description Objeto que centraliza las referencias a los modales del DOM.
+     */
     const modales = {
         edit: document.getElementById('editSeccionModal'),
         show: document.getElementById('showSeccionModal')
     };
 
-    // 2. Inicialización de Listeners
+    // Inicialización de escuchadores de eventos para los modales
     if (modales.edit) {
         modales.edit.addEventListener('show.bs.modal', handleEditModal);
     }
@@ -126,24 +133,37 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-/* ==============================
-   HANDLERS
-================================ */
+/* ==========================================================================
+   HANDLERS (Manejadores de Eventos)
+   ========================================================================== */
 
+/**
+ * Procesa la apertura del modal de edición.
+ * @param {Event} event - Evento disparado por Bootstrap.
+ */
 function handleEditModal(event) {
     const data = getDataset(event.relatedTarget);
     fillEditModal(data);
 }
 
+/**
+ * Procesa la apertura del modal de visualización.
+ * @param {Event} event - Evento disparado por Bootstrap.
+ */
 function handleShowModal(event) {
     const data = getDataset(event.relatedTarget);
     fillShowModal(data);
 }
 
-/* ==============================
-   HELPERS (Extracción de datos)
-================================ */
+/* ==========================================================================
+   HELPERS (Extracción de Datos)
+   ========================================================================== */
 
+/**
+ * Extrae la información de la sección desde los atributos 'data-' del botón.
+ * @param {HTMLElement} button - El botón que activó el modal.
+ * @returns {Object} Objeto con id y nombre de la sección.
+ */
 function getDataset(button) {
     return {
         id: button.dataset.id,
@@ -151,25 +171,32 @@ function getDataset(button) {
     };
 }
 
-/* ==============================
-   MODAL EDIT
-================================ */
+/* ==========================================================================
+   MODAL EDIT (Llenado de Formulario)
+   ========================================================================== */
 
+/**
+ * Prepara el formulario de edición con los datos de la sección seleccionada.
+ * @param {Object} data - Datos obtenidos vía getDataset.
+ */
 function fillEditModal(data) {
-    // Llenar el input
+    // Asigna el nombre actual al input de edición
     document.getElementById('edit_nombre').value = data.nombre;
 
-    // Ajustar la ruta del formulario
+    // Actualiza la URL de destino del formulario (endpoint de actualización)
     const form = document.getElementById('editSeccionForm');
     form.action = `/secciones/${data.id}`;
 }
 
-/* ==============================
-   MODAL SHOW
-================================ */
+/* ==========================================================================
+   MODAL SHOW (Visualización de Información)
+   ========================================================================== */
 
+/**
+ * Muestra el nombre de la sección en el modal de detalles.
+ * @param {Object} data - Datos obtenidos vía getDataset.
+ */
 function fillShowModal(data) {
-    // Llenar el texto estático
     document.getElementById('show_nombre').textContent = data.nombre;
 }
 </script>

@@ -188,14 +188,27 @@
 
 {{-- Modales --}}
 @include('lotes.create')
-@include('lotes.edit')
+{{-- Modal editar (solo si hay lotes) --}}
+@if ($lotes->count() > 0)
+    @include('lotes.edit')
+@endif
+
+
 @include('lotes.show')
 
 @endsection
 
 @push('scripts')
 <script>
+/**
+ * Gestión del Módulo de Lotes
+ * Maneja el filtrado de tablas, scroll dinámico y la carga de datos vía AJAX
+ * para la visualización y edición de lotes, incluyendo carga de áreas dependientes.
+ */
 
+/**
+ * Filtro de búsqueda para la tabla de lotes.
+ */
 document.getElementById('searchLote').addEventListener('keyup', function () {
     const value = this.value.toLowerCase();
 
@@ -206,7 +219,9 @@ document.getElementById('searchLote').addEventListener('keyup', function () {
     });
 });
 
-
+/**
+ * Control de scroll suave para la paginación.
+ */
 document.querySelectorAll('.pagination a').forEach(link => {
     link.addEventListener('click', () => {
         document.querySelector('.cards-scroll-container')
@@ -214,130 +229,110 @@ document.querySelectorAll('.pagination a').forEach(link => {
     });
 });
 
-document.addEventListener('DOMContentLoaded', function () {
+/* ==========================================================================
+   INICIALIZACIÓN DE MODALES (SHOW / EDIT)
+   ========================================================================== */
 
+document.addEventListener('DOMContentLoaded', function () {
     const showModal = document.getElementById('showLoteModal');
+    const editModal = document.getElementById('editLoteModal');
 
     if (showModal) {
         showModal.addEventListener('show.bs.modal', handleShowLoteModal);
     }
-
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', handleEditLoteModal);
+    }
 });
 
+/* ==========================================================================
+   MANEJADORES DE DATOS (AJAX FETCH)
+   ========================================================================== */
+
+/**
+ * Obtiene los datos de un lote desde el servidor para el modal de visualización.
+ * @param {Event} event - Evento show.bs.modal de Bootstrap.
+ */
 function handleShowLoteModal(event) {
     const button = event.relatedTarget;
     const loteId = button.dataset.id;
 
     fetch(`/lotes/${loteId}/data`, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(response => response.json())
     .then(data => fillShowLoteModal(data))
-    .catch(() => {
-        alert('Error al cargar la información del lote');
-    });
+    .catch(() => alert('Error al cargar la información del lote'));
 }
 
-function fillShowLoteModal(data) {
-
-    document.getElementById('show_lote_numero').textContent =
-        data.numero;
-
-    document.getElementById('show_lote_superficie').textContent =
-        data.metros_cuadrados;
-
-    document.getElementById('show_med_norte').textContent =
-        data.med_norte ?? '—';
-
-    document.getElementById('show_med_sur').textContent =
-        data.med_sur ?? '—';
-
-    document.getElementById('show_med_oriente').textContent =
-        data.med_oriente ?? '—';
-
-    document.getElementById('show_med_poniente').textContent =
-        data.med_poniente ?? '—';
-
-    document.getElementById('show_col_norte').textContent =
-        data.col_norte ?? '—';
-
-    document.getElementById('show_col_sur').textContent =
-        data.col_sur ?? '—';
-
-    document.getElementById('show_col_oriente').textContent =
-        data.col_oriente ?? '—';
-
-    document.getElementById('show_col_poniente').textContent =
-        data.col_poniente ?? '—';
-
-    document.getElementById('show_lote_referencias').textContent =
-        data.referencias || 'Sin referencias';
-
-    document.getElementById('show_lote_ubicacion').textContent =
-        data.ubicacion;
-}
-
-
-
-
-document.addEventListener('DOMContentLoaded', function () {
-
-    const editModal = document.getElementById('editLoteModal');
-
-    if (editModal) {
-        editModal.addEventListener('show.bs.modal', handleEditLoteModal);
-    }
-
-});
-
+/**
+ * Obtiene los datos de un lote y gestiona la carga de selects para edición.
+ * @param {Event} event - Evento show.bs.modal de Bootstrap.
+ */
 function handleEditLoteModal(event) {
-
     const button = event.relatedTarget;
     const loteId = button.dataset.id;
 
     fetch(`/lotes/${loteId}/data`, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(response => response.json())
     .then(data => fillEditLoteModal(data))
-    .catch(() => {
-        alert('Error al cargar la información del lote');
-    });
+    .catch(() => alert('Error al cargar la información del lote'));
 }
 
+/* ==========================================================================
+   LLENADO DE CAMPOS (DOM MANIPULATION)
+   ========================================================================== */
+
+/**
+ * Inserta los datos del lote en los elementos de texto del modal de visualización.
+ * @param {Object} data - Objeto con la información completa del lote.
+ */
+function fillShowLoteModal(data) {
+    document.getElementById('show_lote_numero').textContent = data.numero;
+    document.getElementById('show_lote_superficie').textContent = data.metros_cuadrados;
+
+    // Asignación con operador de nulidad para colindancias
+    const fields = ['med_norte', 'med_sur', 'med_oriente', 'med_poniente', 
+                    'col_norte', 'col_sur', 'col_oriente', 'col_poniente'];
+    
+    fields.forEach(field => {
+        document.getElementById(`show_${field}`).textContent = data[field] ?? '—';
+    });
+
+    document.getElementById('show_lote_referencias').textContent = data.referencias || 'Sin referencias';
+    document.getElementById('show_lote_ubicacion').textContent = data.ubicacion;
+}
+
+/**
+ * Puebla el formulario de edición y gestiona la carga asíncrona de espacios físicos.
+ * @param {Object} data - Objeto con la información del lote y sus relaciones.
+ */
 function fillEditLoteModal(data) {
     const modal = document.getElementById('editLoteModal');
     const form = document.getElementById('editLoteForm');
 
-    // Actualizar action del form
     form.action = `/lotes/${data.id_lote}`;
 
-    // Llenar campos por NAME dentro del contexto del modal
+    /**
+     * Helper interno para asignar valores a inputs por su atributo name.
+     * @param {string} name - Atributo name del input.
+     * @param {any} val - Valor a asignar.
+     */
     const setVal = (name, val) => {
         const input = modal.querySelector(`[name="${name}"]`);
         if (input) input.value = val ?? '';
     };
 
+    // Llenado de campos básicos
     setVal('numero', data.numero);
-    // IMPORTANTE: Tu input de metros_cuadrados tiene ID 'edit_metros_cuadrados'
     document.getElementById('edit_metros_cuadrados').value = data.metros_cuadrados ?? '';
     
-    setVal('med_norte', data.med_norte);
-    setVal('med_sur', data.med_sur);
-    setVal('med_oriente', data.med_oriente);
-    setVal('med_poniente', data.med_poniente);
-    
-    setVal('col_norte', data.col_norte);
-    setVal('col_sur', data.col_sur);
-    setVal('col_oriente', data.col_oriente);
-    setVal('col_poniente', data.col_poniente);
-    setVal('referencias', data.referencias);
+    ['med_norte', 'med_sur', 'med_oriente', 'med_poniente', 
+     'col_norte', 'col_sur', 'col_oriente', 'col_poniente', 'referencias'].forEach(f => setVal(f, data[f]));
 
-    // Lógica de Selects (Cuadrilla y Espacio)
+    // Lógica de Selects Dependientes (Cuadrilla -> Espacio)
     const selectCuadrilla = document.getElementById('edit-select-cuadrilla-ajax');
     const selectEspacio = document.getElementById('edit-select-espacio-ajax');
 
@@ -345,6 +340,8 @@ function fillEditLoteModal(data) {
     
     if (data.id_cuadrilla) {
         selectEspacio.innerHTML = '<option value="">Cargando áreas...</option>';
+        
+        // Petición AJAX para obtener espacios basados en la cuadrilla seleccionada
         fetch(`/api/cuadrillas/${data.id_cuadrilla}/espacios`)
             .then(response => response.json())
             .then(espacios => {
@@ -353,6 +350,7 @@ function fillEditLoteModal(data) {
                     const option = document.createElement('option');
                     option.value = espacio.id;
                     option.textContent = `${espacio.tipo} ${espacio.nombre}`;
+                    // Mantiene la selección actual si coincide con el dato del lote
                     if (espacio.id == data.id_espacio_fisico) option.selected = true;
                     selectEspacio.appendChild(option);
                 });

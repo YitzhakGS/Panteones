@@ -107,82 +107,112 @@
 @include('cuadrillas.show')
 
 @endsection
-    @push('scripts')
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        console.log('JS CUADRILLAS CARGADO');
+@push('scripts')
+<script>
+/**
+ * Gestión de Modales para el Módulo de Cuadrillas
+ * Este script maneja la inicialización, extracción de datos y llenado dinámico
+ * de los modales de Edición y Visualización utilizando Bootstrap 5.
+ */
 
-        const modales = {
-            edit: document.getElementById('editCuadrillaModal'),
-            show: document.getElementById('showCuadrillaModal')
-        };
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('JS CUADRILLAS CARGADO');
 
-        if (modales.edit) {
-            modales.edit.addEventListener('show.bs.modal', handleEditModal);
-        }
+    // Referencias a los elementos del DOM de los modales
+    const modales = {
+        edit: document.getElementById('editCuadrillaModal'),
+        show: document.getElementById('showCuadrillaModal')
+    };
 
-        if (modales.show) {
-            modales.show.addEventListener('show.bs.modal', handleShowModal);
-        }
-    });
-
-    /* ==============================
-    HANDLERS (Manejadores)
-    ================================ */
-
-    function handleEditModal(event) {
-        const data = getDataset(event.relatedTarget);
-        fillEditModal(data);
+    // Asignación de eventos 'show.bs.modal' (se dispara justo antes de mostrarse)
+    if (modales.edit) {
+        modales.edit.addEventListener('show.bs.modal', handleEditModal);
     }
 
-    function handleShowModal(event) {
-        const data = getDataset(event.relatedTarget);
-        fillShowModal(data);
+    if (modales.show) {
+        modales.show.addEventListener('show.bs.modal', handleShowModal);
     }
+});
 
-    /* ==============================
-    HELPERS (Extracción de datos)
-    ================================ */
+/* ==========================================================================
+   HANDLERS (Manejadores de Eventos)
+   ========================================================================== */
 
-    function getDataset(button) {
-        // Aquí centralizamos la captura de datos
-        return {
-            id: button.dataset.id,
-            nombre: button.dataset.nombre,
-            idSeccion: button.dataset.id_seccion,
-            seccionNombre: button.dataset.seccion,
-            // Manejamos el JSON de forma segura
-            espacios: button.dataset.espacios ? JSON.parse(button.dataset.espacios) : []
-        };
+/**
+ * Gestiona la lógica cuando se abre el modal de edición.
+ * @param {Event} event - Evento nativo de Bootstrap.
+ */
+function handleEditModal(event) {
+    // relatedTarget es el botón que activó el modal
+    const data = getDataset(event.relatedTarget);
+    fillEditModal(data);
+}
+
+/**
+ * Gestiona la lógica cuando se abre el modal de visualización.
+ * @param {Event} event - Evento nativo de Bootstrap.
+ */
+function handleShowModal(event) {
+    const data = getDataset(event.relatedTarget);
+    fillShowModal(data);
+}
+
+/* ==========================================================================
+   HELPERS (Utilidades de Extracción)
+   ========================================================================== */
+
+/**
+ * Centraliza la extracción de atributos 'data-' del botón disparador.
+ * @param {HTMLElement} button - El botón que contiene los atributos data.
+ * @returns {Object} Objeto con la información de la cuadrilla formateada.
+ */
+function getDataset(button) {
+    return {
+        id: button.dataset.id,
+        nombre: button.dataset.nombre,
+        idSeccion: button.dataset.id_seccion,
+        seccionNombre: button.dataset.seccion,
+        // Intenta parsear el JSON de espacios; si falla o no existe, devuelve array vacío
+        espacios: button.dataset.espacios ? JSON.parse(button.dataset.espacios) : []
+    };
+}
+
+/* ==========================================================================
+   MODAL EDIT (Llenado de Formulario)
+   ========================================================================== */
+
+/**
+ * Puebla los inputs del formulario de edición y actualiza la URL del action.
+ * @param {Object} data - Datos obtenidos desde getDataset.
+ */
+function fillEditModal(data) {
+    document.getElementById('edit_nombre').value = data.nombre;
+    document.getElementById('edit_id_seccion').value = data.idSeccion;
+
+    const form = document.getElementById('editCuadrillaForm');
+    // Actualiza dinámicamente el endpoint para el envío (Laravel RESTful)
+    form.action = `/cuadrillas/${data.id}`;
+}
+
+/* ==========================================================================
+   MODAL SHOW (Visualización de Información)
+   ========================================================================== */
+
+/**
+ * Renderiza la información de la cuadrilla en el modal de vista previa.
+ * @param {Object} data - Datos obtenidos desde getDataset.
+ */
+function fillShowModal(data) {
+    document.getElementById('show_cuadrilla_nombre').textContent = data.nombre;
+    document.getElementById('show_seccion_nombre').textContent = data.seccionNombre;
+
+    const lista = document.getElementById('show_espacios_fisicos');
+    if (lista) {
+        // Genera una lista <li> por cada espacio físico o muestra un mensaje de vacío
+        lista.innerHTML = data.espacios.length > 0 
+            ? data.espacios.map(e => `<li class="list-group-item">${e.nombre}</li>`).join('')
+            : '<li class="list-group-item text-muted">Sin espacios asignados</li>';
     }
-
-    /* ==============================
-    MODAL EDIT (Llenar formulario)
-    ================================ */
-
-    function fillEditModal(data) {
-        document.getElementById('edit_nombre').value = data.nombre;
-        document.getElementById('edit_id_seccion').value = data.idSeccion;
-
-        const form = document.getElementById('editCuadrillaForm');
-        // Asegúrate de que el nombre del recurso sea el correcto (plural/singular)
-        form.action = `/cuadrillas/${data.id}`;
-    }
-
-    /* ==============================
-    MODAL SHOW (Mostrar información)
-    ================================ */
-
-    function fillShowModal(data) {
-        document.getElementById('show_cuadrilla_nombre').textContent = data.nombre;
-        document.getElementById('show_seccion_nombre').textContent = data.seccionNombre;
-
-        const lista = document.getElementById('show_espacios_fisicos');
-        if (lista) {
-            lista.innerHTML = data.espacios.length > 0 
-                ? data.espacios.map(e => `<li class="list-group-item">${e.nombre}</li>`).join('')
-                : '<li class="list-group-item text-muted">Sin espacios asignados</li>';
-        }
-    }
-    </script>
-    @endpush
+}
+</script>
+@endpush

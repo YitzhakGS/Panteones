@@ -144,67 +144,97 @@
 </div>
 
 <script>
+/**
+ * Lógica para la Creación de Lotes
+ * Maneja el cálculo automático de dimensiones y la carga dinámica de 
+ * ubicaciones físicas mediante peticiones asíncronas.
+ */
 
+/* ==========================================================================
+   CÁLCULO DE SUPERFICIE (MODO CREACIÓN)
+   ========================================================================== */
+
+/**
+ * Escucha global de entradas de datos para calcular la superficie automáticamente.
+ */
 document.addEventListener('input', calcularSuperficie);
 
+/**
+ * Calcula el área total del lote basándose en el promedio de sus colindancias.
+ * @returns {void} Actualiza el valor del input #metros_cuadrados.
+ */
 function calcularSuperficie() {
+    // Extracción de valores numéricos de los inputs de medidas
     const norte    = parseFloat(document.querySelector('[name="med_norte"]').value) || 0;
     const sur      = parseFloat(document.querySelector('[name="med_sur"]').value) || 0;
     const oriente  = parseFloat(document.querySelector('[name="med_oriente"]').value) || 0;
     const poniente = parseFloat(document.querySelector('[name="med_poniente"]').value) || 0;
 
-    // Verificamos que al menos haya un par válido
+    /**
+     * Validación lógica: 
+     * Se requiere al menos una medida en el eje X y una en el eje Y para promediar.
+     */
     if ((norte > 0 || sur > 0) && (oriente > 0 || poniente > 0)) {
 
+        // Cálculo de promedios para terrenos con formas irregulares
         const anchoPromedio = ((norte + sur) / 2) || 0;
         const largoPromedio = ((oriente + poniente) / 2) || 0;
 
         const superficie = anchoPromedio * largoPromedio;
 
+        // Formatea el resultado a 2 decimales si el valor es válido
         document.getElementById('metros_cuadrados').value =
             superficie > 0 ? superficie.toFixed(2) : '';
     }
 }
 
+/* ==========================================================================
+   CARGA ASÍNCRONA DE ÁREAS (MODO CREACIÓN)
+   ========================================================================== */
+
+/**
+ * Gestiona la dependencia entre el select de Cuadrilla y el de Espacio Físico.
+ */
 document.getElementById('select-cuadrilla-ajax').addEventListener('change', function() {
     const idCuadrilla = this.value;
     const selectEspacio = document.getElementById('select-espacio-ajax');
 
-    // Limpiamos el select de áreas y lo ponemos en estado "Cargando"
+    // Estado inicial: Limpiar opciones y deshabilitar mientras carga
     selectEspacio.innerHTML = '<option value="">Cargando áreas...</option>';
     selectEspacio.disabled = true;
 
+    // Validación de selección nula
     if (!idCuadrilla) {
         selectEspacio.innerHTML = '<option value="">Primero elija una cuadrilla...</option>';
         return;
     }
 
-    // Petición AJAX al servidor
+    /**
+     * Fetch API: Solicita al servidor los espacios asociados a la cuadrilla.
+     */
     fetch(`/api/cuadrillas/${idCuadrilla}/espacios`)
         .then(response => {
-            if (!response.ok) throw new Error('Error en la red');
+            if (!response.ok) throw new Error('Error en la respuesta del servidor');
             return response.json();
         })
         .then(data => {
-            // Limpiamos y llenamos con la data real
+            // Reiniciar select con opción por defecto
             selectEspacio.innerHTML = '<option value="">-- Seleccione el Área Específica --</option>';
             
+            // Generación dinámica de nodos <option>
             data.forEach(espacio => {
                 const option = document.createElement('option');
-                // 1. Usamos .id porque así lo definimos en el map() del controlador
+                // Valor interno (ID de la DB) y texto descriptivo concatenado
                 option.value = espacio.id; 
-                
-                // 2. Concatenamos el nombre y el tipo: "Lote 1 - [Tipo]"
                 option.textContent = `${espacio.tipo} ${espacio.nombre}`;
-                
                 selectEspacio.appendChild(option);
             });
 
-            // Habilitamos el select solo si hay datos
+            // Habilitar para interacción del usuario
             selectEspacio.disabled = false;
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Error AJAX:', error);
             selectEspacio.innerHTML = '<option value="">Error al cargar áreas</option>';
         });
 });

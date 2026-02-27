@@ -106,18 +106,24 @@
 @include('espacios_fisicos.show')
 
 @endsection
-
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+/**
+ * Gestión del Módulo de Espacios Físicos
+ * Maneja la lógica de visualización, edición y navegación (scroll) 
+ * para la administración de ubicaciones físicas.
+ */
 
+document.addEventListener('DOMContentLoaded', function () {
     console.log('JS ESPACIOS FÍSICOS CARGADO');
 
+    // Referencias a los contenedores modales de Bootstrap
     const modales = {
         edit: document.getElementById('editEspacioFisicoModal'),
         show: document.getElementById('showEspacioFisicoModal')
     };
 
+    // Inicialización de escuchadores para modales
     if (modales.edit) {
         modales.edit.addEventListener('show.bs.modal', handleEditModal);
     }
@@ -126,20 +132,25 @@ document.addEventListener('DOMContentLoaded', function () {
         modales.show.addEventListener('show.bs.modal', handleShowModal);
     }
 
+    /**
+     * Mejora de UX para la paginación:
+     * Al hacer clic en cualquier enlace de la paginación, el contenedor de tarjetas
+     * vuelve a la parte superior con una animación suave.
+     */
     document.querySelectorAll('.pagination a').forEach(link => {
         link.addEventListener('click', () => {
             document.querySelector('.cards-scroll-container')
                 ?.scrollTo({ top: 0, behavior: 'smooth' });
         });
     });
-
 });
 
-/* ==============================
-   HANDLERS
-================================ */
+/* ==========================================================================
+   HANDLERS (Manejadores de Eventos)
+   ========================================================================== */
 
 function handleEditModal(event) {
+    // relatedTarget obtiene el botón exacto que disparó el evento
     const data = getDataset(event.relatedTarget);
     fillEditModal(data);
 }
@@ -149,10 +160,15 @@ function handleShowModal(event) {
     fillShowModal(data);
 }
 
-/* ==============================
-   HELPERS
-================================ */
+/* ==========================================================================
+   HELPERS (Extracción de Atributos)
+   ========================================================================== */
 
+/**
+ * Mapea los atributos 'data-' del HTML a un objeto literal de JavaScript.
+ * @param {HTMLElement} button - El disparador (trigger) del modal.
+ * @returns {Object} Diccionario con la información del Espacio Físico.
+ */
 function getDataset(button) {
     return {
         id: button.dataset.id,
@@ -166,24 +182,34 @@ function getDataset(button) {
     };
 }
 
-/* ==============================
-   MODAL EDIT
-================================ */
+/* ==========================================================================
+   MODAL EDIT (Preparación de Formulario)
+   ========================================================================== */
 
+/**
+ * Asigna los valores actuales al formulario de edición.
+ * @param {Object} data - Objeto con los datos del registro.
+ */
 function fillEditModal(data) {
     document.getElementById('edit_nombre').value = data.nombre;
+    // Operador Nullish coalescing (??) para manejar descripciones vacías de forma segura
     document.getElementById('edit_descripcion').value = data.descripcion ?? '';
     document.getElementById('edit_id_cuadrilla').value = data.idCuadrilla;
     document.getElementById('edit_id_tipo_espacio_fisico').value = data.idTipo;
 
+    // Actualiza la ruta del formulario para el método PUT/PATCH de Laravel
     const form = document.getElementById('editEspacioFisicoForm');
     form.action = `/espacios_fisicos/${data.id}`;
 }
 
-/* ==============================
-   MODAL SHOW
-================================ */
+/* ==========================================================================
+   MODAL SHOW (Carga de Información)
+   ========================================================================== */
 
+/**
+ * Inyecta el texto del registro seleccionado en los elementos de visualización.
+ * @param {Object} data - Objeto con los datos del registro.
+ */
 function fillShowModal(data) {
     document.getElementById('show_nombre').textContent = data.nombre;
     document.getElementById('show_descripcion').textContent = data.descripcion || 'Sin descripción';
