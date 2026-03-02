@@ -69,4 +69,17 @@ class Lote extends Model
 
         return trim("{$seccion}\n{$cuadrilla}\n{$tipo} {$nombre}");
     }
+
+    public function concesiones()
+    {
+        return $this->hasMany(Concesion::class, 'lote_id');
+    }
+
+    // 🔥 Concesión activa
+    public function concesionActiva()
+    {
+        return $this->hasOne(Concesion::class, 'lote_id')
+            ->whereNull('fecha_fin')
+            ->whereHas('estatus', fn($q) => $q->where('nombre', 'Vigente'));
+    }
 }

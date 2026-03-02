@@ -18,6 +18,6 @@ class CatUsoFunerario extends Model
 
     public function lotes()
     {
-        //return $this->hasMany(Concesion::class, 'id_uso_funerario');
+        return $this->hasMany(Concesion::class, 'id_uso_funerario');
     }
 }

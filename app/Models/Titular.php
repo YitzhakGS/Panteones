@@ -36,4 +36,9 @@ class Titular extends Model
     | - concesiones
     |
     */
-}
+
+    public function concesiones()
+    {
+        return $this->hasMany(Concesion::class, 'titular_id');
+    }
+    }
