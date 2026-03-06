@@ -1,26 +1,27 @@
 @extends('layouts.app')
 <head>
-    <!-- CSS global -->
-    <link rel="stylesheet" href="{{ asset('css/css-view/css_cards.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/css-view/css_cards_titulares.css') }}">
     @stack('styles')
 </head>
-
 
 @section('content')
 <div class="row">
     <div class="col-12">
-        <div class=" page-title-box mb-3 d-flex align-items-center justify-content-between" style="padding-bottom: 5px; margin-bottom: 0 !important;">
+        <div class="page-title-box mb-3 d-flex align-items-center justify-content-between"
+             style="padding-bottom: 5px; margin-bottom: 0 !important;">
             <h4 class="page-title mb-0 font-size-18">
                 <i class="bi bi-people"></i> Titulares
             </h4>
         </div>
     </div>
 </div>
+
 <div class="titulares-wrapper">
-    {{-- Barra de búsqueda + botón --}}
+
+    {{-- Barra superior --}}
     <div class="titulares-header mb-3 row align-items-center">
         <div class="col-md-4 text-start">
-            <button type="button" class="btn bg-base text-white mb-2"
+            <button type="button" class="btn bg-base text-white"
                 data-bs-toggle="modal" data-bs-target="#createTitularModal">
                 <i class="bi bi-plus-circle"></i> Nuevo Titular
             </button>
@@ -31,22 +32,23 @@
         </div>
     </div>
 
-    {{-- Contenedor principal CARDS --}}
+    {{-- Cards --}}
     <div class="card-area">
+        <div class="cards-scroll-container border rounded p-2 bg-light">
 
-        {{-- Scroll container  --}}
-        <div class="cards-scroll-container border rounded p-2 bg-light" style="padding-bottom: 15px !important;">
-
-            {{-- Cards --}}
-            <div class="card-container" style="padding-bottom: 20px;">
+            <div class="card-container">
                 @forelse ($titulares as $titular)
-                    <div class="card card-titular mb-2 titular-card shadow-sm"
+
+                    @php
+                        // iniciales para el avatar: se toman las primeras letras de las dos primeras palabras del nombre de la familia
+                        $palabras   = explode(' ', trim($titular->familia));
+                        $iniciales  = strtoupper(substr($palabras[0] ?? '', 0, 1) . substr($palabras[1] ?? '', 0, 1));
+                    @endphp
+
+                    <div class="titular-card"
                         role="button"
-                        style="cursor: pointer"
                         data-bs-toggle="modal"
                         data-bs-target="#showTitularModal"
-
-                        {{-- DATA PARA EL MODAL --}}
                         data-id="{{ $titular->id_titular }}"
                         data-familia="{{ $titular->familia }}"
                         data-domicilio="{{ $titular->domicilio }}"
@@ -54,62 +56,63 @@
                         data-cp="{{ $titular->codigo_postal }}"
                         data-municipio="{{ $titular->municipio }}"
                         data-estado="{{ $titular->estado }}"
-                        data-telefono="{{ $titular->telefono }}"
-                    >
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-                                <h5 class="card-title-text fw-bold mb-0 text-truncate">
-                                    <i class="bi bi-person-vcard me-2"></i>{{ $titular->familia }}
-                                </h5>
+                        data-telefono="{{ $titular->telefono }}">
+
+                        {{-- Avatar lateral --}}
+                        <div class="card-avatar">
+                            <div class="avatar-initials">{{ $iniciales }}</div>
+                            <i class="bi bi-person avatar-icon"></i>
+                        </div>
+
+                        {{-- Contenido --}}
+                        <div class="card-content">
+
+                            {{-- Fila superior: nombre + CP --}}
+                            <div class="card-row-top">
+                                <span class="titular-nombre">{{ $titular->familia }}</span>
+                                <span class="titular-cp">C.P. {{ $titular->codigo_postal }}</span>
                             </div>
 
-                            <div class="info-flex-container">
-                                <div class="info-group main-address">
-                                    <span class="info-label">
-                                        Dirección 
-                                        <small style="text-transform: lowercase; font-weight: normal; opacity: 0.8;">
-                                            (Calle, No. Ext/Int y Colonia)
-                                        </small>
-                                    </span>
-                                    <span class="info-value" style="padding-left: 10px;">
-                                        {{ $titular->domicilio }}, {{ $titular->colonia }}
-                                    </span>
+                            <div class="card-divider"></div>
+
+                            {{-- Fila inferior: chips de datos --}}
+                            <div class="card-row-bottom">
+                                <div class="data-chip">
+                                    <i class="bi bi-house"></i>
+                                    <span class="chip-text">{{ $titular->domicilio }}</span>
                                 </div>
-                                <div class="info-group location-details">
-                                    <div class="info-sub-item">
-                                        <span class="info-label">C.P.</span>
-                                        <span class="info-value">{{ $titular->codigo_postal }}</span>
-                                    </div>
-
-                                    <div class="info-sub-item d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <span class="info-label">Municipio / Estado</span>
-                                            <span class="info-value">
-                                                {{ $titular->municipio }}, {{ $titular->estado }}
-                                            </span>
-                                        </div>
-
-                                        <span class="badge text-bg-secondary bg-light text-dark border fs-6 py-2 px-3">
-                                            <i class="bi bi-telephone-fill me-2"></i>
-                                            {{ $titular->telefono ?? '—' }}
-                                        </span>
-                                    </div>
+                                <span class="chip-sep">•</span>
+                                <div class="data-chip">
+                                    <i class="bi bi-signpost"></i>
+                                    <span class="chip-text">{{ $titular->colonia }}</span>
+                                </div>
+                                <span class="chip-sep">•</span>
+                                <div class="data-chip">
+                                    <i class="bi bi-geo-alt"></i>
+                                    <span class="chip-text">{{ $titular->municipio }}, {{ $titular->estado }}</span>
+                                </div>
+                                <div class="data-chip phone">
+                                    <i class="bi bi-telephone-fill"></i>
+                                    <span class="chip-text">{{ $titular->telefono ?? '—' }}</span>
                                 </div>
                             </div>
+
                         </div>
                     </div>
+
                 @empty
                     <div class="alert alert-info text-center">
                         No hay titulares registrados.
                     </div>
                 @endforelse
             </div>
-            {{-- Paginación (si la tienes implementada en el controlador) --}}
+
             @if(method_exists($titulares, 'links'))
                 <div class="pagination-container d-flex justify-content-center mt-3">
                     {{ $titulares->links() }}
                 </div>
             @endif
+
         </div>
     </div>
 </div>

@@ -19,10 +19,11 @@ return new class extends Migration
             $table->date('fecha_refrendo');
             $table->date('periodo_inicio')->nullable();
             $table->date('periodo_fin')->nullable();
-
-            $table->string('folio')->nullable();
             $table->decimal('monto', 10, 2)->nullable();
-            $table->string('forma_pago')->nullable();
+            
+
+            $table->enum('estado', ['pendiente', 'pagado', 'cancelado'])
+             ->default('pendiente');
 
             $table->text('observaciones')->nullable();
             $table->timestamps();

@@ -15,8 +15,8 @@ class Concesion extends Model
     protected $primaryKey = 'id_concesion';
 
     protected $fillable = [
-        'lote_id',
-        'titular_id',
+        'id_lote',
+        'id_titular',
         'id_uso_funerario',
         'id_estatus',
         'fecha_inicio',
@@ -36,31 +36,31 @@ class Concesion extends Model
     // Lote
     public function lote()
     {
-        return $this->belongsTo(Lote::class, 'lote_id');
+        return $this->belongsTo(Lote::class, 'id_lote', 'id_lote');
     }
 
     // Titular
     public function titular()
     {
-        return $this->belongsTo(Titular::class, 'titular_id');
+        return $this->belongsTo(Titular::class, 'id_titular', 'id_titular');
     }
 
     // Uso funerario
     public function usoFunerario()
     {
-        return $this->belongsTo(CatUsoFunerario::class, 'id_uso_funerario');
+        return $this->belongsTo(CatUsoFunerario::class, 'id_uso_funerario', 'id_uso_funerario');
     }
 
     // Estatus
     public function estatus()
     {
-        return $this->belongsTo(CatEstatus::class, 'id_estatus');
+        return $this->belongsTo(CatEstatus::class, 'id_estatus', 'id_estatus');
     }
 
     // Refrendos
     public function refrendos()
     {
-        return $this->hasMany(Refrendo::class, 'id_concesion');
+        return $this->hasMany(Refrendo::class, 'id_concesion', 'id_concesion');
     }
 
     // Último refrendo (clave para padrón)
@@ -68,5 +68,16 @@ class Concesion extends Model
     {
         return $this->hasOne(Refrendo::class, 'id_concesion')
             ->latestOfMany('fecha_refrendo');
+    }
+
+    public function getEstaVigenteAttribute()
+    {
+        $ultimo = $this->ultimoRefrendo;
+
+        if (!$ultimo) {
+            return false;
+        }
+
+        return now()->lte($ultimo->periodo_fin);
     }
 }

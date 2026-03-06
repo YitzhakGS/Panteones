@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('espacios_fisicos', function (Blueprint $table) {
             $table->id('id_espacio_fisico');
 
-            $table->unsignedBigInteger('id_cuadrilla');
+            $table->unsignedBigInteger('id_seccion');
             $table->unsignedBigInteger('id_tipo_espacio_fisico');
             
-            $table->foreign('id_cuadrilla')
-                ->references('id_cuadrilla')
-                ->on('cat_cuadrillas');
+            $table->foreign('id_seccion')
+                ->references('id_seccion')
+                ->on('secciones');
 
             $table->foreign('id_tipo_espacio_fisico')
                 ->references('id_tipo_espacio_fisico')

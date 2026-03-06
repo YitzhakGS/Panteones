@@ -3,96 +3,142 @@
         <div class="modal-content">
 
             {{-- HEADER --}}
-            <div class="modal-header">
-                <h5 class="modal-title">Nuevo Lote</h5>
+            <div class="modal-header border-bottom-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-plus-circle me-2 text-muted"></i>Nuevo Lote
+                    </h5>
+                    <p class="text-muted small mb-0">Completa los datos para registrar el lote</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <form action="{{ route('lotes.store') }}" method="POST">
                 @csrf
 
-                <div class="modal-body">
+                <div class="modal-body pt-3">
 
-                    {{-- =============================
-                    1️⃣ IDENTIFICACIÓN
-                    ============================== --}}
-                    <div class="mb-4">
-                        <div class="row">
+                    {{-- ── SECCIÓN 1: Identificación ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Identificación</span>
+                        <div class="row g-3 mt-1">
+
                             <div class="col-md-6">
-                                <label class="form-label">Número de lote</label>
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-hash me-1 text-muted"></i>Número de lote
+                                </label>
                                 <input type="text"
                                        name="numero"
                                        class="form-control @error('numero') is-invalid @enderror"
-                                       value="{{ old('numero') }}">
+                                       value="{{ old('numero') }}"
+                                       placeholder="Ej. 042">
                                 @error('numero')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Superficie (m²)</label>
-                                <input type="number"
-                                       step="0.01"
-                                       name="metros_cuadrados"
-                                       id="metros_cuadrados"
-                                       class="form-control"
-                                       readonly>
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-rulers me-1 text-muted"></i>Superficie (m²)
+                                </label>
+                                <div class="input-group">
+                                    <input type="number"
+                                           step="0.01"
+                                           name="metros_cuadrados"
+                                           id="metros_cuadrados"
+                                           class="form-control"
+                                           placeholder="0.00"
+                                           readonly>
+                                    <span class="input-group-text text-muted">m²</span>
+                                </div>
                             </div>
+
                         </div>
                     </div>
 
-                    {{-- =============================
-                    2️⃣ MEDIDAS
-                    ============================== --}}
-                    <div class="mb-4">
-                        <h6 class="text-muted mb-3">Medidas (metros)</h6>
-                        <div class="row g-2">
+                    {{-- ── SECCIÓN 2: Medidas ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Medidas (metros)</span>
+                        <div class="row g-3 mt-1">
+
                             <div class="col-md-3">
-                                <input type="number" step="0.01" name="med_norte" class="form-control" placeholder="Norte">
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-arrow-up me-1"></i>Norte
+                                </label>
+                                <input type="number" step="0.01" name="med_norte"
+                                       class="form-control" placeholder="0.00">
                             </div>
                             <div class="col-md-3">
-                                <input type="number" step="0.01" name="med_sur" class="form-control" placeholder="Sur">
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-arrow-down me-1"></i>Sur
+                                </label>
+                                <input type="number" step="0.01" name="med_sur"
+                                       class="form-control" placeholder="0.00">
                             </div>
                             <div class="col-md-3">
-                                <input type="number" step="0.01" name="med_oriente" class="form-control" placeholder="Oriente">
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-arrow-right me-1"></i>Oriente
+                                </label>
+                                <input type="number" step="0.01" name="med_oriente"
+                                       class="form-control" placeholder="0.00">
                             </div>
                             <div class="col-md-3">
-                                <input type="number" step="0.01" name="med_poniente" class="form-control" placeholder="Poniente">
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-arrow-left me-1"></i>Poniente
+                                </label>
+                                <input type="number" step="0.01" name="med_poniente"
+                                       class="form-control" placeholder="0.00">
                             </div>
+
                         </div>
                     </div>
 
-                    {{-- =============================
-                    3️⃣ COLINDANCIAS
-                    ============================== --}}
-                    <div class="mb-4">
-                        <h6 class="text-muted mb-3">Colindancias</h6>
-                        <div class="row">
-                            <div class="col-md-6 mb-2">
-                                <input type="text" name="col_norte" class="form-control" placeholder="Colindancia Norte">
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <input type="text" name="col_sur" class="form-control" placeholder="Colindancia Sur">
+                    {{-- ── SECCIÓN 3: Colindancias ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Colindancias</span>
+                        <div class="row g-3 mt-1">
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-arrow-up me-1"></i>Norte
+                                </label>
+                                <input type="text" name="col_norte"
+                                       class="form-control" placeholder="Colindancia Norte">
                             </div>
                             <div class="col-md-6">
-                                <input type="text" name="col_oriente" class="form-control" placeholder="Colindancia Oriente">
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-arrow-down me-1"></i>Sur
+                                </label>
+                                <input type="text" name="col_sur"
+                                       class="form-control" placeholder="Colindancia Sur">
                             </div>
                             <div class="col-md-6">
-                                <input type="text" name="col_poniente" class="form-control" placeholder="Colindancia Poniente">
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-arrow-right me-1"></i>Oriente
+                                </label>
+                                <input type="text" name="col_oriente"
+                                       class="form-control" placeholder="Colindancia Oriente">
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-arrow-left me-1"></i>Poniente
+                                </label>
+                                <input type="text" name="col_poniente"
+                                       class="form-control" placeholder="Colindancia Poniente">
+                            </div>
+
                         </div>
                     </div>
 
+                    {{-- ── SECCIÓN 4: Ubicación ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Ubicación del lote</span>
+                        <div class="row g-3 mt-1">
 
-                    {{-- =============================
-                    5️⃣ ESPACIO FÍSICO (FUSIONADO)
-                    ============================== --}}
-                    <div class="mb-4 ">
-                        <h6 class="text-muted mb-3"> Ubicación del Lote</h6>
-                        <div class="row">
-                            {{-- Select 1: Cuadrilla (Carga inicial) --}}
-                            <div class="col-md-6 mb-2">
-                                <label class="form-label fw-bold">Sección / Cuadrilla</label>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-grid me-1 text-muted"></i>Sección / Cuadrilla
+                                </label>
                                 <select id="select-cuadrilla-ajax" class="form-select border-primary">
                                     <option value="">Seleccione Cuadrilla...</option>
                                     @foreach ($cuadrillas as $cuadrilla)
@@ -103,38 +149,42 @@
                                 </select>
                             </div>
 
-                            {{-- Select 2: Espacio Físico (Carga dinámica) --}}
-                            <div class="col-md-6 mb-2">
-                                <label class="form-label fw-bold">Área / Espacio Físico</label>
-                                <select name="id_espacio_fisico" id="select-espacio-ajax" 
-                                        class="form-select @error('id_espacio_fisico') is-invalid @enderror" 
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-map me-1 text-muted"></i>Área / Espacio Físico
+                                </label>
+                                <select name="id_espacio_fisico"
+                                        id="select-espacio-ajax"
+                                        class="form-select @error('id_espacio_fisico') is-invalid @enderror"
                                         required disabled>
                                     <option value="">Primero elija una cuadrilla...</option>
                                 </select>
+                                @error('id_espacio_fisico')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
+
                         </div>
                     </div>
 
-
-                    {{-- =============================
-                    4️⃣ REFERENCIAS
-                    ============================== --}}
-                    <div class="mb-4">
-                        <h6 class="text-muted mb-3">Referencias adicionales</h6>
-                        <textarea name="referencias" rows="1" class="form-control"
-                                  placeholder="Notas, ubicación visual, referencias...">{{ old('referencias') }}</textarea>
+                    {{-- ── SECCIÓN 5: Referencias ── --}}
+                    <div class="section-block mb-1">
+                        <span class="section-label">Referencias adicionales</span>
+                        <div class="mt-1">
+                            <textarea name="referencias" rows="2" class="form-control"
+                                      placeholder="Notas, ubicación visual, referencias...">{{ old('referencias') }}</textarea>
+                        </div>
                     </div>
 
                 </div>
 
                 {{-- FOOTER --}}
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancelar
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-1"></i>Cancelar
                     </button>
-
-                    <button type="submit" class="btn bg-base text-white">
-                        Guardar
+                    <button type="submit" class="btn bg-base text-white px-4">
+                        <i class="bi bi-check2-circle me-1"></i>Guardar lote
                     </button>
                 </div>
 

@@ -21,6 +21,7 @@
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="{{ asset('css/css-view/css_modal.css') }}" rel="stylesheet" type="text/css" />
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>

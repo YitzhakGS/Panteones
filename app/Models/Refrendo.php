@@ -15,14 +15,18 @@ class Refrendo extends Model
     protected $fillable = [
         'id_concesion',
         'fecha_refrendo',
-        'numero_refrendo',
-        'importe',
+        'periodo_inicio',
+        'periodo_fin',
+        'estado',
+        'monto',
         'observaciones',
     ];
 
     protected $casts = [
         'fecha_refrendo' => 'date',
-        'importe'        => 'decimal:2',
+        'periodo_inicio' => 'date',
+        'periodo_fin'    => 'date',
+        'monto'          => 'decimal:2',
     ];
 
     /* =========================
@@ -31,6 +35,11 @@ class Refrendo extends Model
 
     public function concesion()
     {
-        return $this->belongsTo(Concesion::class, 'id_concesion');
+        return $this->belongsTo(Concesion::class, 'id_concesion', 'id_concesion');
+    }
+
+    public function pagos()
+    {
+        return $this->hasMany(Pago::class, 'id_refrendo', 'id_refrendo');
     }
 }

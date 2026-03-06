@@ -1,0 +1,21 @@
+.section-block {
+    background: #f8fafc;
+    border: 1px solid #e9eef4;
+    border-radius: 10px;
+    padding: 10px 16px 14px;
+    position: relative;
+}
+
+.section-label {
+    display: inline-block;
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: #8fa0b5;
+    background: #f8fafc;
+    padding: 0 6px;
+    position: absolute;
+    top: -9px;
+    left: 12px;
+}

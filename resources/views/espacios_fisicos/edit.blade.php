@@ -7,126 +7,139 @@
     <div class="modal-dialog">
         <div class="modal-content">
 
-            <!-- HEADER -->
-            <div class="modal-header">
-                <h5 class="modal-title" id="editEspacioFisicoModalLabel">
-                    Editar Espacio Físico
-                </h5>
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close">
-                </button>
+            <div class="modal-header border-bottom-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold" id="editEspacioFisicoModalLabel">
+                        <i class="bi bi-pencil-square me-2 text-muted"></i>Editar Espacio Físico
+                    </h5>
+                    <p class="text-muted small mb-0">Modifica la información del espacio</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <!-- FORM -->
             <form id="editEspacioFisicoForm" method="POST">
                 @csrf
                 @method('PUT')
 
-                <!-- ID oculto -->
                 <input type="hidden"
                        name="id_espacio_fisico"
                        id="edit_id_espacio_fisico">
 
-                <div class="modal-body">
+                <div class="modal-body pt-3">
 
-                    <!-- CUADRILLA -->
-                    <div class="mb-3">
-                        <label for="edit_id_cuadrilla" class="form-label">Cuadrilla</label>
-                        <select
-                            name="id_cuadrilla"
-                            id="edit_id_cuadrilla"
-                            class="form-select @error('id_cuadrilla') is-invalid @enderror"
-                            required
-                        >
-                            <option value="">Seleccione una cuadrilla</option>
+                    {{-- ── SECCIÓN 1: Ubicación ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Ubicación</span>
 
-                            @foreach ($cuadrillas as $cuadrilla)
-                                <option value="{{ $cuadrilla->id_cuadrilla }}">
-                                    {{ $cuadrilla->nombre }} — {{ $cuadrilla->seccion->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="row g-3 mt-1">
 
-                        @error('id_cuadrilla')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-grid me-1 text-muted"></i>Sección / Cuadrilla
+                                </label>
+
+                                <select name="id_cuadrilla"
+                                        id="edit_id_cuadrilla"
+                                        class="form-select @error('id_cuadrilla') is-invalid @enderror"
+                                        required>
+
+                                    <option value="">Seleccione sección y cuadrilla...</option>
+
+                                    @foreach ($cuadrillas as $cuadrilla)
+                                        <option value="{{ $cuadrilla->id_cuadrilla }}">
+                                            {{ $cuadrilla->seccion->nombre }} — {{ $cuadrilla->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @error('id_cuadrilla')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                        </div>
                     </div>
 
-                    <!-- TIPO ESPACIO FÍSICO -->
-                    <div class="mb-3">
-                        <label for="edit_id_tipo_espacio_fisico" class="form-label">
-                            Tipo de espacio físico
-                        </label>
-                        <select
-                            name="id_tipo_espacio_fisico"
-                            id="edit_id_tipo_espacio_fisico"
-                            class="form-select @error('id_tipo_espacio_fisico') is-invalid @enderror"
-                            required
-                        >
-                            <option value="">Seleccione un tipo</option>
+                    {{-- ── SECCIÓN 2: Datos del espacio ── --}}
+                    <div class="section-block mb-1">
+                        <span class="section-label">Datos del espacio</span>
 
-                            @foreach ($tiposEspacioFisico as $tipo)
-                                <option value="{{ $tipo->id_tipo_espacio_fisico }}">
-                                    {{ $tipo->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="row g-3 mt-1">
 
-                        @error('id_tipo_espacio_fisico')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-bookmarks me-1 text-muted"></i>Tipo
+                                </label>
 
-                    <!-- NOMBRE -->
-                    <div class="mb-3">
-                        <label for="edit_nombre" class="form-label">Nombre</label>
-                        <input
-                            type="text"
-                            name="nombre"
-                            id="edit_nombre"
-                            class="form-control @error('nombre') is-invalid @enderror"
-                            required
-                        >
+                                <select name="id_tipo_espacio_fisico"
+                                        id="edit_id_tipo_espacio_fisico"
+                                        class="form-select @error('id_tipo_espacio_fisico') is-invalid @enderror"
+                                        required>
 
-                        @error('nombre')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                                    <option value="">Seleccione un tipo...</option>
 
-                    <!-- DESCRIPCIÓN -->
-                    <div class="mb-3">
-                        <label for="edit_descripcion" class="form-label">Descripción</label>
-                        <textarea
-                            name="descripcion"
-                            id="edit_descripcion"
-                            class="form-control @error('descripcion') is-invalid @enderror"
-                            rows="3">
-                        </textarea>
+                                    @foreach ($tiposEspacioFisico as $tipo)
+                                        <option value="{{ $tipo->id_tipo_espacio_fisico }}">
+                                            {{ $tipo->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
 
-                        @error('descripcion')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                                @error('id_tipo_espacio_fisico')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-7">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-tag me-1 text-muted"></i>Nombre del espacio
+                                </label>
+
+                                <input type="text"
+                                       name="nombre"
+                                       id="edit_nombre"
+                                       class="form-control @error('nombre') is-invalid @enderror"
+                                       placeholder="Ej. Área A"
+                                       required>
+
+                                @error('nombre')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-chat-left-text me-1 text-muted"></i>Descripción
+                                </label>
+
+                                <textarea name="descripcion"
+                                          id="edit_descripcion"
+                                          rows="2"
+                                          class="form-control @error('descripcion') is-invalid @enderror"
+                                          placeholder="Descripción opcional del espacio..."></textarea>
+
+                                @error('descripcion')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                        </div>
                     </div>
 
                 </div>
 
-                <!-- FOOTER -->
-                <div class="modal-footer">
-                    <button type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal">
-                        Cancelar
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-1"></i>Cancelar
                     </button>
 
-                    <button type="submit"
-                            class="btn bg-base text-white">
-                        Actualizar
+                    <button type="submit" class="btn bg-base text-white px-4">
+                        <i class="bi bi-check2-circle me-1"></i>Actualizar espacio
                     </button>
                 </div>
 
             </form>
+
         </div>
     </div>
 </div>

@@ -12,7 +12,7 @@ class CatEstatus extends Model
     protected $table = 'cat_estatus';
     protected $primaryKey = 'id_estatus';
 
-    protected $fillable = ['nombre'];
+    protected $fillable = ['nombre', 'descripcion'];
 
     public function concesiones()
     {

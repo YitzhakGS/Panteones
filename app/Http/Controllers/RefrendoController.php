@@ -2,64 +2,67 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Refrendo;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use App\Models\Refrendo;
+use App\Models\Concesion;
+use App\Services\RefrendoService;
 
 class RefrendoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Listado de refrendos
      */
-    public function index()
+    public function index(): View
     {
-        //
+        $refrendos = Refrendo::with([
+            'concesion.lote',
+            'concesion.titular'
+        ])
+        ->orderBy('fecha_refrendo', 'desc')
+        ->paginate(15);
+
+        return view('refrendos.index', compact('refrendos'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Formulario para crear refrendo
      */
-    public function create()
+    public function create(): View
     {
-        //
+        return view('refrendos.create', [
+            'concesiones' => Concesion::with('lote', 'titular')
+                ->whereNull('fecha_fin')
+                ->get()
+        ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Guardar refrendo
      */
-    public function store(Request $request)
+    public function store(Request $request, RefrendoService $service)
     {
-        //
+        $request->validate([
+            'id_concesion' => 'required|exists:concesiones,id_concesion',
+            'monto'        => 'nullable|numeric|min:0',
+            'observaciones'=> 'nullable|string',
+        ]);
+
+        $service->crear($request->all());
+
+        return redirect()
+            ->route('refrendos.index')
+            ->with('success', 'Refrendo anual registrado correctamente.');
     }
 
     /**
-     * Display the specified resource.
+     * Ver refrendo
      */
-    public function show(Refrendo $refrendo)
+    public function show(Refrendo $refrendo): View
     {
-        //
-    }
+        $refrendo->load('concesion.lote', 'concesion.titular');
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Refrendo $refrendo)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Refrendo $refrendo)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Refrendo $refrendo)
-    {
-        //
+        return view('refrendos.show', compact('refrendo'));
     }
 }

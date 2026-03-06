@@ -1,30 +1,63 @@
-<div class="modal fade" id="editSeccionModal" tabindex="-1" aria-labelledby="editSeccionModalLabel" aria-hidden="true">
+<div class="modal fade" id="editSeccionModal" tabindex="-1"
+     aria-labelledby="editSeccionModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editSeccionModalLabel">Editar Sección</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+            <div class="modal-header border-bottom-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold" id="editSeccionModalLabel">
+                        <i class="bi bi-pencil-square me-2 text-muted"></i>Editar Sección
+                    </h5>
+                    <p class="text-muted small mb-0">Modifica la información de la sección</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <form id="editSeccionForm" method="POST">
                 @csrf
                 @method('PUT')
-                <input type="hidden" name="id_seccion" id="edit_id_seccion" value="{{ old('id_seccion') }}">
-                <!-- campos del formulario (ej. nombre) -->
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="edit_nombre">Nombre</label>
-                        <input  type="text"
-                                name="nombre"
-                                id="edit_nombre"
-                                class="form-control" 
-                                required>
-                        @error('nombre') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                <input type="hidden" name="id_seccion" id="edit_id_seccion">
+
+                <div class="modal-body pt-3">
+
+                    <div class="section-block mb-1">
+                        <span class="section-label">Identificación</span>
+
+                        <div class="row g-3 mt-1">
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-tag me-1 text-muted"></i>Nombre de la sección
+                                </label>
+
+                                <input type="text"
+                                       name="nombre"
+                                       id="edit_nombre"
+                                       class="form-control"
+                                       placeholder="Ej. Sección Norte"
+                                       required>
+
+                                @error('nombre')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-12 d-flex justify-content-end gap-2 pt-1">
+                                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                                    <i class="bi bi-x me-1"></i>Cancelar
+                                </button>
+
+                                <button type="submit" class="btn bg-base text-white px-4">
+                                    <i class="bi bi-check2-circle me-1"></i>Actualizar sección
+                                </button>
+                            </div>
+
+                        </div>
                     </div>
+
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn bg-base text-white">Actualizar</button>
-                </div>
+
             </form>
         </div>
     </div>

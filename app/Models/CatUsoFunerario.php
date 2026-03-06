@@ -9,12 +9,10 @@ class CatUsoFunerario extends Model
 {
     use HasFactory;
 
-    protected $table = 'cat_usos_funerarios';
+    protected $table = 'uso_funerario';
     protected $primaryKey = 'id_uso_funerario';
 
-    protected $fillable = [
-        'nombre',
-    ];
+    protected $fillable = ['nombre'];
 
     public function lotes()
     {

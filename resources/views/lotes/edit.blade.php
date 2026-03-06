@@ -1,196 +1,243 @@
 <div class="modal fade" id="editLoteModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
 
             {{-- HEADER --}}
-            <div class="modal-header">
-                <h5 class="modal-title">Editar Lote</h5>
+            <div class="modal-header border-bottom-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-pencil-square me-2 text-muted"></i>Editar Lote
+                    </h5>
+                    <p class="text-muted small mb-0">Modifica la información del lote</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <form id="editLoteForm"
                   action="{{ route('lotes.update', $lote->id_lote) }}"
                   method="POST">
+
                 @csrf
                 @method('PUT')
-                <input type="hidden"
-                    id="current_espacio_id"
-                    value="{{ optional($lote->espacioActual)->id_espacio_fisico }}">
-                <div class="modal-body">
 
-                    {{-- =============================
-                    IDENTIFICACIÓN
-                    ============================== --}}
-                    <div class="mb-4">
-                        <div class="row">
+                <input type="hidden"
+                       id="current_espacio_id"
+                       value="{{ optional($lote->espacioActual)->id_espacio_fisico }}">
+
+                <div class="modal-body pt-3">
+
+                    {{-- ── IDENTIFICACIÓN ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Identificación</span>
+
+                        <div class="row g-3 mt-1">
+
                             <div class="col-md-6">
-                                <label class="form-label">Número de lote</label>
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-hash me-1 text-muted"></i>Número de lote
+                                </label>
+
                                 <input type="text"
                                        name="numero"
-                                       class="form-control @error('numero') is-invalid @enderror"
+                                       class="form-control"
                                        value="{{ old('numero', $lote->numero) }}">
-                                @error('numero')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Superficie (m²)</label>
-                                <input type="number"
-                                       step="0.01"
-                                       name="metros_cuadrados"
-                                       id="edit_metros_cuadrados"
-                                       class="form-control"
-                                       value="{{ old('metros_cuadrados', $lote->metros_cuadrados) }}"
-                                       readonly>
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-rulers me-1 text-muted"></i>Superficie (m²)
+                                </label>
+
+                                <div class="input-group">
+                                    <input type="number"
+                                           step="0.01"
+                                           name="metros_cuadrados"
+                                           id="edit_metros_cuadrados"
+                                           class="form-control"
+                                           value="{{ old('metros_cuadrados', $lote->metros_cuadrados) }}"
+                                           readonly>
+
+                                    <span class="input-group-text text-muted">m²</span>
+                                </div>
                             </div>
+
                         </div>
                     </div>
 
-                    {{-- =============================
-                    MEDIDAS
-                    ============================== --}}
-                    <div class="mb-4">
-                        <h6 class="text-muted mb-3">Medidas (metros)</h6>
+                    {{-- ── MEDIDAS ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Medidas (metros)</span>
 
-                        <div class="row g-2">
+                        <div class="row g-3 mt-1">
+
                             <div class="col-md-3">
+                                <label class="form-label text-muted small">
+                                    <i class="bi bi-arrow-up me-1"></i>Norte
+                                </label>
                                 <input type="number" step="0.01"
                                        name="med_norte"
                                        class="form-control"
-                                       placeholder="Norte"
                                        value="{{ old('med_norte', $lote->med_norte) }}">
                             </div>
 
                             <div class="col-md-3">
+                                <label class="form-label text-muted small">
+                                    <i class="bi bi-arrow-down me-1"></i>Sur
+                                </label>
                                 <input type="number" step="0.01"
                                        name="med_sur"
                                        class="form-control"
-                                       placeholder="Sur"
                                        value="{{ old('med_sur', $lote->med_sur) }}">
                             </div>
 
                             <div class="col-md-3">
+                                <label class="form-label text-muted small">
+                                    <i class="bi bi-arrow-right me-1"></i>Oriente
+                                </label>
                                 <input type="number" step="0.01"
                                        name="med_oriente"
                                        class="form-control"
-                                       placeholder="Oriente"
                                        value="{{ old('med_oriente', $lote->med_oriente) }}">
                             </div>
 
                             <div class="col-md-3">
+                                <label class="form-label text-muted small">
+                                    <i class="bi bi-arrow-left me-1"></i>Poniente
+                                </label>
                                 <input type="number" step="0.01"
                                        name="med_poniente"
                                        class="form-control"
-                                       placeholder="Poniente"
                                        value="{{ old('med_poniente', $lote->med_poniente) }}">
                             </div>
+
                         </div>
                     </div>
 
-                    {{-- =============================
-                    COLINDANCIAS
-                    ============================== --}}
-                    <div class="mb-4">
-                        <h6 class="text-muted mb-3">Colindancias</h6>
+                    {{-- ── COLINDANCIAS ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Colindancias</span>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-2">
+                        <div class="row g-3 mt-1">
+
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">
+                                    <i class="bi bi-arrow-up me-1"></i>Norte
+                                </label>
+
                                 <input type="text"
                                        name="col_norte"
                                        class="form-control"
-                                       placeholder="Colindancia Norte"
                                        value="{{ old('col_norte', $lote->col_norte) }}">
                             </div>
 
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">
+                                    <i class="bi bi-arrow-down me-1"></i>Sur
+                                </label>
+
                                 <input type="text"
                                        name="col_sur"
                                        class="form-control"
-                                       placeholder="Colindancia Sur"
                                        value="{{ old('col_sur', $lote->col_sur) }}">
                             </div>
 
                             <div class="col-md-6">
+                                <label class="form-label text-muted small">
+                                    <i class="bi bi-arrow-right me-1"></i>Oriente
+                                </label>
+
                                 <input type="text"
                                        name="col_oriente"
                                        class="form-control"
-                                       placeholder="Colindancia Oriente"
                                        value="{{ old('col_oriente', $lote->col_oriente) }}">
                             </div>
 
                             <div class="col-md-6">
+                                <label class="form-label text-muted small">
+                                    <i class="bi bi-arrow-left me-1"></i>Poniente
+                                </label>
+
                                 <input type="text"
                                        name="col_poniente"
                                        class="form-control"
-                                       placeholder="Colindancia Poniente"
                                        value="{{ old('col_poniente', $lote->col_poniente) }}">
                             </div>
+
                         </div>
                     </div>
 
-                    {{-- =============================
-                     UBICACIÓN DINÁMICA (EDIT)
-                    ============================== --}}
-                    <div class="mb-4 pt-3 border-top">
-                        <h6 class="text-muted mb-3"> Ubicación del Lote</h6>
-                        <div class="row">
-                            {{-- Select 1: Cuadrilla --}}
-                            <div class="col-md-6 mb-2">
-                                <label class="form-label fw-bold">Sección / Cuadrilla</label>
-                                <select id="edit-select-cuadrilla-ajax" class="form-select border-primary">
+                    {{-- ── UBICACIÓN ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Ubicación del lote</span>
+
+                        <div class="row g-3 mt-1">
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-grid me-1 text-muted"></i>Sección / Cuadrilla
+                                </label>
+
+                                <select id="edit-select-cuadrilla-ajax"
+                                        class="form-select border-primary">
                                     <option value="">Seleccione Cuadrilla...</option>
+
                                     @foreach ($cuadrillas as $cuadrilla)
                                         <option value="{{ $cuadrilla->id_cuadrilla }}">
                                             {{ $cuadrilla->seccion->nombre }} - {{ $cuadrilla->nombre }}
                                         </option>
                                     @endforeach
+
                                 </select>
                             </div>
 
-                            {{-- Select 2: Espacio Físico --}}
-                            <div class="col-md-6 mb-2">
-                                <label class="form-label fw-bold">Área / Espacio Físico</label>
-                                <select name="id_espacio_fisico" id="edit-select-espacio-ajax" 
-                                        class="form-select @error('id_espacio_fisico') is-invalid @enderror" 
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-map me-1 text-muted"></i>Área / Espacio Físico
+                                </label>
+
+                                <select name="id_espacio_fisico"
+                                        id="edit-select-espacio-ajax"
+                                        class="form-select"
                                         required>
+
                                     @if($lote->espacioActual)
                                         <option value="{{ $lote->espacioActual->id_espacio_fisico }}" selected>
-                                            {{ $lote->espacioActual->tipoEspacioFisico->nombre }} {{ $lote->espacioActual->nombre }}
+                                            {{ $lote->espacioActual->tipoEspacioFisico->nombre }}
+                                            {{ $lote->espacioActual->nombre }}
                                         </option>
                                     @else
                                         <option value="">Primero elija una cuadrilla...</option>
                                     @endif
+
                                 </select>
                             </div>
+
                         </div>
                     </div>
 
-                    {{-- =============================
-                    REFERENCIAS
-                    ============================== --}}
-                    <div>
-                        <h6 class="text-muted mb-3">Referencias adicionales</h6>
+                    {{-- ── REFERENCIAS ── --}}
+                    <div class="section-block mb-1">
+                        <span class="section-label">Referencias adicionales</span>
 
                         <textarea name="referencias"
-                                  rows="1"
+                                  rows="2"
                                   class="form-control"
                                   placeholder="Notas, ubicación visual, referencias...">{{ old('referencias', $lote->referencias) }}</textarea>
                     </div>
 
                 </div>
 
-                {{-- FOOTER --}}
-                <div class="modal-footer">
+                {{-- BOTONES --}}
+                <div class="modal-footer border-top-0">
                     <button type="button"
-                            class="btn btn-secondary"
+                            class="btn btn-light border"
                             data-bs-dismiss="modal">
-                        Cancelar
+                        <i class="bi bi-x me-1"></i>Cancelar
                     </button>
 
                     <button type="submit"
-                            class="btn bg-base text-white">
-                        Guardar cambios
+                            class="btn bg-base text-white px-4">
+                        <i class="bi bi-check2-circle me-1"></i>Guardar cambios
                     </button>
                 </div>
 

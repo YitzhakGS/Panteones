@@ -18,6 +18,9 @@ use App\Http\Controllers\EspaciosFisicosController;
 use App\Http\Controllers\TitularesController;
 use App\Http\Controllers\LotesController;
 use App\Http\Controllers\EspacioFisicoLoteController;
+use App\Http\Controllers\ConcesionController;
+use App\Http\Controllers\RefrendoController;
+use App\Http\Controllers\PagoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,3 +113,29 @@ Route::post('/espacio-fisico-lote',
 // Ruta para obtener los espacios físicos filtrados por cuadrilla
 Route::get('/api/cuadrillas/{id_cuadrilla}/espacios', [LotesController::class, 'getEspaciosByCuadrilla'])
     ->name('api.espacios.por.cuadrilla');
+
+// Rutas para concesiones
+Route::resource('concesiones', ConcesionController::class)
+    ->parameters([
+        'concesiones' => 'concesion'
+    ]);
+
+Route::get('/concesiones/{concesion}/data',
+    [ConcesionController::class, 'getData']
+)->name('concesiones.data');
+
+// Rutas para refrendos
+Route::resource('refrendos', RefrendoController::class)
+    ->parameters([
+        'refrendos' => 'refrendo'
+    ]);
+
+Route::get('/refrendos/{refrendo}/data',
+    [RefrendoController::class, 'getData']
+)->name('refrendos.data');
+
+//Ruta para pagos
+Route::resource('pagos', PagoController::class)
+    ->parameters([
+        'pagos' => 'pago'
+    ]); 

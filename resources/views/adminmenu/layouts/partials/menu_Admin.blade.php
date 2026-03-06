@@ -48,6 +48,15 @@
     </a>
 </li>
 
+<li class="list-group-item bg-base border-secondary py-3 px-4">
+    <a href="{{ route('concesiones.index') }}"
+        class="d-flex align-items-center text-white text-decoration-none p-2 rounded
+        {{ Route::is('concesiones.*') ? 'fw-bold text-warning bg-primario' : '' }}">
+        <i class="bi bi-journal-bookmark fs-4 me-2"></i>
+        Concesiones
+    </a>
+</li>
+
 
 @elseif(Auth::user()->rol == 2)
 

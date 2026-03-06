@@ -1,113 +1,126 @@
 <div class="modal fade" id="showTitularModal" tabindex="-1"
      aria-labelledby="showTitularModalLabel" aria-hidden="true">
-
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content">
 
-            {{-- Header --}}
-            <div class="modal-header">
-                <h5 class="modal-title" id="showTitularModalLabel">
-                    <i class="bi bi-person-vcard"></i>
-                    Detalle del Titular
-                </h5>
+            {{-- HEADER --}}
+            <div class="modal-header border-bottom-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold" id="showTitularModalLabel">
+                        <i class="bi bi-person-vcard me-2 text-muted"></i>Detalle del Titular
+                    </h5>
+                    <p class="text-muted small mb-0">Información registrada del titular</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            {{-- Body (SIN form por ahora) --}}
-            <div class="modal-body">
+            <input type="hidden" id="show_id">
 
-                <input type="hidden" id="show_id">
+            {{-- BODY --}}
+            <div class="modal-body pt-3">
 
-                <div class="row">
-                    {{-- Familia --}}
-                    <div class="col-12 mb-3">
-                        <label class="form-label">Familia / Titular</label>
-                        <input type="text" id="show_familia"
-                               class="form-control"
-                               readonly>
-                    </div>
+                {{-- ── SECCIÓN 1: Identificación ── --}}
+                <div class="section-block mb-3">
+                    <span class="section-label">Identificación</span>
+                    <div class="row g-3 mt-1">
 
-                    {{-- Domicilio --}}
-                    <div class="col-12 mb-3">
-                        <label class="form-label">Domicilio </label>
-                        <input type="text" id="show_domicilio"
-                               class="form-control"
-                               readonly>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-people me-1 text-muted"></i>Familia / Titular
+                            </label>
+                            <input type="text" id="show_familia"
+                                   class="form-control bg-light border-0" readonly>
+                        </div>
+
                     </div>
                 </div>
 
-                <div class="row">
-                    {{-- Colonia --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Colonia</label>
-                        <input type="text" id="show_colonia"
-                               class="form-control"
-                               readonly>
-                    </div>
+                {{-- ── SECCIÓN 2: Domicilio ── --}}
+                <div class="section-block mb-3">
+                    <span class="section-label">Domicilio</span>
+                    <div class="row g-3 mt-1">
 
-                    {{-- Código Postal --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">C.P.</label>
-                        <input type="text" id="show_cp"
-                               class="form-control"
-                               readonly>
+                        <div class="col-md-7">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-house me-1 text-muted"></i>Calle y número
+                            </label>
+                            <input type="text" id="show_domicilio"
+                                   class="form-control bg-light border-0" readonly>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-signpost me-1 text-muted"></i>Colonia
+                            </label>
+                            <input type="text" id="show_colonia"
+                                   class="form-control bg-light border-0" readonly>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-mailbox me-1 text-muted"></i>C.P.
+                            </label>
+                            <input type="text" id="show_cp"
+                                   class="form-control bg-light border-0" readonly>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-building me-1 text-muted"></i>Municipio
+                            </label>
+                            <input type="text" id="show_municipio"
+                                   class="form-control bg-light border-0" readonly>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-map me-1 text-muted"></i>Estado
+                            </label>
+                            <input type="text" id="show_estado"
+                                   class="form-control bg-light border-0" readonly>
+                        </div>
+
                     </div>
                 </div>
 
-                <div class="row">
-                    {{-- Municipio --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Municipio</label>
-                        <input type="text" id="show_municipio"
-                               class="form-control"
-                               readonly>
-                    </div>
+                {{-- ── SECCIÓN 3: Contacto + Botones ── --}}
+                <div class="section-block mb-1">
+                    <span class="section-label">Contacto</span>
+                    <div class="row g-3 mt-1 align-items-end">
 
-                    {{-- Estado --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Estado</label>
-                        <input type="text" id="show_estado"
-                               class="form-control"
-                               readonly>
-                    </div>
-                </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-telephone me-1 text-muted"></i>Teléfono
+                            </label>
+                            <input type="text" id="show_telefono"
+                                   class="form-control bg-light border-0" readonly>
+                        </div>
 
-                <div class="row align-items-end">
-                    {{-- Teléfono --}}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Teléfono</label>
-                        <input type="text" id="show_telefono"
-                               class="form-control"
-                               readonly>
-                    </div>
-
-                    {{-- Botones --}}
-                    <div class="col-md-6 mb-3 text-end">
-                        @if (isset($titular->id_titular))
+                        <div class="col-md-6 d-flex justify-content-end gap-2">
                             <button type="button"
-                                    class="btn btn-outline-danger me-2"
-                                    onclick="confirmarEliminacion({{ $titular->id_titular }})">
-                                <i class="bi bi-trash"></i> Eliminar
+                                    class="btn btn-outline-danger"
+                                    onclick="confirmarEliminacion()">
+                                <i class="bi bi-trash me-1"></i>Eliminar
                             </button>
-                        @endif
-                        <form id="delete-form-{{ $titular->id_titular }}" 
-                            action="{{ route('titulares.destroy', $titular->id_titular) }}" 
-                            method="POST" style="display:none;">
-                            @csrf
-                            @method('DELETE')
-                        </form>
+                            <button type="button"
+                                    class="btn bg-base text-white px-4"
+                                    id="btnEditarTitular">
+                                <i class="bi bi-pencil-square me-1"></i>Editar
+                            </button>
+                        </div>
 
-                        <button type="button"
-                                class="btn bg-base text-white"
-                                id="btnEditarTitular">
-                            <i class="bi bi-pencil-square"></i> Editar
-                        </button>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 </div>
+
+<form id="deleteForm" method="POST" style="display:none;">
+    @csrf
+    @method('DELETE')
+</form>
 
 @include('titulares.edit')
 
@@ -123,22 +136,35 @@
  * Utiliza la librería SweetAlert2.
  * * @param {number|string} id - El identificador único del registro a eliminar.
  */
-function confirmarEliminacion(id) {
+function confirmarEliminacion() {
+
+    const id = document.getElementById('show_id').value;
+
     Swal.fire({
         title: '¿Eliminar registro?',
         text: 'Esta acción no se puede deshacer',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33', // Rojo para peligro
+        confirmButtonColor: '#d33',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
     }).then((result) => {
-        // Si el usuario confirma, se dispara el envío del formulario oculto
+
         if (result.isConfirmed) {
-            document.getElementById(`delete-form-${id}`).submit();
+
+            const form = document.getElementById('deleteForm');
+
+            // Cambia la ruta dinámicamente
+            form.action = `/titulares/${id}`;
+
+            // Enviar formulario
+            form.submit();
+
         }
+
     });
+
 }
 
 /**

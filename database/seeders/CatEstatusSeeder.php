@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\CatEstatus;
 
 class CatEstatusSeeder extends Seeder
 {
@@ -15,17 +16,33 @@ class CatEstatusSeeder extends Seeder
     public function run(): void
     {
         $estatus = [
-            'Vigente',
-            'Vencida',
-            'Cancelada',
+            [
+                'nombre' => 'Al Corriente', 
+                'descripcion' => 'La concesión no tiene adeudos de refrendos pendientes.'
+            ],
+            [
+                'nombre' => 'Con Adeudo', 
+                'descripcion' => 'La concesión tiene al menos un refrendo anual pendiente de pago.'
+            ],
+            [
+                'nombre' => 'Activa', 
+                'descripcion' => 'Estado inicial administrativo al crear la concesión.'
+            ],
+            [
+                'nombre' => 'Inactiva', 
+                'descripcion' => 'La concesión ha sido cerrada por traspaso o fin de vigencia.'
+            ],
+            [
+                'nombre' => 'Cancelada', 
+                'descripcion' => 'Concesión anulada por falta de pago prolongada o decisión administrativa.'
+            ],
         ];
 
-        foreach ($estatus as $nombre) {
-            DB::table('cat_estatus')->insert([
-                'nombre' => $nombre,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
+        foreach ($estatus as $item) {
+            DB::table('cat_estatus')->updateOrInsert(
+                ['nombre' => $item['nombre']], // Evita duplicados si corres el seeder varias veces
+                ['descripcion' => $item['descripcion']]
+            );
         }
     }
 }

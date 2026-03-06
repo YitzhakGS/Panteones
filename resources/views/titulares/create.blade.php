@@ -1,141 +1,172 @@
 <div class="modal fade" id="createTitularModal" tabindex="-1"
      aria-labelledby="createTitularModalLabel" aria-hidden="true">
-    <div class="modal-dialog  modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
 
-            {{-- Header --}}
-            <div class="modal-header">
-                <h5 class="modal-title" id="createTitularModalLabel">
-                    <i class="bi bi-person-plus"></i> Nuevo Titular
-                </h5>
+            {{-- HEADER --}}
+            <div class="modal-header border-bottom-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold" id="createTitularModalLabel">
+                        <i class="bi bi-person-plus me-2 text-muted"></i>Nuevo Titular
+                    </h5>
+                    <p class="text-muted small mb-0">Completa los datos para registrar el titular</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            {{-- Form --}}
             <form action="{{ route('titulares.store') }}" method="POST">
                 @csrf
 
-                <div class="modal-body">
+                <div class="modal-body pt-3">
 
-                    <div class="row">
-                        {{-- Familia --}}
-                        <div class="col-12 mb-3">
-                            <label class="form-label">
-                                Familia / Titular <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                name="familia"
-                                class="form-control @error('familia') is-invalid @enderror"
-                                value="{{ old('familia') }}"
-                                placeholder="Ej. García Pérez (o nombre del titular)"
-                                required>
-                            @error('familia')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                    {{-- ── SECCIÓN 1: Identificación ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Identificación</span>
+                        <div class="row g-3 mt-1">
 
-                        {{-- Domicilio --}}
-                        <div class="col-12 mb-3">
-                            <label class="form-label">
-                                Domicilio <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                name="domicilio"
-                                class="form-control @error('domicilio') is-invalid @enderror"
-                                value="{{ old('domicilio') }}"
-                                placeholder="Calle, número, manzana, lote"
-                                required>
-                            @error('domicilio')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-people me-1 text-muted"></i>
+                                    Familia / Titular <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       name="familia"
+                                       class="form-control @error('familia') is-invalid @enderror"
+                                       value="{{ old('familia') }}"
+                                       placeholder="Ej. García Pérez (o nombre del titular)"
+                                       required>
+                                @error('familia')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
                         </div>
                     </div>
 
-                    <div class="row">
-                        {{-- Colonia --}}
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">
-                                Colonia <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                   name="colonia"
-                                   class="form-control @error('colonia') is-invalid @enderror"
-                                   value="{{ old('colonia') }}"
-                                   required>
-                            @error('colonia') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                    {{-- ── SECCIÓN 2: Domicilio ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Domicilio</span>
+                        <div class="row g-3 mt-1">
 
-                        {{-- Código Postal --}}
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">
-                                C.P. <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                   name="codigo_postal"
-                                   class="form-control @error('codigo_postal') is-invalid @enderror"
-                                   value="{{ old('codigo_postal') }}"
-                                   maxlength="5"
-                                   required>
-                            @error('codigo_postal') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            {{-- Fila 1: Calle + Colonia --}}
+                            <div class="col-md-7">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-house me-1 text-muted"></i>
+                                    Calle y número <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       name="domicilio"
+                                       class="form-control @error('domicilio') is-invalid @enderror"
+                                       value="{{ old('domicilio') }}"
+                                       placeholder="Calle, número, manzana, lote"
+                                       required>
+                                @error('domicilio')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-signpost me-1 text-muted"></i>
+                                    Colonia <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       name="colonia"
+                                       class="form-control @error('colonia') is-invalid @enderror"
+                                       value="{{ old('colonia') }}"
+                                       required>
+                                @error('colonia')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- Fila 2: CP + Municipio + Estado --}}
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-mailbox me-1 text-muted"></i>
+                                    C.P. <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       name="codigo_postal"
+                                       class="form-control @error('codigo_postal') is-invalid @enderror"
+                                       value="{{ old('codigo_postal') }}"
+                                       maxlength="5"
+                                       placeholder="00000"
+                                       required>
+                                @error('codigo_postal')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-building me-1 text-muted"></i>
+                                    Municipio <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       name="municipio"
+                                       class="form-control @error('municipio') is-invalid @enderror"
+                                       value="{{ old('municipio') }}"
+                                       required>
+                                @error('municipio')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-map me-1 text-muted"></i>
+                                    Estado <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       name="estado"
+                                       class="form-control @error('estado') is-invalid @enderror"
+                                       value="{{ old('estado') }}"
+                                       placeholder="Ej. Hidalgo"
+                                       required>
+                                @error('estado')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
                         </div>
                     </div>
 
-                    <div class="row">
-                        {{-- Municipio --}}
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">
-                                Municipio <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                   name="municipio"
-                                   class="form-control @error('municipio') is-invalid @enderror"
-                                   value="{{ old('municipio') }}"
-                                   required>
-                            @error('municipio') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                    {{-- ── SECCIÓN 3: Contacto + Botones ── --}}
+                    <div class="section-block mb-1">
+                        <span class="section-label">Contacto</span>
+                        <div class="row g-3 mt-1 align-items-end">
 
-                        {{-- Estado --}}
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">
-                                Estado <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                   name="estado"
-                                   class="form-control @error('estado') is-invalid @enderror"
-                                   value="{{ old('estado') }}"
-                                   placeholder="Ej. Hgo"
-                                   required>
-                            @error('estado') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-                    </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-telephone me-1 text-muted"></i>
+                                    Teléfono <span class="text-danger">*</span>
+                                </label>
+                                <input type="text"
+                                       name="telefono"
+                                       class="form-control @error('telefono') is-invalid @enderror"
+                                       value="{{ old('telefono') }}"
+                                       placeholder="10 dígitos"
+                                       required>
+                                @error('telefono')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                    {{-- Teléfono + botones --}}
-                    <div class="row align-items-end">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">
-                                Teléfono <span class="text-danger">*</span>
-                            </label>
-                            <input type="text"
-                                   name="telefono"
-                                   class="form-control @error('telefono') is-invalid @enderror"
-                                   value="{{ old('telefono') }}"
-                                   placeholder="10 dígitos"
-                                   required>
-                            @error('telefono') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                            <div class="col-md-6 d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                                    <i class="bi bi-x me-1"></i>Cancelar
+                                </button>
+                                <button type="submit" class="btn bg-base text-white px-4">
+                                    <i class="bi bi-check2-circle me-1"></i>Guardar titular
+                                </button>
+                            </div>
 
-                        <div class="col-md-6 mb-3 text-end">
-                            <button type="button" class="btn btn-outline-secondary me-2"
-                                    data-bs-dismiss="modal">
-                                Cancelar
-                            </button>
-                            <button type="submit" class="btn bg-base text-white">
-                                <i class="bi bi-save"></i> Guardar
-                            </button>
                         </div>
                     </div>
 
                 </div>
+
             </form>
         </div>
     </div>

@@ -1,9 +1,8 @@
 @extends('layouts.app')
 
 <head>
-    <link rel="stylesheet" href="{{ asset('css/css-view/css_tables.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/css-view/css_show_modal.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/css-view/css_cards.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/css-view/css_tabla_lotes.css') }}">
+    @stack('styles')
 </head>
 
 @section('content')
@@ -22,7 +21,6 @@
 <div class="espacios-wrapper">
 
     {{-- Acciones --}}
-    
     <div class="mb-3 row align-items-center" style="padding-top:10px; padding-left:10px; padding-right:10px;">
         <div class="col-md-4 text-start">
             <button type="button"
@@ -32,32 +30,32 @@
                 <i class="bi bi-plus-circle"></i> Nuevo Lote
             </button>
         </div>
-        
         <div class="col-md-8">
             <input type="text" id="searchLote" class="form-control form-control-lg"
-                placeholder="Buscar por número de lote, ubicacion o colindancias...">
+                placeholder="Buscar por número de lote, ubicación o colindancias...">
         </div>
     </div>
 
     {{-- Tabla --}}
     <div class="card-area p-3">
-        <div class="cards-scroll-container border rounded bg-white">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light sticky-top bg-white">
+        <div class="cards-scroll-container">
+            <table class="table lotes-table mb-0">
+                <thead>
                     <tr>
-                        <th class="text-center" style="width:5%">#</th>
-                        <th style="width:10%">Lote</th>
-                        <th style="width:10%">m²</th>
-                        <th style="width:15%">Ubicación</th>
-                        <th style="width:40%">Colindancias</th>
-                        <th style="width:12%">Medidas (m)</th>
-                        <th class="text-end" style="width:8%">Acciones</th>
+                        <th class="text-center" style="width:4%">#</th>
+                        <th style="width:9%">Lote</th>
+                        <th style="width:7%">m²</th>
+                        <th style="width:12%">Ubicación</th>
+                        <th style="width:50%">Colindancias</th>
+                        <th style="width:12%">Medidas</th>
+                        <th class="text-end" style="width:6%">Acciones</th>
                     </tr>
                 </thead>
 
                 <tbody>
                 @forelse ($lotes as $lote)
                     <tr>
+
                         {{-- # --}}
                         <td class="text-center text-muted small">
                             {{ $loop->iteration }}
@@ -65,71 +63,79 @@
 
                         {{-- Lote --}}
                         <td>
-                            <span class="badge bg-primary text-white" style="font-size:1.2rem;">
-                                {{ $lote->numero }}
-                            </span>
+                            <div class="lote-badge">{{ $lote->numero }}</div>
                         </td>
 
                         {{-- Metros cuadrados --}}
                         <td>
-                            <span class="fw-semibold" style="font-size:1.2rem;">
-                                {{ number_format($lote->metros_cuadrados, 2) }}
-                            </span>
-                            <small class="text-muted" style="font-size:1.1rem;">m²</small>
+                            @if($lote->metros_cuadrados)
+                                <span class="m2-value">{{ number_format($lote->metros_cuadrados, 2) }}</span>
+                                <span class="m2-unit">m²</span>
+                            @else
+                                <span class="m2-value" style="color:#94a3b8">—</span>
+                            @endif
                         </td>
 
                         {{-- Ubicación --}}
                         <td>
                             @if ($lote->ubicacion_formateada)
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-pin-map-fill me-2 text-success"></i>
-                                    <span>{!! nl2br(e($lote->ubicacion_formateada)) !!}</span>
+                                <div class="ubicacion-text">
+                                    <i class="bi bi-pin-map-fill me-1"></i>
+                                    {!! nl2br(e($lote->ubicacion_formateada)) !!}
                                 </div>
                             @else
                                 <span class="text-muted small">Sin ubicación asignada</span>
                             @endif
                         </td>
 
-                        {{-- Colindancias --}}
+                        {{-- Colindancias (compass grid) --}}
                         <td>
-                           <div class="d-flex flex-wrap gap-2">
-                                <span class="badge bg-light text-dark border fs-6 p-2 w-100 text-start">
-                                    N: {{ $lote->col_norte ?? '--' }}
-                                </span>
-                                <span class="badge bg-light text-dark border fs-6 p-2 w-100 text-start">
-                                    S: {{ $lote->col_sur ?? '--' }}
-                                </span>
-                                <span class="badge bg-light text-dark border fs-6 p-2 w-100 text-start">
-                                    O: {{ $lote->col_oriente ?? '--' }}
-                                </span>
-                                <span class="badge bg-light text-dark border fs-6 p-2 w-100 text-start">
-                                    P: {{ $lote->col_poniente ?? '--' }}
-                                </span>
+                            <div class="compass-grid">
+                                <div class="cg-item cg-col cg-n">
+                                    <span class="cg-dir">N</span>
+                                    <span class="cg-val">{{ $lote->col_norte ?? '--' }}</span>
+                                </div>
+                                <div class="cg-item cg-col cg-p">
+                                    <span class="cg-dir">P</span>
+                                    <span class="cg-val">{{ $lote->col_poniente ?? '--' }}</span>
+                                </div>
+                                <div class="cg-item cg-col cg-o">
+                                    <span class="cg-dir">O</span>
+                                    <span class="cg-val">{{ $lote->col_oriente ?? '--' }}</span>
+                                </div>
+                                <div class="cg-item cg-col cg-s">
+                                    <span class="cg-dir">S</span>
+                                    <span class="cg-val">{{ $lote->col_sur ?? '--' }}</span>
+                                </div>
                             </div>
                         </td>
 
-                        {{-- Medidas --}}
+                        {{-- Medidas (compass grid) --}}
                         <td>
-                            <div class="d-flex flex-wrap gap-2">
-                                <span class="badge bg-info-subtle text-info-emphasis border fs-6 p-2 w-100">
-                                    N: {{ $lote->med_norte ?? '--' }}
-                                </span>
-                                <span class="badge bg-info-subtle text-info-emphasis border fs-6 p-2 w-100">
-                                    S: {{ $lote->med_sur ?? '--' }}
-                                </span>
-                                <span class="badge bg-info-subtle text-info-emphasis border fs-6 p-2 w-100">
-                                    O: {{ $lote->med_oriente ?? '--' }}
-                                </span>
-                                <span class="badge bg-info-subtle text-info-emphasis border fs-6 p-2 w-100">
-                                    P: {{ $lote->med_poniente ?? '--' }}
-                                </span>
+                            <div class="compass-grid">
+                                <div class="cg-item cg-med cg-n">
+                                    <span class="cg-dir">N</span>
+                                    <span class="cg-val">{{ $lote->med_norte ?? '--' }}</span>
+                                </div>
+                                <div class="cg-item cg-med cg-p">
+                                    <span class="cg-dir">P</span>
+                                    <span class="cg-val">{{ $lote->med_poniente ?? '--' }}</span>
+                                </div>
+                                <div class="cg-item cg-med cg-o">
+                                    <span class="cg-dir">O</span>
+                                    <span class="cg-val">{{ $lote->med_oriente ?? '--' }}</span>
+                                </div>
+                                <div class="cg-item cg-med cg-s">
+                                    <span class="cg-dir">S</span>
+                                    <span class="cg-val">{{ $lote->med_sur ?? '--' }}</span>
+                                </div>
                             </div>
                         </td>
 
+                        {{-- Acciones --}}
                         <td class="text-end" style="padding-right: 20px;">
                             <div class="d-flex flex-column gap-2 align-items-end">
 
-                                {{-- Ver --}}
                                 <button type="button"
                                         class="btn btn-secondary"
                                         title="Ver"
@@ -139,7 +145,6 @@
                                     <i class="bi bi-eye"></i>
                                 </button>
 
-                                {{-- Editar --}}
                                 <button type="button"
                                         class="btn btn-secondary"
                                         title="Editar"
@@ -149,12 +154,9 @@
                                     <i class="bi bi-pencil"></i>
                                 </button>
 
-                                {{-- Eliminar --}}
-                                <form action="{{ route('lotes.destroy', $lote->id_lote) }}"
-                                    method="POST">
+                                <form action="{{ route('lotes.destroy', $lote->id_lote) }}" method="POST">
                                     @csrf
                                     @method('DELETE')
-
                                     <button type="submit"
                                             class="btn btn-danger"
                                             title="Eliminar"
@@ -165,6 +167,7 @@
 
                             </div>
                         </td>
+
                     </tr>
                 @empty
                     <tr>
@@ -174,8 +177,8 @@
                     </tr>
                 @endforelse
                 </tbody>
-
             </table>
+
             {{-- Paginación --}}
             @if(method_exists($lotes, 'links'))
                 <div class="pagination-container d-flex justify-content-center mt-3">
@@ -188,12 +191,9 @@
 
 {{-- Modales --}}
 @include('lotes.create')
-{{-- Modal editar (solo si hay lotes) --}}
 @if ($lotes->count() > 0)
     @include('lotes.edit')
 @endif
-
-
 @include('lotes.show')
 
 @endsection
@@ -211,11 +211,8 @@
  */
 document.getElementById('searchLote').addEventListener('keyup', function () {
     const value = this.value.toLowerCase();
-
     document.querySelectorAll('tbody tr').forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(value)
-            ? ''
-            : 'none';
+        row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
     });
 });
 
@@ -290,19 +287,18 @@ function handleEditLoteModal(event) {
  * @param {Object} data - Objeto con la información completa del lote.
  */
 function fillShowLoteModal(data) {
-    document.getElementById('show_lote_numero').textContent = data.numero;
-    document.getElementById('show_lote_superficie').textContent = data.metros_cuadrados;
+    document.getElementById('show_lote_numero').textContent      = data.numero;
+    document.getElementById('show_lote_superficie').textContent  = data.metros_cuadrados;
 
-    // Asignación con operador de nulidad para colindancias
-    const fields = ['med_norte', 'med_sur', 'med_oriente', 'med_poniente', 
+    const fields = ['med_norte', 'med_sur', 'med_oriente', 'med_poniente',
                     'col_norte', 'col_sur', 'col_oriente', 'col_poniente'];
-    
+
     fields.forEach(field => {
         document.getElementById(`show_${field}`).textContent = data[field] ?? '—';
     });
 
     document.getElementById('show_lote_referencias').textContent = data.referencias || 'Sin referencias';
-    document.getElementById('show_lote_ubicacion').textContent = data.ubicacion;
+    document.getElementById('show_lote_ubicacion').textContent   = data.ubicacion;
 }
 
 /**
@@ -311,46 +307,37 @@ function fillShowLoteModal(data) {
  */
 function fillEditLoteModal(data) {
     const modal = document.getElementById('editLoteModal');
-    const form = document.getElementById('editLoteForm');
+    const form  = document.getElementById('editLoteForm');
 
     form.action = `/lotes/${data.id_lote}`;
 
-    /**
-     * Helper interno para asignar valores a inputs por su atributo name.
-     * @param {string} name - Atributo name del input.
-     * @param {any} val - Valor a asignar.
-     */
     const setVal = (name, val) => {
         const input = modal.querySelector(`[name="${name}"]`);
         if (input) input.value = val ?? '';
     };
 
-    // Llenado de campos básicos
     setVal('numero', data.numero);
     document.getElementById('edit_metros_cuadrados').value = data.metros_cuadrados ?? '';
-    
-    ['med_norte', 'med_sur', 'med_oriente', 'med_poniente', 
+
+    ['med_norte', 'med_sur', 'med_oriente', 'med_poniente',
      'col_norte', 'col_sur', 'col_oriente', 'col_poniente', 'referencias'].forEach(f => setVal(f, data[f]));
 
-    // Lógica de Selects Dependientes (Cuadrilla -> Espacio)
     const selectCuadrilla = document.getElementById('edit-select-cuadrilla-ajax');
-    const selectEspacio = document.getElementById('edit-select-espacio-ajax');
+    const selectEspacio   = document.getElementById('edit-select-espacio-ajax');
 
     selectCuadrilla.value = data.id_cuadrilla || '';
-    
+
     if (data.id_cuadrilla) {
         selectEspacio.innerHTML = '<option value="">Cargando áreas...</option>';
-        
-        // Petición AJAX para obtener espacios basados en la cuadrilla seleccionada
+
         fetch(`/api/cuadrillas/${data.id_cuadrilla}/espacios`)
             .then(response => response.json())
             .then(espacios => {
                 selectEspacio.innerHTML = '<option value="">-- Seleccione el Área Específica --</option>';
                 espacios.forEach(espacio => {
-                    const option = document.createElement('option');
-                    option.value = espacio.id;
+                    const option       = document.createElement('option');
+                    option.value       = espacio.id;
                     option.textContent = `${espacio.tipo} ${espacio.nombre}`;
-                    // Mantiene la selección actual si coincide con el dato del lote
                     if (espacio.id == data.id_espacio_fisico) option.selected = true;
                     selectEspacio.appendChild(option);
                 });
@@ -358,6 +345,5 @@ function fillEditLoteModal(data) {
             });
     }
 }
-
 </script>
 @endpush

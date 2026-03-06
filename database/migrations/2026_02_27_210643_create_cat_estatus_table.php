@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('cat_estatus', function (Blueprint $table) {
             $table->id('id_estatus');
-            $table->string('nombre'); // vigente, vencida, cancelada
+            $table->string('nombre')->unique(); // vigente, vencida, cancelada
+            $table->text('descripcion')->nullable();
             $table->timestamps();
         });
     }
