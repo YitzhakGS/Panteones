@@ -9,26 +9,25 @@
     <div class="col-12">
         <div class="page-title-box mb-0 d-flex align-items-center justify-content-between">
             <h4 class="page-title mb-0 font-size-18">
-                <i class="bi bi-diagram-3"></i> Secciones
+                <i class="bi bi-diagram-3"></i> Secciones del Cementerio
             </h4>
         </div>
     </div>
 </div>
 
-<!-- Botón para abrir modal de creación -->
-<button type="button" class="btn bg-base text-white mb-3" data-bs-toggle="modal" data-bs-target="#createSeccionModal">
-    <i class="bi bi-plus-circle"></i> Nueva Sección
+<button type="button" class="btn bg-base text-white mb-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#createSeccionModal">
+    <i class="bi bi-plus-circle me-1"></i> Nueva Sección
 </button>
 
 <div class="card shadow-sm border-0">
-    <div class="card-body p-0"> <div class="table-responsive">
+    <div class="card-body p-0"> 
+        <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th class="text-center" style="width: 5%">#</th>
-                        <th class="column-highlight" style="width: 25%">Sección</th>
-                        <th style="width: 30%">Cuadrillas Relacionadas</th>
-                        <th style="width: 20%">Resumen Espacios</th>
+                        <th class="column-highlight" style="width: 45%">Nombre de la Sección</th>
+                        <th style="width: 30%">Distribución de Espacios</th>
                         <th class="text-end" style="width: 20%; padding-right: 20px;">Acciones</th>
                     </tr>
                 </thead>
@@ -39,37 +38,38 @@
                         
                         <td class="column-highlight">
                             <div class="d-flex align-items-center">
-                                <i class="bi bi-diagram-3 text-primary me-2"></i>
-                                <span>{{ $seccion->nombre }}</span>
+                                <div class="avatar-xs me-2">
+                                    <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
+                                        {{ substr($seccion->nombre, 0, 1) }}
+                                    </span>
+                                </div>
+                                <span class="fw-bold text-dark">{{ $seccion->nombre }}</span>
                             </div>
                         </td>
 
                         <td>
-                            @forelse ($seccion->cuadrillas as $cuadrilla)
-                                <span class="badge rounded-pill border text-dark fw-normal bg-light">
-                                    {{ $cuadrilla->nombre }}
-                                </span>
-                            @empty
-                                <span class="text-muted small italic">Sin cuadrillas</span>
-                            @endforelse
-                        </td>
-
-                        <td>
                             @php
-                                $totalEspacios = $seccion->cuadrillas->sum(fn($c) => $c->espaciosFisicos->count());
+                                $totalEspacios = $seccion->espaciosFisicos->count();
                             @endphp
-                            <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                <i class="bi bi-geo-alt me-1"></i>{{ $totalEspacios }} espacios
-                            </span>
+                            <div class="d-flex flex-column">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle w-fit-content">
+                                    <i class="bi bi-geo-alt me-1"></i>{{ $totalEspacios }} Espacios registrados
+                                </span>
+                                <small class="text-muted mt-1">
+                                    Incluye: Lotes, Pasillos y Áreas Comunes
+                                </small>
+                            </div>
                         </td>
 
                         <td class="text-end" style="padding-right: 20px;">
+                            <div class="btn-group shadow-sm">
                                 <button type="button"
-                                    class="btn  btn-secondary"
+                                    class="btn btn-sm btn-outline-secondary"
                                     data-bs-toggle="modal"
                                     data-bs-target="#editSeccionModal"
                                     data-id="{{ $seccion->id_seccion }}"
-                                    data-nombre="{{ $seccion->nombre }}">
+                                    data-nombre="{{ $seccion->nombre }}"
+                                    title="Editar Sección">
                                     <i class="bi bi-pencil"></i>
                                 </button>
 
@@ -77,16 +77,18 @@
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" 
-                                        class="btn btn-danger"
-                                        onclick="return confirm('¿Deseas eliminar esta sección?');">
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('¿Deseas eliminar esta sección? Se perderá la relación con sus espacios físicos.');"
+                                        title="Eliminar Sección">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
+                            </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
+                        <td colspan="4" class="text-center py-5 text-muted">
                             <i class="bi bi-info-circle d-block mb-2" style="font-size: 2rem;"></i>
                             No hay Secciones registradas actualmente.
                         </td>
@@ -98,106 +100,31 @@
     </div>
 </div>
 
-<!-- Incluir modales -->
+{{-- Incluir modales --}}
 @include('secciones.create')
 @include('secciones.edit')
-@include('secciones.show')
 
 @endsection
 
 @push('scripts')
 <script>
 /**
- * Gestión del Módulo de Secciones
- * Script encargado de la lógica para visualizar y editar las secciones
- * administrativas del sistema mediante modales de Bootstrap.
+ * Lógica de Secciones (Simplificada)
  */
-
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('JS DE SECCIONES UNIFICADO Y CARGADO');
+    const editModal = document.getElementById('editSeccionModal');
 
-    /** * @description Objeto que centraliza las referencias a los modales del DOM.
-     */
-    const modales = {
-        edit: document.getElementById('editSeccionModal'),
-        show: document.getElementById('showSeccionModal')
-    };
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const id = button.dataset.id;
+            const nombre = button.dataset.nombre;
 
-    // Inicialización de escuchadores de eventos para los modales
-    if (modales.edit) {
-        modales.edit.addEventListener('show.bs.modal', handleEditModal);
-    }
-
-    if (modales.show) {
-        modales.show.addEventListener('show.bs.modal', handleShowModal);
+            // Llenar formulario
+            document.getElementById('edit_nombre').value = nombre;
+            document.getElementById('editSeccionForm').action = `/secciones/${id}`;
+        });
     }
 });
-
-/* ==========================================================================
-   HANDLERS (Manejadores de Eventos)
-   ========================================================================== */
-
-/**
- * Procesa la apertura del modal de edición.
- * @param {Event} event - Evento disparado por Bootstrap.
- */
-function handleEditModal(event) {
-    const data = getDataset(event.relatedTarget);
-    fillEditModal(data);
-}
-
-/**
- * Procesa la apertura del modal de visualización.
- * @param {Event} event - Evento disparado por Bootstrap.
- */
-function handleShowModal(event) {
-    const data = getDataset(event.relatedTarget);
-    fillShowModal(data);
-}
-
-/* ==========================================================================
-   HELPERS (Extracción de Datos)
-   ========================================================================== */
-
-/**
- * Extrae la información de la sección desde los atributos 'data-' del botón.
- * @param {HTMLElement} button - El botón que activó el modal.
- * @returns {Object} Objeto con id y nombre de la sección.
- */
-function getDataset(button) {
-    return {
-        id: button.dataset.id,
-        nombre: button.dataset.nombre
-    };
-}
-
-/* ==========================================================================
-   MODAL EDIT (Llenado de Formulario)
-   ========================================================================== */
-
-/**
- * Prepara el formulario de edición con los datos de la sección seleccionada.
- * @param {Object} data - Datos obtenidos vía getDataset.
- */
-function fillEditModal(data) {
-    // Asigna el nombre actual al input de edición
-    document.getElementById('edit_nombre').value = data.nombre;
-
-    // Actualiza la URL de destino del formulario (endpoint de actualización)
-    const form = document.getElementById('editSeccionForm');
-    form.action = `/secciones/${data.id}`;
-}
-
-/* ==========================================================================
-   MODAL SHOW (Visualización de Información)
-   ========================================================================== */
-
-/**
- * Muestra el nombre de la sección en el modal de detalles.
- * @param {Object} data - Datos obtenidos vía getDataset.
- */
-function fillShowModal(data) {
-    document.getElementById('show_nombre').textContent = data.nombre;
-}
 </script>
 @endpush

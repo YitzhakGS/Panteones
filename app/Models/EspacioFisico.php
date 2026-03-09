@@ -14,20 +14,23 @@ class EspacioFisico extends Model
     protected $primaryKey = 'id_espacio_fisico';
 
     protected $fillable = [
-        'id_cuadrilla',
+        'id_seccion', // <--- Cambio aquí
         'id_tipo_espacio_fisico',
         'nombre',
         'descripcion',
     ];
 
-    public function cuadrilla()
+    /**
+     * El espacio pertenece directamente a una sección.
+     */
+    public function seccion()
     {
-        return $this->belongsTo(CatCuadrilla::class, 'id_cuadrilla');
+        return $this->belongsTo(CatSeccion::class, 'id_seccion', 'id_seccion');
     }
 
     public function tipoEspacioFisico()
     {
-        return $this->belongsTo(CatTipoEspacioFisico::class, 'id_tipo_espacio_fisico');
+        return $this->belongsTo(CatTipoEspacioFisico::class, 'id_tipo_espacio_fisico', 'id_tipo_espacio_fisico');
     }
 
     public function lotes()
@@ -38,7 +41,7 @@ class EspacioFisico extends Model
             'id_espacio_fisico',
             'id_lote'
         )->withPivot(['fecha_inicio', 'fecha_fin'])
-            ->withTimestamps();
+         ->withTimestamps();
     }
 
     public function lotesVigentes()

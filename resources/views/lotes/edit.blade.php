@@ -1,3 +1,4 @@
+{{-- MODAL EDITAR --}}
 <div class="modal fade" id="editLoteModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -8,235 +9,120 @@
                     <h5 class="modal-title fw-bold">
                         <i class="bi bi-pencil-square me-2 text-muted"></i>Editar Lote
                     </h5>
-                    <p class="text-muted small mb-0">Modifica la información del lote</p>
+                    <p class="text-muted small mb-0">Modifica la información técnica y de ubicación del lote</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <form id="editLoteForm"
-                  action="{{ route('lotes.update', $lote->id_lote) }}"
-                  method="POST">
-
+            <form id="editLoteForm" method="POST" action="">
                 @csrf
                 @method('PUT')
 
-                <input type="hidden"
-                       id="current_espacio_id"
-                       value="{{ optional($lote->espacioActual)->id_espacio_fisico }}">
+                <input type="hidden" id="current_espacio_id">
 
                 <div class="modal-body pt-3">
 
-                    {{-- ── IDENTIFICACIÓN ── --}}
+                    {{-- ── SECCIÓN 1: Identificación ── --}}
                     <div class="section-block mb-3">
                         <span class="section-label">Identificación</span>
-
                         <div class="row g-3 mt-1">
-
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-hash me-1 text-muted"></i>Número de lote
                                 </label>
-
-                                <input type="text"
-                                       name="numero"
-                                       class="form-control"
-                                       value="{{ old('numero', $lote->numero) }}">
+                                <input type="text" name="numero" class="form-control"
+                                       placeholder="Ej. 042" required>
                             </div>
-
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-rulers me-1 text-muted"></i>Superficie (m²)
                                 </label>
-
                                 <div class="input-group">
-                                    <input type="number"
-                                           step="0.01"
-                                           name="metros_cuadrados"
-                                           id="edit_metros_cuadrados"
-                                           class="form-control"
-                                           value="{{ old('metros_cuadrados', $lote->metros_cuadrados) }}"
-                                           readonly>
-
+                                    <input type="number" step="0.01" name="metros_cuadrados"
+                                           id="edit_metros_cuadrados" class="form-control bg-light" readonly>
                                     <span class="input-group-text text-muted">m²</span>
                                 </div>
+                                <small class="text-muted" style="font-size: 0.75rem;">Calculado automáticamente</small>
                             </div>
-
                         </div>
                     </div>
 
-                    {{-- ── MEDIDAS ── --}}
+                    {{-- ── SECCIÓN 2: Medidas ── --}}
                     <div class="section-block mb-3">
                         <span class="section-label">Medidas (metros)</span>
-
                         <div class="row g-3 mt-1">
-
+                            @foreach(['norte' => 'up', 'sur' => 'down', 'oriente' => 'right', 'poniente' => 'left'] as $dir => $icon)
                             <div class="col-md-3">
-                                <label class="form-label text-muted small">
-                                    <i class="bi bi-arrow-up me-1"></i>Norte
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-arrow-{{ $icon }} me-1"></i>{{ ucfirst($dir) }}
                                 </label>
-                                <input type="number" step="0.01"
-                                       name="med_norte"
-                                       class="form-control"
-                                       value="{{ old('med_norte', $lote->med_norte) }}">
+                                <input type="number" step="0.01" name="med_{{ $dir }}"
+                                       class="form-control edit-measure-input" placeholder="0.00">
                             </div>
-
-                            <div class="col-md-3">
-                                <label class="form-label text-muted small">
-                                    <i class="bi bi-arrow-down me-1"></i>Sur
-                                </label>
-                                <input type="number" step="0.01"
-                                       name="med_sur"
-                                       class="form-control"
-                                       value="{{ old('med_sur', $lote->med_sur) }}">
-                            </div>
-
-                            <div class="col-md-3">
-                                <label class="form-label text-muted small">
-                                    <i class="bi bi-arrow-right me-1"></i>Oriente
-                                </label>
-                                <input type="number" step="0.01"
-                                       name="med_oriente"
-                                       class="form-control"
-                                       value="{{ old('med_oriente', $lote->med_oriente) }}">
-                            </div>
-
-                            <div class="col-md-3">
-                                <label class="form-label text-muted small">
-                                    <i class="bi bi-arrow-left me-1"></i>Poniente
-                                </label>
-                                <input type="number" step="0.01"
-                                       name="med_poniente"
-                                       class="form-control"
-                                       value="{{ old('med_poniente', $lote->med_poniente) }}">
-                            </div>
-
+                            @endforeach
                         </div>
                     </div>
 
-                    {{-- ── COLINDANCIAS ── --}}
+                    {{-- ── SECCIÓN 3: Colindancias ── --}}
                     <div class="section-block mb-3">
                         <span class="section-label">Colindancias</span>
-
                         <div class="row g-3 mt-1">
-
+                            @foreach(['norte', 'sur', 'oriente', 'poniente'] as $dir)
                             <div class="col-md-6">
-                                <label class="form-label text-muted small">
-                                    <i class="bi bi-arrow-up me-1"></i>Norte
+                                <label class="form-label fw-semibold text-muted small">
+                                    <i class="bi bi-signpost-split me-1"></i>{{ ucfirst($dir) }}
                                 </label>
-
-                                <input type="text"
-                                       name="col_norte"
-                                       class="form-control"
-                                       value="{{ old('col_norte', $lote->col_norte) }}">
+                                <input type="text" name="col_{{ $dir }}" class="form-control"
+                                       placeholder="Colindancia {{ ucfirst($dir) }}">
                             </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">
-                                    <i class="bi bi-arrow-down me-1"></i>Sur
-                                </label>
-
-                                <input type="text"
-                                       name="col_sur"
-                                       class="form-control"
-                                       value="{{ old('col_sur', $lote->col_sur) }}">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">
-                                    <i class="bi bi-arrow-right me-1"></i>Oriente
-                                </label>
-
-                                <input type="text"
-                                       name="col_oriente"
-                                       class="form-control"
-                                       value="{{ old('col_oriente', $lote->col_oriente) }}">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">
-                                    <i class="bi bi-arrow-left me-1"></i>Poniente
-                                </label>
-
-                                <input type="text"
-                                       name="col_poniente"
-                                       class="form-control"
-                                       value="{{ old('col_poniente', $lote->col_poniente) }}">
-                            </div>
-
+                            @endforeach
                         </div>
                     </div>
 
-                    {{-- ── UBICACIÓN ── --}}
+                    {{-- ── SECCIÓN 4: Ubicación Geográfica ── --}}
                     <div class="section-block mb-3">
                         <span class="section-label">Ubicación del lote</span>
-
                         <div class="row g-3 mt-1">
-
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
-                                    <i class="bi bi-grid me-1 text-muted"></i>Sección / Cuadrilla
+                                    <i class="bi bi-layers me-1 text-muted"></i>Sección General
                                 </label>
-
-                                <select id="edit-select-cuadrilla-ajax"
-                                        class="form-select border-primary">
-                                    <option value="">Seleccione Cuadrilla...</option>
-
-                                    @foreach ($cuadrillas as $cuadrilla)
-                                        <option value="{{ $cuadrilla->id_cuadrilla }}">
-                                            {{ $cuadrilla->seccion->nombre }} - {{ $cuadrilla->nombre }}
-                                        </option>
+                                <select id="edit-select-seccion-ajax" class="form-select border-primary">
+                                    <option value="">-- Seleccione Sección --</option>
+                                    @foreach ($secciones as $seccion)
+                                        <option value="{{ $seccion->id_seccion }}">{{ $seccion->nombre }}</option>
                                     @endforeach
-
                                 </select>
                             </div>
-
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
-                                    <i class="bi bi-map me-1 text-muted"></i>Área / Espacio Físico
+                                    <i class="bi bi-geo-alt me-1 text-muted"></i>Área / Espacio Físico
                                 </label>
-
-                                <select name="id_espacio_fisico"
-                                        id="edit-select-espacio-ajax"
-                                        class="form-select"
-                                        required>
-
-                                    @if($lote->espacioActual)
-                                        <option value="{{ $lote->espacioActual->id_espacio_fisico }}" selected>
-                                            {{ $lote->espacioActual->tipoEspacioFisico->nombre }}
-                                            {{ $lote->espacioActual->nombre }}
-                                        </option>
-                                    @else
-                                        <option value="">Primero elija una cuadrilla...</option>
-                                    @endif
-
+                                <select name="id_espacio_fisico" id="edit-select-espacio-ajax"
+                                        class="form-select" required>
+                                    <option value="">Primero elija una sección...</option>
                                 </select>
                             </div>
-
                         </div>
                     </div>
 
-                    {{-- ── REFERENCIAS ── --}}
+                    {{-- ── SECCIÓN 5: Referencias ── --}}
                     <div class="section-block mb-1">
                         <span class="section-label">Referencias adicionales</span>
-
-                        <textarea name="referencias"
-                                  rows="2"
-                                  class="form-control"
-                                  placeholder="Notas, ubicación visual, referencias...">{{ old('referencias', $lote->referencias) }}</textarea>
+                        <div class="mt-1">
+                            <textarea name="referencias" rows="2" class="form-control"
+                                      placeholder="Notas, ubicación visual, referencias específicas..."></textarea>
+                        </div>
                     </div>
 
                 </div>
 
-                {{-- BOTONES --}}
+                {{-- FOOTER --}}
                 <div class="modal-footer border-top-0">
-                    <button type="button"
-                            class="btn btn-light border"
-                            data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
                         <i class="bi bi-x me-1"></i>Cancelar
                     </button>
-
-                    <button type="submit"
-                            class="btn bg-base text-white px-4">
+                    <button type="submit" class="btn bg-base text-white px-4">
                         <i class="bi bi-check2-circle me-1"></i>Guardar cambios
                     </button>
                 </div>
@@ -246,107 +132,81 @@
     </div>
 </div>
 
-
-
 <script>
 /**
- * Lógica Interactiva para el Formulario de Edición de Lotes.
- * Gestiona la carga dinámica de áreas mediante AJAX y el cálculo
- * automático de superficie basado en las medidas perimetrales.
+ * Lógica para la Edición de Lotes
  */
 
 /* ==========================================================================
-   SELECTS DEPENDIENTES (Cuadrilla -> Espacio)
+   CÁLCULO DE SUPERFICIE
    ========================================================================== */
-
-/**
- * Escucha cambios en el select de Cuadrilla para actualizar el select de Espacios.
- * Implementa un estado de carga y manejo de errores.
- */
-document.getElementById('edit-select-cuadrilla-ajax').addEventListener('change', function() {
-    const idCuadrilla = this.value;
-    const selectEspacio = document.getElementById('edit-select-espacio-ajax');
-
-    // Estado visual de carga
-    selectEspacio.innerHTML = '<option value="">Cargando áreas...</option>';
-    selectEspacio.disabled = true;
-
-    // Si se limpia la selección de cuadrilla
-    if (!idCuadrilla) {
-        selectEspacio.innerHTML = '<option value="">Primero elija una cuadrilla...</option>';
-        return;
-    }
-
-    // Petición asíncrona a la API de espacios físicos
-   fetch(`/api/cuadrillas/${idCuadrilla}/espacios`)
-    .then(response => response.json())
-    .then(data => {
-        selectEspacio.innerHTML = '<option value="">-- Seleccione el Área Específica --</option>';
-
-        const currentEspacioId =
-            document.getElementById('current_espacio_id')?.value;
-
-        data.forEach(espacio => {
-            const option = document.createElement('option');
-            option.value = espacio.id;
-            option.textContent = `${espacio.tipo} ${espacio.nombre}`;
-
-            // 🔥 AQUÍ ESTÁ LA MAGIA
-            if (currentEspacioId && espacio.id == currentEspacioId) {
-                option.selected = true;
-            }
-
-            selectEspacio.appendChild(option);
-        });
-
-        selectEspacio.disabled = false;
-    })
-    .catch(error => {
-        console.error('Error al obtener espacios:', error);
-        selectEspacio.innerHTML = '<option value="">Error al cargar áreas</option>';
-    });
+document.querySelectorAll('.edit-measure-input').forEach(input => {
+    input.addEventListener('input', calcularSuperficieEdit);
 });
 
-/* ==========================================================================
-   CÁLCULO AUTOMÁTICO DE SUPERFICIE
-   ========================================================================== */
-
-const editModal = document.getElementById('editLoteModal');
-
-/**
- * Escucha cualquier entrada de texto en el modal de edición.
- * Filtra los eventos 'input' para disparar el cálculo solo en campos de medidas.
- */
-editModal.addEventListener('input', function (e) {
-    const camposMedidas = ['med_norte', 'med_sur', 'med_oriente', 'med_poniente'];
-    
-    if (camposMedidas.includes(e.target.name)) {
-        calcularSuperficieEdit();
-    }
-});
-
-/**
- * Calcula la superficie (m²) del lote usando el promedio de sus lados.
- * Aplica la fórmula: ((Norte + Sur) / 2) * ((Oriente + Poniente) / 2)
- */
 function calcularSuperficieEdit() {
-    // Obtención de valores y conversión a flotante (0 si es inválido)
-    const norte    = parseFloat(document.querySelector('#editLoteModal [name="med_norte"]').value) || 0;
-    const sur      = parseFloat(document.querySelector('#editLoteModal [name="med_sur"]').value) || 0;
-    const oriente  = parseFloat(document.querySelector('#editLoteModal [name="med_oriente"]').value) || 0;
-    const poniente = parseFloat(document.querySelector('#editLoteModal [name="med_poniente"]').value) || 0;
+    const modal = document.getElementById('editLoteModal');
 
-    // Validación: Se requiere al menos un valor de eje vertical y uno horizontal
+    const norte    = parseFloat(modal.querySelector('[name="med_norte"]').value) || 0;
+    const sur      = parseFloat(modal.querySelector('[name="med_sur"]').value) || 0;
+    const oriente  = parseFloat(modal.querySelector('[name="med_oriente"]').value) || 0;
+    const poniente = parseFloat(modal.querySelector('[name="med_poniente"]').value) || 0;
+
     if ((norte > 0 || sur > 0) && (oriente > 0 || poniente > 0)) {
-        const anchoPromedio = (norte + sur) / 2;
-        const largoPromedio = (oriente + poniente) / 2;
+        const anchoPromedio = (norte + sur) / ((norte > 0 && sur > 0) ? 2 : 1);
+        const largoPromedio = (oriente + poniente) / ((oriente > 0 && poniente > 0) ? 2 : 1);
         const superficie = anchoPromedio * largoPromedio;
-
-        // Actualización del campo de metros cuadrados con 2 decimales
-        document.getElementById('edit_metros_cuadrados').value =
-            superficie > 0 ? superficie.toFixed(2) : '';
+        document.getElementById('edit_metros_cuadrados').value = superficie > 0 ? superficie.toFixed(2) : '';
     }
 }
 
+/* ==========================================================================
+   CARGA ASÍNCRONA DE ESPACIOS FÍSICOS POR SECCIÓN
+   ========================================================================== */
+document.getElementById('edit-select-seccion-ajax').addEventListener('change', function () {
+    const idSeccion = this.value;
+    const selectEspacio = document.getElementById('edit-select-espacio-ajax');
+    const currentId = document.getElementById('current_espacio_id').value;
 
+    selectEspacio.innerHTML = '<option value="">Cargando áreas...</option>';
+    selectEspacio.disabled = true;
+
+    if (!idSeccion) {
+        selectEspacio.innerHTML = '<option value="">Primero elija una sección...</option>';
+        selectEspacio.disabled = false;
+        return;
+    }
+
+    fetch(`/api/secciones/${idSeccion}/espacios-fisicos`)
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la carga');
+            return response.json();
+        })
+        .then(data => {
+            selectEspacio.innerHTML = '<option value="">-- Seleccione el Área Específica --</option>';
+            data.forEach(espacio => {
+                const option = document.createElement('option');
+                option.value = espacio.id_espacio_fisico;
+                option.textContent = `${espacio.tipo} - ${espacio.nombre}`;
+                if (espacio.id_espacio_fisico == currentId) option.selected = true;
+                selectEspacio.appendChild(option);
+            });
+            selectEspacio.disabled = false;
+        })
+        .catch(error => {
+            console.error('Error AJAX:', error);
+            selectEspacio.innerHTML = '<option value="">Error al cargar áreas</option>';
+            selectEspacio.disabled = false;
+        });
+});
+
+/* ==========================================================================
+   AL ABRIR EL MODAL: disparar carga de espacios con la sección pre-seleccionada
+   ========================================================================== */
+document.getElementById('editLoteModal').addEventListener('shown.bs.modal', function () {
+    const selectSeccion = document.getElementById('edit-select-seccion-ajax');
+    if (selectSeccion.value) {
+        selectSeccion.dispatchEvent(new Event('change'));
+    }
+});
 </script>

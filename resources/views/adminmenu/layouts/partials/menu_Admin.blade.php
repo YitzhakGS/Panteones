@@ -13,15 +13,6 @@
 </li>
 
 <li class="list-group-item bg-base border-secondary py-3 px-4">
-    <a href="{{ route('cuadrillas.index') }}"
-        class="d-flex align-items-center text-white text-decoration-none p-2 rounded
-        {{ Route::is('cuadrillas.*') ? 'fw-bold text-warning bg-primario' : '' }}">
-        <i class="bi bi-folder2-open fs-4 me-2"></i>
-        Cuadrillas
-    </a>
-</li>
-
-<li class="list-group-item bg-base border-secondary py-3 px-4">
     <a href="{{ route('espacios_fisicos.index') }}"
         class="d-flex align-items-center text-white text-decoration-none p-2 rounded
         {{ Route::is('espacios_fisicos.*') ? 'fw-bold text-warning bg-primario' : '' }}">

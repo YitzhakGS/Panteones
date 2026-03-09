@@ -19,7 +19,7 @@ return new class extends Migration
             
             $table->foreign('id_seccion')
                 ->references('id_seccion')
-                ->on('secciones');
+                ->on('cat_secciones');
 
             $table->foreign('id_tipo_espacio_fisico')
                 ->references('id_tipo_espacio_fisico')

@@ -35,24 +35,24 @@
 
                             <div class="col-12">
                                 <label class="form-label fw-semibold">
-                                    <i class="bi bi-grid me-1 text-muted"></i>Sección / Cuadrilla
+                                    <i class="bi bi-grid me-1 text-muted"></i>Sección
                                 </label>
 
-                                <select name="id_cuadrilla"
-                                        id="edit_id_cuadrilla"
-                                        class="form-select @error('id_cuadrilla') is-invalid @enderror"
+                                <select name="id_seccion"
+                                        id="edit_id_seccion"
+                                        class="form-select @error('id_seccion') is-invalid @enderror"
                                         required>
 
-                                    <option value="">Seleccione sección y cuadrilla...</option>
+                                    <option value="">Seleccione la sección...</option>
 
-                                    @foreach ($cuadrillas as $cuadrilla)
-                                        <option value="{{ $cuadrilla->id_cuadrilla }}">
-                                            {{ $cuadrilla->seccion->nombre }} — {{ $cuadrilla->nombre }}
+                                    @foreach ($secciones as $seccion)
+                                        <option value="{{ $seccion->id_seccion }}">
+                                            {{ $seccion->nombre }}
                                         </option>
                                     @endforeach
                                 </select>
 
-                                @error('id_cuadrilla')
+                                @error('id_seccion')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

@@ -9,31 +9,25 @@ use Illuminate\Http\RedirectResponse;
 
 /**
  * Controlador encargado de la gestión del catálogo de secciones.
- *
- * Maneja las operaciones CRUD (Crear, Leer, Actualizar, Eliminar)
- * relacionadas con las secciones del sistema.
  */
 class SeccionesController extends Controller
 {
     /**
      * Muestra un listado de todas las secciones.
      *
-     * Carga las relaciones:
-     * - cuadrillas
-     * - espacios físicos asociados a cada cuadrilla
-     *
-     * @return View
+     * Carga la relación directa:
+     * - espaciosFisicos (Cambiado de cuadrillas.espaciosFisicos)
      */
     public function index(): View
     {
-        $secciones = CatSeccion::with('cuadrillas.espaciosFisicos')->get();
+        // Cargamos directamente los espacios físicos asociados
+        $secciones = CatSeccion::with('espaciosFisicos')->get();
+        
         return view('secciones.index', compact('secciones'));
     }
 
     /**
      * Muestra el formulario para crear una nueva sección.
-     *
-     * @return View
      */
     public function create(): View
     {
@@ -42,19 +36,14 @@ class SeccionesController extends Controller
 
     /**
      * Almacena una nueva sección en la base de datos.
-     *
-     * Valida que el campo "nombre" sea obligatorio antes de guardar.
-     *
-     * @param Request $request
-     * @return RedirectResponse
      */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'nombre' => 'required'
+            'nombre' => 'required|string|max:255|unique:cat_secciones,nombre'
         ]);
 
-        CatSeccion::create($request->all());
+        CatSeccion::create($request->only('nombre'));
 
         return redirect()
             ->route('secciones.index')
@@ -63,22 +52,17 @@ class SeccionesController extends Controller
 
     /**
      * Muestra el detalle de una sección específica.
-     *
-     * Utiliza Route Model Binding para obtener la sección.
-     *
-     * @param CatSeccion $seccion
-     * @return View
      */
     public function show(CatSeccion $seccion): View
     {
+        // Cargamos la relación para mostrar los espacios en la vista de detalle
+        $seccion->load('espaciosFisicos.tipoEspacioFisico');
+        
         return view('secciones.show', compact('seccion'));
     }
 
     /**
      * Muestra el formulario para editar una sección existente.
-     *
-     * @param CatSeccion $seccion
-     * @return View
      */
     public function edit(CatSeccion $seccion): View
     {
@@ -87,17 +71,11 @@ class SeccionesController extends Controller
 
     /**
      * Actualiza los datos de una sección existente.
-     *
-     * Valida que el campo "nombre" sea obligatorio.
-     *
-     * @param Request $request
-     * @param CatSeccion $seccion
-     * @return RedirectResponse
      */
     public function update(Request $request, CatSeccion $seccion): RedirectResponse
     {
         $request->validate([
-            'nombre' => 'required'
+            'nombre' => 'required|string|max:255|unique:cat_secciones,nombre,' . $seccion->id_seccion . ',id_seccion'
         ]);
 
         $seccion->update($request->only('nombre'));
@@ -108,10 +86,7 @@ class SeccionesController extends Controller
     }
 
     /**
-     * Elimina una sección del sistema.
-     *
-     * @param CatSeccion $seccion
-     * @return RedirectResponse
+     * Elimina una sección del sistema (Soft Delete).
      */
     public function destroy(CatSeccion $seccion): RedirectResponse
     {
@@ -124,14 +99,9 @@ class SeccionesController extends Controller
 
     /**
      * Devuelve la información de una sección en formato JSON.
-     *
-     * Útil para peticiones AJAX o consumo vía API.
-     *
-     * @param CatSeccion $seccion
-     * @return \Illuminate\Http\JsonResponse
      */
     public function getData(CatSeccion $seccion)
     {
-        return response()->json($seccion);
+        return response()->json($seccion->load('espaciosFisicos'));
     }
 }

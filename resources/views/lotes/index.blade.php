@@ -2,9 +2,8 @@
 
 <head>
     <link rel="stylesheet" href="{{ asset('css/css-view/css_tabla_lotes.css') }}">
-    @stack('styles')
+    <link rel="stylesheet" href="{{ asset('css/css-view/css_show_modal.css') }}">
 </head>
-
 @section('content')
 
 {{-- Título --}}
@@ -19,20 +18,15 @@
 </div>
 
 <div class="espacios-wrapper">
-
     {{-- Acciones --}}
     <div class="mb-3 row align-items-center" style="padding-top:10px; padding-left:10px; padding-right:10px;">
         <div class="col-md-4 text-start">
-            <button type="button"
-                    class="btn bg-base text-white shadow-sm"
-                    data-bs-toggle="modal"
-                    data-bs-target="#createLoteModal">
+            <button type="button" class="btn bg-base text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#createLoteModal">
                 <i class="bi bi-plus-circle"></i> Nuevo Lote
             </button>
         </div>
         <div class="col-md-8">
-            <input type="text" id="searchLote" class="form-control form-control-lg"
-                placeholder="Buscar por número de lote, ubicación o colindancias...">
+            <input type="text" id="searchLote" class="form-control form-control-lg" placeholder="Buscar por número de lote, ubicación o colindancias...">
         </div>
     </div>
 
@@ -51,298 +45,196 @@
                         <th class="text-end" style="width:6%">Acciones</th>
                     </tr>
                 </thead>
-
                 <tbody>
                 @forelse ($lotes as $lote)
                     <tr>
-
-                        {{-- # --}}
-                        <td class="text-center text-muted small">
-                            {{ $loop->iteration }}
-                        </td>
-
-                        {{-- Lote --}}
-                        <td>
-                            <div class="lote-badge">{{ $lote->numero }}</div>
-                        </td>
-
-                        {{-- Metros cuadrados --}}
+                        <td class="text-center text-muted small">{{ $loop->iteration }}</td>
+                        <td><div class="lote-badge">{{ $lote->numero }}</div></td>
                         <td>
                             @if($lote->metros_cuadrados)
-                                <span class="m2-value">{{ number_format($lote->metros_cuadrados, 2) }}</span>
-                                <span class="m2-unit">m²</span>
+                                <span class="m2-value">{{ number_format($lote->metros_cuadrados, 2) }}</span> <span class="m2-unit">m²</span>
                             @else
                                 <span class="m2-value" style="color:#94a3b8">—</span>
                             @endif
                         </td>
-
-                        {{-- Ubicación --}}
                         <td>
-                            @if ($lote->ubicacion_formateada)
-                                <div class="ubicacion-text">
-                                    <i class="bi bi-pin-map-fill me-1"></i>
-                                    {!! nl2br(e($lote->ubicacion_formateada)) !!}
-                                </div>
-                            @else
-                                <span class="text-muted small">Sin ubicación asignada</span>
-                            @endif
-                        </td>
-
-                        {{-- Colindancias (compass grid) --}}
-                        <td>
-                            <div class="compass-grid">
-                                <div class="cg-item cg-col cg-n">
-                                    <span class="cg-dir">N</span>
-                                    <span class="cg-val">{{ $lote->col_norte ?? '--' }}</span>
-                                </div>
-                                <div class="cg-item cg-col cg-p">
-                                    <span class="cg-dir">P</span>
-                                    <span class="cg-val">{{ $lote->col_poniente ?? '--' }}</span>
-                                </div>
-                                <div class="cg-item cg-col cg-o">
-                                    <span class="cg-dir">O</span>
-                                    <span class="cg-val">{{ $lote->col_oriente ?? '--' }}</span>
-                                </div>
-                                <div class="cg-item cg-col cg-s">
-                                    <span class="cg-dir">S</span>
-                                    <span class="cg-val">{{ $lote->col_sur ?? '--' }}</span>
-                                </div>
+                            <div class="ubicacion-text">
+                                <i class="bi bi-geo-alt-fill text-primary me-1"></i>
+                                <span class="fw-bold">
+                                    {{ $lote->espaciosActuales->first()->seccion->nombre ?? 'N/A' }}
+                                </span>
+                                <br>
+                                <span class="text-muted">
+                                    {{ $lote->espaciosActuales->first()->tipoEspacioFisico->nombre ?? 'Sin tipo' }}
+                                    -
+                                    {{ $lote->espaciosActuales->first()->nombre ?? 'Sin área' }}
+                                </span>
                             </div>
                         </td>
-
-                        {{-- Medidas (compass grid) --}}
                         <td>
                             <div class="compass-grid">
-                                <div class="cg-item cg-med cg-n">
-                                    <span class="cg-dir">N</span>
-                                    <span class="cg-val">{{ $lote->med_norte ?? '--' }}</span>
-                                </div>
-                                <div class="cg-item cg-med cg-p">
-                                    <span class="cg-dir">P</span>
-                                    <span class="cg-val">{{ $lote->med_poniente ?? '--' }}</span>
-                                </div>
-                                <div class="cg-item cg-med cg-o">
-                                    <span class="cg-dir">O</span>
-                                    <span class="cg-val">{{ $lote->med_oriente ?? '--' }}</span>
-                                </div>
-                                <div class="cg-item cg-med cg-s">
-                                    <span class="cg-dir">S</span>
-                                    <span class="cg-val">{{ $lote->med_sur ?? '--' }}</span>
-                                </div>
+                                <div class="cg-item cg-col cg-n"><span class="cg-dir">N</span><span class="cg-val">{{ $lote->col_norte ?? '--' }}</span></div>
+                                <div class="cg-item cg-col cg-p"><span class="cg-dir">P</span><span class="cg-val">{{ $lote->col_poniente ?? '--' }}</span></div>
+                                <div class="cg-item cg-col cg-o"><span class="cg-dir">O</span><span class="cg-val">{{ $lote->col_oriente ?? '--' }}</span></div>
+                                <div class="cg-item cg-col cg-s"><span class="cg-dir">S</span><span class="cg-val">{{ $lote->col_sur ?? '--' }}</span></div>
                             </div>
                         </td>
-
-                        {{-- Acciones --}}
-                        <td class="text-end" style="padding-right: 20px;">
+                        <td>
+                            <div class="compass-grid">
+                                <div class="cg-item cg-med cg-n"><span class="cg-dir">N</span><span class="cg-val">{{ $lote->med_norte ?? '--' }}</span></div>
+                                <div class="cg-item cg-med cg-p"><span class="cg-dir">P</span><span class="cg-val">{{ $lote->med_poniente ?? '--' }}</span></div>
+                                <div class="cg-item cg-med cg-o"><span class="cg-dir">O</span><span class="cg-val">{{ $lote->med_oriente ?? '--' }}</span></div>
+                                <div class="cg-item cg-med cg-s"><span class="cg-dir">S</span><span class="cg-val">{{ $lote->med_sur ?? '--' }}</span></div>
+                            </div>
+                        </td>
+                        <td class="text-end">
                             <div class="d-flex flex-column gap-2 align-items-end">
-
-                                <button type="button"
-                                        class="btn btn-secondary"
-                                        title="Ver"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#showLoteModal"
-                                        data-id="{{ $lote->id_lote }}">
+                                <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#showLoteModal" data-id="{{ $lote->id_lote }}">
                                     <i class="bi bi-eye"></i>
                                 </button>
-
-                                <button type="button"
-                                        class="btn btn-secondary"
-                                        title="Editar"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editLoteModal"
-                                        data-id="{{ $lote->id_lote }}">
+                                <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#editLoteModal" data-id="{{ $lote->id_lote }}">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-
                                 <form action="{{ route('lotes.destroy', $lote->id_lote) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                            class="btn btn-danger"
-                                            title="Eliminar"
-                                            onclick="return confirm('¿Eliminar lote?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar lote?')">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
-
                             </div>
                         </td>
-
                     </tr>
                 @empty
-                    <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
-                            No hay lotes registrados.
-                        </td>
-                    </tr>
+                    <tr><td colspan="7" class="text-center py-5 text-muted">No hay lotes registrados.</td></tr>
                 @endforelse
                 </tbody>
             </table>
-
-            {{-- Paginación --}}
             @if(method_exists($lotes, 'links'))
-                <div class="pagination-container d-flex justify-content-center mt-3">
-                    {{ $lotes->links() }}
-                </div>
+                <div class="pagination-container d-flex justify-content-center mt-3">{{ $lotes->links() }}</div>
             @endif
         </div>
     </div>
 </div>
-
-{{-- Modales --}}
+@include('lotes.edit')
 @include('lotes.create')
-@if ($lotes->count() > 0)
-    @include('lotes.edit')
-@endif
 @include('lotes.show')
 
 @endsection
 
 @push('scripts')
 <script>
-/**
- * Gestión del Módulo de Lotes
- * Maneja el filtrado de tablas, scroll dinámico y la carga de datos vía AJAX
- * para la visualización y edición de lotes, incluyendo carga de áreas dependientes.
- */
-
-/**
- * Filtro de búsqueda para la tabla de lotes.
- */
-document.getElementById('searchLote').addEventListener('keyup', function () {
-    const value = this.value.toLowerCase();
-    document.querySelectorAll('tbody tr').forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
-    });
-});
-
-/**
- * Control de scroll suave para la paginación.
- */
-document.querySelectorAll('.pagination a').forEach(link => {
-    link.addEventListener('click', () => {
-        document.querySelector('.cards-scroll-container')
-            ?.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-});
-
-/* ==========================================================================
-   INICIALIZACIÓN DE MODALES (SHOW / EDIT)
-   ========================================================================== */
-
 document.addEventListener('DOMContentLoaded', function () {
-    const showModal = document.getElementById('showLoteModal');
     const editModal = document.getElementById('editLoteModal');
+    if (editModal) editModal.addEventListener('show.bs.modal', handleEditLoteModal);
 
-    if (showModal) {
-        showModal.addEventListener('show.bs.modal', handleShowLoteModal);
-    }
-    if (editModal) {
-        editModal.addEventListener('show.bs.modal', handleEditLoteModal);
-    }
-});
+    const showModal = document.getElementById('showLoteModal');
+    if (showModal) showModal.addEventListener('show.bs.modal', handleShowLoteModal);
 
-/* ==========================================================================
-   MANEJADORES DE DATOS (AJAX FETCH)
-   ========================================================================== */
-
-/**
- * Obtiene los datos de un lote desde el servidor para el modal de visualización.
- * @param {Event} event - Evento show.bs.modal de Bootstrap.
- */
-function handleShowLoteModal(event) {
-    const button = event.relatedTarget;
-    const loteId = button.dataset.id;
-
-    fetch(`/lotes/${loteId}/data`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(response => response.json())
-    .then(data => fillShowLoteModal(data))
-    .catch(() => alert('Error al cargar la información del lote'));
-}
-
-/**
- * Obtiene los datos de un lote y gestiona la carga de selects para edición.
- * @param {Event} event - Evento show.bs.modal de Bootstrap.
- */
-function handleEditLoteModal(event) {
-    const button = event.relatedTarget;
-    const loteId = button.dataset.id;
-
-    fetch(`/lotes/${loteId}/data`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(response => response.json())
-    .then(data => fillEditLoteModal(data))
-    .catch(() => alert('Error al cargar la información del lote'));
-}
-
-/* ==========================================================================
-   LLENADO DE CAMPOS (DOM MANIPULATION)
-   ========================================================================== */
-
-/**
- * Inserta los datos del lote en los elementos de texto del modal de visualización.
- * @param {Object} data - Objeto con la información completa del lote.
- */
-function fillShowLoteModal(data) {
-    document.getElementById('show_lote_numero').textContent      = data.numero;
-    document.getElementById('show_lote_superficie').textContent  = data.metros_cuadrados;
-
-    const fields = ['med_norte', 'med_sur', 'med_oriente', 'med_poniente',
-                    'col_norte', 'col_sur', 'col_oriente', 'col_poniente'];
-
-    fields.forEach(field => {
-        document.getElementById(`show_${field}`).textContent = data[field] ?? '—';
+    // Buscador
+    document.getElementById('searchLote').addEventListener('keyup', function () {
+        const value = this.value.toLowerCase();
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+        });
     });
 
-    document.getElementById('show_lote_referencias').textContent = data.referencias || 'Sin referencias';
-    document.getElementById('show_lote_ubicacion').textContent   = data.ubicacion;
+    // Cálculo superficie
+    document.querySelectorAll('.edit-measure-input').forEach(input => {
+        input.addEventListener('input', calcularSuperficieEdit);
+    });
+});
+
+function handleEditLoteModal(event) {
+    const loteId = event.relatedTarget.dataset.id;
+    const form = document.getElementById('editLoteForm');
+
+    form.action = `/lotes/${loteId}`;
+
+    fetch(`/lotes/${loteId}/data`)
+        .then(res => res.json())
+        .then(data => {
+            form.querySelector('[name="numero"]').value = data.numero ?? '';
+            document.getElementById('edit_metros_cuadrados').value = data.metros_cuadrados ?? '';
+            document.getElementById('current_espacio_id').value = data.id_espacio_fisico ?? '';
+
+            ['med_norte', 'med_sur', 'med_oriente', 'med_poniente',
+             'col_norte', 'col_sur', 'col_oriente', 'col_poniente',
+             'referencias'
+            ].forEach(f => {
+                const input = form.querySelector(`[name="${f}"]`);
+                if (input) input.value = data[f] ?? '';
+            });
+
+            const selectSeccion = document.getElementById('edit-select-seccion-ajax');
+            selectSeccion.value = data.id_seccion || '';
+
+            if (data.id_seccion) {
+                cargarEspaciosFisicos(data.id_seccion, data.id_espacio_fisico);
+            }
+        });
 }
 
-/**
- * Puebla el formulario de edición y gestiona la carga asíncrona de espacios físicos.
- * @param {Object} data - Objeto con la información del lote y sus relaciones.
- */
-function fillEditLoteModal(data) {
-    const modal = document.getElementById('editLoteModal');
-    const form  = document.getElementById('editLoteForm');
+function handleShowLoteModal(event) {
+    const loteId = event.relatedTarget.dataset.id;
 
-    form.action = `/lotes/${data.id_lote}`;
+    fetch(`/lotes/${loteId}/data`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('show_lote_numero').textContent      = data.numero ?? '—';
+            document.getElementById('show_lote_superficie').textContent  = data.metros_cuadrados ?? '—';
+            document.getElementById('show_lote_referencias').textContent = data.referencias ?? 'Sin referencias registradas...';
 
-    const setVal = (name, val) => {
-        const input = modal.querySelector(`[name="${name}"]`);
-        if (input) input.value = val ?? '';
-    };
+            document.getElementById('show_lote_ubicacion').textContent =
+                data.nombre_seccion
+                    ? `${data.nombre_seccion} · ${data.tipo_espacio} - ${data.nombre_espacio}`
+                    : 'Sin ubicación asignada';
 
-    setVal('numero', data.numero);
-    document.getElementById('edit_metros_cuadrados').value = data.metros_cuadrados ?? '';
-
-    ['med_norte', 'med_sur', 'med_oriente', 'med_poniente',
-     'col_norte', 'col_sur', 'col_oriente', 'col_poniente', 'referencias'].forEach(f => setVal(f, data[f]));
-
-    const selectCuadrilla = document.getElementById('edit-select-cuadrilla-ajax');
-    const selectEspacio   = document.getElementById('edit-select-espacio-ajax');
-
-    selectCuadrilla.value = data.id_cuadrilla || '';
-
-    if (data.id_cuadrilla) {
-        selectEspacio.innerHTML = '<option value="">Cargando áreas...</option>';
-
-        fetch(`/api/cuadrillas/${data.id_cuadrilla}/espacios`)
-            .then(response => response.json())
-            .then(espacios => {
-                selectEspacio.innerHTML = '<option value="">-- Seleccione el Área Específica --</option>';
-                espacios.forEach(espacio => {
-                    const option       = document.createElement('option');
-                    option.value       = espacio.id;
-                    option.textContent = `${espacio.tipo} ${espacio.nombre}`;
-                    if (espacio.id == data.id_espacio_fisico) option.selected = true;
-                    selectEspacio.appendChild(option);
-                });
-                selectEspacio.disabled = false;
+            ['norte', 'sur', 'oriente', 'poniente'].forEach(dir => {
+                document.getElementById(`show_med_${dir}`).textContent = data[`med_${dir}`] ?? '—';
+                document.getElementById(`show_col_${dir}`).textContent = data[`col_${dir}`] ?? '—';
             });
+        });
+}
+
+function cargarEspaciosFisicos(seccionId, seleccionadoId) {
+    const selectEspacio = document.getElementById('edit-select-espacio-ajax');
+    selectEspacio.innerHTML = '<option value="">Cargando áreas...</option>';
+    selectEspacio.disabled = true;
+
+    fetch(`/api/secciones/${seccionId}/espacios-fisicos`)
+        .then(res => {
+            if (!res.ok) throw new Error('Error en la carga');
+            return res.json();
+        })
+        .then(espacios => {
+            selectEspacio.innerHTML = '<option value="">-- Seleccione el Área Específica --</option>';
+            espacios.forEach(e => {
+                const opt = document.createElement('option');
+                opt.value = e.id_espacio_fisico;
+                opt.textContent = `${e.tipo} - ${e.nombre}`;
+                if (e.id_espacio_fisico == seleccionadoId) opt.selected = true;
+                selectEspacio.appendChild(opt);
+            });
+            selectEspacio.disabled = false;
+        })
+        .catch(error => {
+            console.error('Error AJAX:', error);
+            selectEspacio.innerHTML = '<option value="">Error al cargar áreas</option>';
+            selectEspacio.disabled = false;
+        });
+}
+
+function calcularSuperficieEdit() {
+    const modal = document.getElementById('editLoteModal');
+    const n = parseFloat(modal.querySelector('[name="med_norte"]').value) || 0;
+    const s = parseFloat(modal.querySelector('[name="med_sur"]').value) || 0;
+    const o = parseFloat(modal.querySelector('[name="med_oriente"]').value) || 0;
+    const p = parseFloat(modal.querySelector('[name="med_poniente"]').value) || 0;
+
+    if ((n > 0 || s > 0) && (o > 0 || p > 0)) {
+        const ancho = (n + s) / ((n > 0 && s > 0) ? 2 : 1);
+        const largo = (o + p) / ((o > 0 && p > 0) ? 2 : 1);
+        document.getElementById('edit_metros_cuadrados').value = (ancho * largo).toFixed(2);
     }
 }
 </script>

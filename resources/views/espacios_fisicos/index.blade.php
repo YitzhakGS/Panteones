@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-
 <head>
     <link rel="stylesheet" href="{{ asset('css/css-view/css_tables.css') }}">
 </head>
+
 @section('content')
 <div class="row">
     <div class="col-12">
@@ -33,10 +33,7 @@
                 <thead class="table-light">
                     <tr>
                         <th class="text-center" style="width: 5%">#</th>
-                        <th style="width: 20%">Sección</th>
-                        <th style="width: 20%">Cuadrilla</th>
-                        <th class="column-highlight" style="width: 35%">Espacio Físico</th>
-                        <th class="text-end" style="width: 20%; padding-right: 20px;">Acciones</th>
+                        <th style="width: 25%">Sección</th> <th class="column-highlight" style="width: 45%">Espacio Físico</th> <th class="text-end" style="width: 25%; padding-right: 20px;">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -45,14 +42,8 @@
                             <td class="text-center text-muted small">{{ $loop->iteration }}</td>
                             <td>
                                 <span class="badge rounded-pill border text-dark fw-normal bg-light">
-                                    {{ $espacio->cuadrilla->seccion->nombre }}
+                                    <i class="bi bi-geo me-1"></i> {{ $espacio->seccion->nombre }}
                                 </span>
-                            </td>
-                            <td>
-                                <div class="badge rounded-pill border text-dark fw-normal bg-light">
-                                    <i class=" me-2 text-muted"></i>
-                                    <span>{{ $espacio->cuadrilla->nombre }}</span>
-                                </div>
                             </td>
                             <td class="column-highlight">
                                 <div class="d-flex align-items-center">
@@ -64,17 +55,18 @@
                                 </div>
                             </td>
                             <td class="text-end" style="padding-right: 20px;">
-                                <button type="button" class="btn btn-secondary " 
+                                <button type="button" class="btn btn-secondary" 
                                     data-bs-toggle="modal" data-bs-target="#editEspacioFisicoModal"
                                     data-id="{{ $espacio->id_espacio_fisico }}"
                                     data-nombre="{{ $espacio->nombre }}"
-                                    data-id_cuadrilla="{{ $espacio->id_cuadrilla }}"
+                                    data-descripcion="{{ $espacio->descripcion }}"
+                                    data-id_seccion="{{ $espacio->id_seccion }}"
                                     data-id_tipo="{{ $espacio->id_tipo_espacio_fisico }}">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <form action="{{ route('espacios_fisicos.destroy', $espacio) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-danger " onclick="return confirm('¿Eliminar?')">
+                                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Eliminar este espacio?')">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
@@ -82,140 +74,60 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">No hay espacios registrados.</td>
+                            <td colspan="4" class="text-center py-5 text-muted">No hay espacios registrados.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-                {{-- Paginación (si la tienes implementada en el controlador) --}}
-                @if(method_exists($espaciosFisicos, 'links'))
-                    <div class="pagination-container d-flex justify-content-center mt-3">
-                        {{ $espaciosFisicos->links() }}
-                    </div>
-                @endif
+            
+            @if(method_exists($espaciosFisicos, 'links'))
+                <div class="pagination-container d-flex justify-content-center mt-3">
+                    {{ $espaciosFisicos->links() }}
+                </div>
+            @endif
         </div>
-
-        
     </div>
 </div>
 
-
-<!-- MODALES -->
 @include('espacios_fisicos.create')
 @include('espacios_fisicos.edit')
-@include('espacios_fisicos.show')
+{{-- @include('espacios_fisicos.show') --}} @endsection
 
-@endsection
 @push('scripts')
 <script>
-/**
- * Gestión del Módulo de Espacios Físicos
- * Maneja la lógica de visualización, edición y navegación (scroll) 
- * para la administración de ubicaciones físicas.
- */
-
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('JS ESPACIOS FÍSICOS CARGADO');
+    const modalEdit = document.getElementById('editEspacioFisicoModal');
 
-    // Referencias a los contenedores modales de Bootstrap
-    const modales = {
-        edit: document.getElementById('editEspacioFisicoModal'),
-        show: document.getElementById('showEspacioFisicoModal')
-    };
+    if (modalEdit) {
+        modalEdit.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            
+            // Extraer info de los atributos data-
+            const id = button.getAttribute('data-id');
+            const nombre = button.getAttribute('data-nombre');
+            const descripcion = button.getAttribute('data-descripcion');
+            const idSeccion = button.getAttribute('data-id_seccion');
+            const idTipo = button.getAttribute('data-id_tipo');
 
-    // Inicialización de escuchadores para modales
-    if (modales.edit) {
-        modales.edit.addEventListener('show.bs.modal', handleEditModal);
+            // Rellenar el formulario
+            document.getElementById('edit_id_espacio_fisico').value = id;
+            document.getElementById('edit_nombre').value = nombre;
+            document.getElementById('edit_descripcion').value = descripcion === 'null' ? '' : descripcion;
+            document.getElementById('edit_id_seccion').value = idSeccion;
+            document.getElementById('edit_id_tipo_espacio_fisico').value = idTipo;
+
+            // Actualizar Action del Form
+            const form = document.getElementById('editEspacioFisicoForm');
+            form.action = `/espacios_fisicos/${id}`;
+        });
     }
 
-    if (modales.show) {
-        modales.show.addEventListener('show.bs.modal', handleShowModal);
-    }
-
-    /**
-     * Mejora de UX para la paginación:
-     * Al hacer clic en cualquier enlace de la paginación, el contenedor de tarjetas
-     * vuelve a la parte superior con una animación suave.
-     */
+    // Scroll suave en paginación
     document.querySelectorAll('.pagination a').forEach(link => {
         link.addEventListener('click', () => {
-            document.querySelector('.cards-scroll-container')
-                ?.scrollTo({ top: 0, behavior: 'smooth' });
+            document.querySelector('.cards-scroll-container')?.scrollTo({ top: 0, behavior: 'smooth' });
         });
     });
 });
-
-/* ==========================================================================
-   HANDLERS (Manejadores de Eventos)
-   ========================================================================== */
-
-function handleEditModal(event) {
-    // relatedTarget obtiene el botón exacto que disparó el evento
-    const data = getDataset(event.relatedTarget);
-    fillEditModal(data);
-}
-
-function handleShowModal(event) {
-    const data = getDataset(event.relatedTarget);
-    fillShowModal(data);
-}
-
-/* ==========================================================================
-   HELPERS (Extracción de Atributos)
-   ========================================================================== */
-
-/**
- * Mapea los atributos 'data-' del HTML a un objeto literal de JavaScript.
- * @param {HTMLElement} button - El disparador (trigger) del modal.
- * @returns {Object} Diccionario con la información del Espacio Físico.
- */
-function getDataset(button) {
-    return {
-        id: button.dataset.id,
-        nombre: button.dataset.nombre,
-        descripcion: button.dataset.descripcion,
-        tipo: button.dataset.tipo,
-        cuadrilla: button.dataset.cuadrilla,
-        seccion: button.dataset.seccion,
-        idCuadrilla: button.dataset.id_cuadrilla,
-        idTipo: button.dataset.id_tipo
-    };
-}
-
-/* ==========================================================================
-   MODAL EDIT (Preparación de Formulario)
-   ========================================================================== */
-
-/**
- * Asigna los valores actuales al formulario de edición.
- * @param {Object} data - Objeto con los datos del registro.
- */
-function fillEditModal(data) {
-    document.getElementById('edit_nombre').value = data.nombre;
-    // Operador Nullish coalescing (??) para manejar descripciones vacías de forma segura
-    document.getElementById('edit_descripcion').value = data.descripcion ?? '';
-    document.getElementById('edit_id_cuadrilla').value = data.idCuadrilla;
-    document.getElementById('edit_id_tipo_espacio_fisico').value = data.idTipo;
-
-    // Actualiza la ruta del formulario para el método PUT/PATCH de Laravel
-    const form = document.getElementById('editEspacioFisicoForm');
-    form.action = `/espacios_fisicos/${data.id}`;
-}
-
-/* ==========================================================================
-   MODAL SHOW (Carga de Información)
-   ========================================================================== */
-
-/**
- * Inyecta el texto del registro seleccionado en los elementos de visualización.
- * @param {Object} data - Objeto con los datos del registro.
- */
-function fillShowModal(data) {
-    document.getElementById('show_nombre').textContent = data.nombre;
-    document.getElementById('show_descripcion').textContent = data.descripcion || 'Sin descripción';
-    document.getElementById('show_tipo').textContent = data.tipo;
-    document.getElementById('show_cuadrilla').textContent = data.cuadrilla;
-    document.getElementById('show_seccion').textContent = data.seccion;
-}
 </script>
 @endpush

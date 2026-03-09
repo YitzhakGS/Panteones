@@ -32,7 +32,7 @@ class LoteService
                 'referencias'      => $data['referencias'] ?? null,
             ]);
 
-            // 2️⃣ Cerrar cualquier asignación activa previa
+            // 2️⃣ Cerrar cualquier asignación activa previa (seguridad)
             $lote->espaciosFisicosLotes()
                 ->whereNull('fecha_fin')
                 ->update(['fecha_fin' => now()]);
@@ -43,8 +43,9 @@ class LoteService
                 ['fecha_inicio' => now()]
             );
 
+            // ACTUALIZADO: Quitamos 'cuadrilla' de la carga fresca
             return $lote->fresh([
-                'espaciosActuales.cuadrilla.seccion',
+                'espaciosActuales.seccion',
                 'espaciosActuales.tipoEspacioFisico'
             ]);
         });
@@ -96,8 +97,9 @@ class LoteService
                 }
             }
 
+            // ACTUALIZADO: Quitamos 'cuadrilla' de la carga fresca
             return $lote->fresh([
-                'espaciosActuales.cuadrilla.seccion',
+                'espaciosActuales.seccion',
                 'espaciosActuales.tipoEspacioFisico'
             ]);
         });

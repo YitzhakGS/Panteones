@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Auth;
 
 
 use App\Http\Controllers\SeccionesController;
-use App\Http\Controllers\CuadrillasController;
 use App\Http\Controllers\EspaciosFisicosController;
 use App\Http\Controllers\TitularesController;
 use App\Http\Controllers\LotesController;
@@ -61,15 +60,7 @@ Route::get('/secciones/{seccion}/data',
     [SeccionesController::class, 'getData']
 )->name('secciones.data');
 
-// Rutas para el catálogo de cuadrillas
-Route::resource('cuadrillas', CuadrillasController::class)
-    ->parameters([
-        'cuadrillas' => 'cuadrilla'
-    ]);
 
-Route::get('/cuadrillas/{cuadrilla}/data',
-    [CuadrillasController::class, 'getData']
-)->name('cuadrillas.data');
 
 
 // Rutas para el catálogo de espacios físicos
@@ -105,15 +96,6 @@ Route::get('/lotes/{lote}/data',
 )->name('lotes.data');
 
 
-// Rutas para la gestión de asignaciones entre lotes y espacios físicos
-Route::post('/espacio-fisico-lote',
-    [EspacioFisicoLoteController::class, 'store']
-)->name('espacio_fisico_lote.store');
-
-// Ruta para obtener los espacios físicos filtrados por cuadrilla
-Route::get('/api/cuadrillas/{id_cuadrilla}/espacios', [LotesController::class, 'getEspaciosByCuadrilla'])
-    ->name('api.espacios.por.cuadrilla');
-
 // Rutas para concesiones
 Route::resource('concesiones', ConcesionController::class)
     ->parameters([
@@ -139,3 +121,14 @@ Route::resource('pagos', PagoController::class)
     ->parameters([
         'pagos' => 'pago'
     ]); 
+
+
+// --- API Y ASIGNACIONES (PUNTOS CLAVE) ---
+
+// 1. Registro de asignación (Si aún usas la tabla intermedia)
+Route::post('/espacio-fisico-lote', [EspacioFisicoLoteController::class, 'store'])->name('espacio_fisico_lote.store');
+
+// 2. NUEVA RUTA API: Obtener espacios físicos directamente por Sección
+// Reemplaza a la ruta de cuadrillas para que el select dinámico funcione
+Route::get('/api/secciones/{id_seccion}/espacios-fisicos', [EspaciosFisicosController::class, 'getEspaciosBySeccion'])
+    ->name('api.espacios.por.seccion');

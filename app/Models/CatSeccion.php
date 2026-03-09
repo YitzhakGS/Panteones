@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CatSeccion extends Model
 {
@@ -17,8 +18,14 @@ class CatSeccion extends Model
 
     protected $fillable = ['nombre'];
 
-    public function cuadrillas()
+    /**
+     * Esta es la relación que tu controlador busca con ->with('espaciosFisicos')
+     */
+    public function espaciosFisicos(): HasMany
     {
-        return $this->hasMany(CatCuadrilla::class, 'id_seccion');
+        // 1. Modelo relacionado: EspacioFisico
+        // 2. Llave foránea en la tabla espacios_fisicos: 'id_seccion'
+        // 3. Llave local en la tabla cat_secciones: 'id_seccion'
+        return $this->hasMany(EspacioFisico::class, 'id_seccion', 'id_seccion');
     }
 }

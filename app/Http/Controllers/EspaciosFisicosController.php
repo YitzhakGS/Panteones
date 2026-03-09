@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Models\EspacioFisico;
-use App\Models\CatCuadrilla;
+use App\Models\CatSeccion;
 use App\Models\CatTipoEspacioFisico;
 
 /**
@@ -20,29 +20,23 @@ class EspaciosFisicosController extends Controller
     /**
      * Muestra un listado de todos los espacios físicos.
      *
-     * Carga las relaciones:
-     * - cuadrilla
-     * - sección (a través de cuadrilla)
-     * - tipo de espacio físico
+     * Carga las relacion:
+     * - sección (para mostrar el nombre de la sección a la que pertenece cada espacio)
      *
      * @return View
      */
     public function index(): View
     {
-        // Mantenemos los catálogos con get() porque suelen ser pocos para los selects de los modales
-        $cuadrillas = CatCuadrilla::join('cat_secciones', 'cat_cuadrillas.id_seccion', '=', 'cat_secciones.id_seccion')
-            ->select('cat_cuadrillas.*') // Evita que los IDs de secciones sobrescriban los de cuadrillas
-            ->with('seccion') // Mantienes la relación para el Blade
-            ->orderBy('cat_secciones.nombre', 'asc')
-            ->orderBy('cat_cuadrillas.nombre', 'asc')
-            ->get();
+        
+        // Ahora cargamos Secciones directamente
+        $secciones = CatSeccion::orderBy('nombre', 'asc')->get();
 
 
         $tiposEspacioFisico = CatTipoEspacioFisico::orderBy('nombre')->get();
 
         // Cambiamos get() por paginate() para activar la paginación de Laravel
         $espaciosFisicos = EspacioFisico::with([
-            'cuadrilla.seccion',
+            'seccion', // Carga la sección directamente
             'tipoEspacioFisico'
         ])
         ->orderBy('id_espacio_fisico', 'desc') // Opcional: mostrar los más nuevos primero
@@ -50,7 +44,7 @@ class EspaciosFisicosController extends Controller
 
         return view(
             'espacios_fisicos.index',
-            compact('espaciosFisicos', 'cuadrillas', 'tiposEspacioFisico')
+            compact('espaciosFisicos', 'secciones', 'tiposEspacioFisico')
         );
     }
 
@@ -61,12 +55,12 @@ class EspaciosFisicosController extends Controller
      */
     public function create(): View
     {
-        $cuadrillas = CatCuadrilla::with('seccion')->get();
+        $secciones = CatSeccion::orderBy('nombre')->get();
         $tiposEspacioFisico = CatTipoEspacioFisico::all();
 
         return view(
             'espacios_fisicos.create',
-            compact('cuadrillas', 'tiposEspacioFisico')
+            compact('secciones', 'tiposEspacioFisico')
         );
     }
 
@@ -80,14 +74,14 @@ class EspaciosFisicosController extends Controller
     {
 
         $request->validate([
-            'id_cuadrilla'               => 'required|exists:cat_cuadrillas,id_cuadrilla',
+            'id_seccion'                => 'required|exists:cat_secciones,id_seccion',
             'id_tipo_espacio_fisico'     => 'required|exists:cat_tipos_espacio_fisico,id_tipo_espacio_fisico',
             'nombre'                     => 'required|string|max:255',
             'descripcion'                => 'nullable|string',
         ]);
 
         EspacioFisico::create($request->only([
-            'id_cuadrilla',
+            'id_seccion',
             'id_tipo_espacio_fisico',
             'nombre',
             'descripcion',
@@ -109,7 +103,7 @@ class EspaciosFisicosController extends Controller
     public function show(EspacioFisico $espacioFisico): View
     {
         $espacioFisico->load([
-            'cuadrilla.seccion',
+            'seccion',
             'tipoEspacioFisico',
             'lotes'
         ]);
@@ -125,12 +119,12 @@ class EspaciosFisicosController extends Controller
      */
     public function edit(EspacioFisico $espacioFisico): View
     {
-        $cuadrillas = CatCuadrilla::with('seccion')->get();
+        $secciones = CatSeccion::orderBy('nombre')->get();
         $tiposEspacioFisico = CatTipoEspacioFisico::all();
 
         return view(
             'espacios_fisicos.edit',
-            compact('espacioFisico', 'cuadrillas', 'tiposEspacioFisico')
+            compact('espacioFisico', 'secciones', 'tiposEspacioFisico')
         );
     }
 
@@ -144,14 +138,14 @@ class EspaciosFisicosController extends Controller
     public function update(Request $request, EspacioFisico $espacioFisico): RedirectResponse
     {
         $request->validate([
-            'id_cuadrilla'               => 'required|exists:cat_cuadrillas,id_cuadrilla',
+            'id_seccion'                => 'required|exists:cat_secciones,id_seccion',
             'id_tipo_espacio_fisico'     => 'required|exists:cat_tipos_espacio_fisico,id_tipo_espacio_fisico',
             'nombre'                     => 'required|string|max:255',
             'descripcion'                => 'nullable|string',
         ]);
 
         $espacioFisico->update($request->only([
-            'id_cuadrilla',
+            'id_seccion',
             'id_tipo_espacio_fisico',
             'nombre',
             'descripcion',
@@ -189,10 +183,30 @@ class EspaciosFisicosController extends Controller
     {
         return response()->json(
             $espacioFisico->load([
-                'cuadrilla.seccion',
+                'seccion',
                 'tipoEspacioFisico',
                 'lotes'
             ])
         );
+    }
+
+    public function getEspaciosBySeccion($id_seccion)
+    {
+        $espacios = EspacioFisico::with('tipoEspacioFisico')
+            ->where('id_seccion', $id_seccion)
+            ->orderBy('nombre')
+            ->get();
+
+        $resultado = $espacios->map(function($espacio){
+            return [
+                'id_espacio_fisico' => $espacio->id_espacio_fisico,
+                'nombre' => $espacio->nombre,
+                'tipo' => $espacio->tipoEspacioFisico 
+                            ? $espacio->tipoEspacioFisico->nombre 
+                            : 'Sin tipo'
+            ];
+        });
+
+        return response()->json($resultado);
     }
 }

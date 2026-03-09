@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use PhpParser\Node\Expr\Cast;
+
 class Lote extends Model
 {
     use HasFactory, SoftDeletes;
@@ -16,25 +16,14 @@ class Lote extends Model
     protected $fillable = [
         'numero',
         'metros_cuadrados',
-        'col_norte',
-        'col_sur',
-        'col_oriente',
-        'col_poniente',
-        'med_norte',
-        'med_sur',
-        'med_oriente',
-        'med_poniente',
+        'col_norte', 'col_sur', 'col_oriente', 'col_poniente',
+        'med_norte', 'med_sur', 'med_oriente', 'med_poniente',
         'referencias',
     ];
 
-    // 📜 Historial completo
     public function espaciosFisicosLotes()
     {
-        return $this->hasMany(
-            EspacioFisicoLote::class,
-            'id_lote',
-            'id_lote'
-        );
+        return $this->hasMany(EspacioFisicoLote::class, 'id_lote', 'id_lote');
     }
 
     public function espaciosActuales()
@@ -54,20 +43,25 @@ class Lote extends Model
         return $this->espaciosActuales->first();
     }
 
+    /**
+     * ATRIBUTO ACTUALIZADO: 
+     * Accede directamente a la sección desde el espacio físico.
+     */
     public function getUbicacionFormateadaAttribute(): ?string
     {
         $espacio = $this->espacioActual;
 
-        if (! $espacio) {
+        if (!$espacio) {
             return null;
         }
 
-        $seccion   = optional($espacio->cuadrilla->seccion)->nombre;
-        $cuadrilla = optional($espacio->cuadrilla)->nombre;
-        $tipo      = optional($espacio->tipoEspacioFisico)->nombre;
-        $nombre    = $espacio->nombre;
+        // Acceso directo: Espacio -> Seccion
+        $seccion = optional($espacio->seccion)->nombre;
+        $tipo    = optional($espacio->tipoEspacioFisico)->nombre;
+        $nombre  = $espacio->nombre;
 
-        return trim("{$seccion}\n{$cuadrilla}\n{$tipo} {$nombre}");
+        // Quitamos la variable $cuadrilla que ya no existe
+        return trim("{$seccion}\n{$tipo} {$nombre}");
     }
 
     public function concesiones()
@@ -75,7 +69,6 @@ class Lote extends Model
         return $this->hasMany(Concesion::class, 'lote_id');
     }
 
-    // 🔥 Concesión activa
     public function concesionActiva()
     {
         return $this->hasOne(Concesion::class, 'lote_id')
