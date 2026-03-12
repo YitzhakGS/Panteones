@@ -17,19 +17,32 @@ class ConcesionController extends Controller
     /**
      * Listado de concesiones
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $concesiones = Concesion::with([
+        $query = Concesion::with([
             'lote',
             'titular',
             'usoFunerario',
             'estatus',
             'ultimoRefrendo'
-        ])
-        ->orderBy('fecha_inicio', 'desc')
-        ->paginate(15);
+        ]);
 
-        // ESTO FALTABA
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('lote', fn($q) => $q->where('numero', 'like', "%$search%"))
+                ->orWhereHas('titular', fn($q) => $q->where('familia', 'like', "%$search%"))
+                ->orWhereHas('estatus', fn($q) => $q->where('nombre', 'like', "%$search%"))
+                ->orWhereHas('usoFunerario', fn($q) => $q->where('nombre', 'like', "%$search%"));
+            });
+        }
+
+        $concesiones = $query
+            ->orderBy('fecha_inicio', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
         $lotes     = Lote::orderBy('numero')->get();
         $titulares = Titular::orderBy('familia')->get();
         $usos      = CatUsoFunerario::orderBy('nombre')->get();

@@ -28,11 +28,25 @@ class TitularesController extends Controller
      *
      * @return View
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $titulares = Titular::with('documentos.tipoDocumento')
-             ->orderBy('familia')
-             ->paginate(15);
+        $query = Titular::with('documentos.tipoDocumento');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('familia', 'like', "%$search%")
+                ->orWhere('domicilio', 'like', "%$search%")
+                ->orWhere('colonia', 'like', "%$search%")
+                ->orWhere('telefono', 'like', "%$search%");
+            });
+        }
+
+        $titulares = $query
+            ->orderBy('familia')
+            ->paginate(15)
+            ->withQueryString();
 
         $tiposDocumentoTitular = TipoDocumento::whereHas('entidades', function ($query) {
             $query->where('modelo', \App\Models\Titular::class);

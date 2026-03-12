@@ -15,17 +15,28 @@ class LotesController extends Controller
     /**
      * Muestra un listado de todos los lotes.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        // 1. Obtenemos los lotes. Relación simplificada: espaciosActuales.seccion
-        $lotes = Lote::with([
+        $query = Lote::with([
             'espaciosActuales.seccion',
             'espaciosActuales.tipoEspacioFisico'
-        ])
-        ->orderBy('id_lote', 'desc')
-        ->paginate(10);
+        ]);
 
-        // 2. Obtenemos las SECCIONES para el primer select del modal/filtro
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('numero', 'like', "%$search%")
+                ->orWhere('ubicacion', 'like', "%$search%")
+                ->orWhere('colindancias', 'like', "%$search%");
+            });
+        }
+
+        $lotes = $query
+            ->orderBy('id_lote', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
         $secciones = CatSeccion::orderBy('nombre')->get();
 
         return view('lotes.index', compact('lotes', 'secciones'));

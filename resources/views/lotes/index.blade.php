@@ -26,7 +26,13 @@
             </button>
         </div>
         <div class="col-md-8">
-            <input type="text" id="searchLote" class="form-control form-control-lg" placeholder="Buscar por número de lote, ubicación o colindancias...">
+            <form method="GET" action="{{ route('lotes.index') }}">
+                <input type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    class="form-control form-control-lg"
+                    placeholder="Buscar por número de lote, ubicación o colindancias...">
+            </form>
         </div>
     </div>
 

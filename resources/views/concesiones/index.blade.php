@@ -31,10 +31,13 @@
         </div>
 
         <div class="col-md-8">
-            <input type="text"
-                   id="searchConcesion"
-                   class="form-control form-control-lg"
-                   placeholder="Buscar por lote, titular, estatus o uso funerario...">
+            <form method="GET" action="{{ route('concesiones.index') }}">
+                <input type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    class="form-control form-control-lg"
+                    placeholder="Buscar por lote, titular, estatus o uso funerario...">
+            </form>
         </div>
     </div>
 

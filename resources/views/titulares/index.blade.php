@@ -27,8 +27,13 @@
             </button>
         </div>
         <div class="col-md-8">
-            <input type="text" id="searchTitular" class="form-control form-control-lg"
-                placeholder="Buscar por familia, domicilio, colonia o teléfono...">
+            <form method="GET" action="{{ route('titulares.index') }}">
+                <input type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    class="form-control form-control-lg"
+                    placeholder="Buscar por familia, domicilio, colonia o teléfono...">
+            </form>
         </div>
     </div>
 
@@ -152,12 +157,6 @@
 @endsection
 @push('scripts')
 <script>
-document.getElementById('searchTitular').addEventListener('keyup', function () {
-    const value = this.value.toLowerCase();
-    document.querySelectorAll('.titular-card').forEach(card => {
-        card.style.display = card.innerText.toLowerCase().includes(value) ? '' : 'none';
-    });
-});
 
 document.querySelectorAll('.pagination a').forEach(link => {
     link.addEventListener('click', () => {
