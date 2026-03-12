@@ -41,4 +41,11 @@ class Titular extends Model
     {
         return $this->hasMany(Concesion::class, 'titular_id');
     }
+
+    //vincula la relación polimórfica con documentos
+    public function documentos()
+    {
+        return $this->morphMany(Documento::class, 'documentable');
     }
+
+}

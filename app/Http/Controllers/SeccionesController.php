@@ -23,7 +23,7 @@ class SeccionesController extends Controller
         // Cargamos directamente los espacios físicos asociados
         $secciones = CatSeccion::with('espaciosFisicos')->get();
         
-        return view('secciones.index', compact('secciones'));
+        return view('catalogos.secciones.index', compact('secciones'));
     }
 
     /**
@@ -31,7 +31,7 @@ class SeccionesController extends Controller
      */
     public function create(): View
     {
-        return view('secciones.create');
+        return view('catalogos.secciones.create');
     }
 
     /**
@@ -58,7 +58,7 @@ class SeccionesController extends Controller
         // Cargamos la relación para mostrar los espacios en la vista de detalle
         $seccion->load('espaciosFisicos.tipoEspacioFisico');
         
-        return view('secciones.show', compact('seccion'));
+        return view('catalogos.secciones.show', compact('seccion'));
     }
 
     /**
@@ -66,7 +66,7 @@ class SeccionesController extends Controller
      */
     public function edit(CatSeccion $seccion): View
     {
-        return view('secciones.edit', compact('seccion'));
+        return view('catalogos.secciones.edit', compact('seccion'));
     }
 
     /**

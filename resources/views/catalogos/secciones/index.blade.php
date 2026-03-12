@@ -101,8 +101,8 @@
 </div>
 
 {{-- Incluir modales --}}
-@include('secciones.create')
-@include('secciones.edit')
+@include('catalogos.secciones.create')
+@include('catalogos.secciones.edit')
 
 @endsection
 

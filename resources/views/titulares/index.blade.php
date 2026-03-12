@@ -56,7 +56,14 @@
                         data-cp="{{ $titular->codigo_postal }}"
                         data-municipio="{{ $titular->municipio }}"
                         data-estado="{{ $titular->estado }}"
-                        data-telefono="{{ $titular->telefono }}">
+                        data-telefono="{{ $titular->telefono }}"
+                        data-documentos='@json(
+                        $titular->documentos->map(fn($d) => [
+                        "id"=>$d->id_documento,
+                        "id_tipo_documento"=>$d->id_tipo_documento,
+                        "nombre"=>$d->tipoDocumento->nombre
+                        ])
+                        )'>
 
                         {{-- Avatar lateral --}}
                         <div class="card-avatar">
@@ -95,6 +102,23 @@
                                     <i class="bi bi-telephone-fill"></i>
                                     <span class="chip-text">{{ $titular->telefono ?? '—' }}</span>
                                 </div>
+
+                                {{-- Chips documentos --}}
+                                <span class="chip-sep">•</span>
+                                @if($titular->documentos->isNotEmpty())
+                                    @foreach($titular->documentos as $doc)
+                                        <div class="data-chip" style="background-color: #d1fae5; color: #065f46;">
+                                            <i class="bi bi-file-earmark-check"></i>
+                                            <span class="chip-text">{{ $doc->tipoDocumento->nombre }}</span>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="data-chip" style="background-color: #f3f4f6; color: #6b7280;">
+                                        <i class="bi bi-file-earmark-x"></i>
+                                        <span class="chip-text">Sin documentos</span>
+                                    </div>
+                                @endif
+
                             </div>
 
                         </div>
@@ -128,32 +152,13 @@
 @endsection
 @push('scripts')
 <script>
-/**
- * Gestión del Módulo de Titulares
- * Este script maneja el filtrado dinámico de tarjetas, el scroll de paginación
- * y la carga de datos detallados en el modal de visualización.
- */
-
-/**
- * Buscador en tiempo real para las tarjetas de Titulares.
- * Filtra las tarjetas basándose en el texto ingresado (insensible a mayúsculas).
- */
 document.getElementById('searchTitular').addEventListener('keyup', function () {
     const value = this.value.toLowerCase();
-    
-    // Iteramos sobre todas las tarjetas de titulares disponibles en el DOM
     document.querySelectorAll('.titular-card').forEach(card => {
-        // Mostramos u ocultamos la tarjeta según si el texto coincide
-        card.style.display = card.innerText.toLowerCase().includes(value)
-            ? ''
-            : 'none';
+        card.style.display = card.innerText.toLowerCase().includes(value) ? '' : 'none';
     });
 });
 
-/**
- * Manejador de scroll para la paginación.
- * Asegura que al cambiar de página, la vista regrese al inicio del contenedor.
- */
 document.querySelectorAll('.pagination a').forEach(link => {
     link.addEventListener('click', () => {
         document.querySelector('.cards-scroll-container')
@@ -161,33 +166,51 @@ document.querySelectorAll('.pagination a').forEach(link => {
     });
 });
 
-/**
- * Inicialización de eventos al cargar el DOM.
- */
 document.addEventListener('DOMContentLoaded', function () {
 
     const showModal = document.getElementById('showTitularModal');
 
     if (showModal) {
-        /**
-         * Evento de Bootstrap que se dispara antes de mostrar el modal.
-         * @param {Event} event - El evento de Bootstrap que contiene el disparador.
-         */
         showModal.addEventListener('show.bs.modal', function (event) {
-            // Elemento (tarjeta o botón) que activó el modal
             const card = event.relatedTarget;
+        document.getElementById('show_id').value              = card.dataset.id;
+        document.getElementById('show_familia').textContent   = card.dataset.familia;
+        document.getElementById('show_domicilio').textContent = card.dataset.domicilio;
+        document.getElementById('show_colonia').textContent   = card.dataset.colonia;
+        document.getElementById('show_cp').textContent        = card.dataset.cp;
+        document.getElementById('show_municipio').textContent = card.dataset.municipio;
+        document.getElementById('show_estado').textContent    = card.dataset.estado;
+        document.getElementById('show_telefono').textContent  = card.dataset.telefono ?? '—';
 
-            // Llenado de los campos del formulario de visualización (lectura)
-            document.getElementById('show_id').value        = card.dataset.id;
-            document.getElementById('show_familia').value   = card.dataset.familia;
-            document.getElementById('show_domicilio').value = card.dataset.domicilio;
-            document.getElementById('show_colonia').value   = card.dataset.colonia;
-            document.getElementById('show_cp').value        = card.dataset.cp;
-            document.getElementById('show_municipio').value = card.dataset.municipio;
-            document.getElementById('show_estado').value    = card.dataset.estado;
-            
-            // Uso de Operador Nullish (??) para mostrar un guion si no hay teléfono
-            document.getElementById('show_telefono').value  = card.dataset.telefono ?? '—';
+            // Documentos
+            const documentos = JSON.parse(card.dataset.documentos || '[]');
+            const container  = document.getElementById('show_documentos_container');
+            container.innerHTML = '';
+
+            if (documentos.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-file-earmark-x me-1"></i>Sin documentos registrados
+                        </p>
+                    </div>`;
+            } else {
+                documentos.forEach(doc => {
+                    container.innerHTML += `
+                        <div class="${documentos.length === 1 ? 'col-12' : 'col-md-6'}">
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light border">
+                                <span class="fw-semibold small">
+                                    <i class="bi bi-file-earmark-check me-1 text-success"></i>
+                                    ${doc.nombre}
+                                </span>
+                                <a href="/documentos/${doc.id}" target="_blank"
+                                    class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye me-1"></i>Ver
+                                </a>
+                            </div>
+                        </div>`;
+                });
+            }
         });
     }
 });

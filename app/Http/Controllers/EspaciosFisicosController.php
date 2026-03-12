@@ -43,7 +43,7 @@ class EspaciosFisicosController extends Controller
         ->paginate(10); // Esto genera los links y limita la consulta SQL
 
         return view(
-            'espacios_fisicos.index',
+            'catalogos.espacios_fisicos.index',
             compact('espaciosFisicos', 'secciones', 'tiposEspacioFisico')
         );
     }
@@ -59,7 +59,7 @@ class EspaciosFisicosController extends Controller
         $tiposEspacioFisico = CatTipoEspacioFisico::all();
 
         return view(
-            'espacios_fisicos.create',
+            'catalogos.espacios_fisicos.create',
             compact('secciones', 'tiposEspacioFisico')
         );
     }
@@ -108,7 +108,7 @@ class EspaciosFisicosController extends Controller
             'lotes'
         ]);
 
-        return view('espacios_fisicos.show', compact('espacioFisico'));
+        return view('catalogos.espacios_fisicos.show', compact('espacioFisico'));
     }
 
     /**
@@ -123,7 +123,7 @@ class EspaciosFisicosController extends Controller
         $tiposEspacioFisico = CatTipoEspacioFisico::all();
 
         return view(
-            'espacios_fisicos.edit',
+            'catalogos.espacios_fisicos.edit',
             compact('espacioFisico', 'secciones', 'tiposEspacioFisico')
         );
     }

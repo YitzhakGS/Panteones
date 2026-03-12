@@ -89,9 +89,10 @@
     </div>
 </div>
 
-@include('espacios_fisicos.create')
-@include('espacios_fisicos.edit')
-{{-- @include('espacios_fisicos.show') --}} @endsection
+@include('catalogos.espacios_fisicos.create')
+@include('catalogos.espacios_fisicos.edit')
+{{-- @include('catalogos.espacios_fisicos.show') --}} 
+@endsection
 
 @push('scripts')
 <script>

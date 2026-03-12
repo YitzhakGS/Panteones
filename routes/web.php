@@ -20,6 +20,8 @@ use App\Http\Controllers\EspacioFisicoLoteController;
 use App\Http\Controllers\ConcesionController;
 use App\Http\Controllers\RefrendoController;
 use App\Http\Controllers\PagoController;
+use App\Http\Controllers\TipoDocumentoController;
+use App\Http\Controllers\DocumentoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -116,6 +118,16 @@ Route::get('/refrendos/{refrendo}/data',
     [RefrendoController::class, 'getData']
 )->name('refrendos.data');
 
+// Rutas para catálogo de tipos de documento
+Route::resource('tipo-documentos', TipoDocumentoController::class)
+    ->parameters([
+        'tipo-documentos' => 'tipo_documento'
+    ]);
+
+Route::get('/tipo-documentos/{tipo_documento}/data',
+    [TipoDocumentoController::class, 'getData']
+)->name('tipo-documentos.data');
+
 //Ruta para pagos
 Route::resource('pagos', PagoController::class)
     ->parameters([
@@ -132,3 +144,22 @@ Route::post('/espacio-fisico-lote', [EspacioFisicoLoteController::class, 'store'
 // Reemplaza a la ruta de cuadrillas para que el select dinámico funcione
 Route::get('/api/secciones/{id_seccion}/espacios-fisicos', [EspaciosFisicosController::class, 'getEspaciosBySeccion'])
     ->name('api.espacios.por.seccion');
+
+
+
+// Rutas para documentos
+Route::resource('documentos', DocumentoController::class)
+    ->parameters([
+        'documentos' => 'documento'
+    ])->only([
+        'index',
+        'store',
+        'show',
+        'destroy'
+    ]);
+
+
+// Ruta para descargar documentos
+Route::get('/documentos/{documento}/descargar',
+    [DocumentoController::class,'descargar']
+)->name('documentos.descargar');

@@ -6,6 +6,14 @@ use Illuminate\Http\Request;
 use App\Models\Titular;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use App\Models\TipoDocumento;
+use App\Models\TipoDocumentoEntidad;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use App\Models\Documento;
+
 
 /**
  * Controlador encargado de la gestión de titulares.
@@ -20,11 +28,18 @@ class TitularesController extends Controller
      *
      * @return View
      */
-        public function index(): View
-        {
-            $titulares = Titular::orderBy('familia')->paginate(15);
-            return view('titulares.index', compact('titulares'));
-        }
+    public function index(): View
+    {
+        $titulares = Titular::with('documentos.tipoDocumento')
+             ->orderBy('familia')
+             ->paginate(15);
+
+        $tiposDocumentoTitular = TipoDocumento::whereHas('entidades', function ($query) {
+            $query->where('modelo', \App\Models\Titular::class);
+        })->get();
+
+        return view('titulares.index', compact('titulares', 'tiposDocumentoTitular'));
+    }
 
     /**
      * Muestra el formulario para crear un nuevo titular.
@@ -33,7 +48,11 @@ class TitularesController extends Controller
      */
     public function create(): View
     {
-        return view('titulares.create');
+        $tiposDocumentoTitular = TipoDocumento::whereHas('entidades', function ($query) {
+            $query->where('modelo', \App\Models\Titular::class);
+        })->get();    
+
+        return view('titulares.create', compact('tiposDocumentoTitular'));
     }
 
     /**
@@ -45,20 +64,57 @@ class TitularesController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'familia'        => 'required|string|max:255',
-            'domicilio'      => 'required|string|max:255',
-            'colonia'        => 'required|string|max:255',
-            'codigo_postal'  => 'required|string|max:10',
-            'municipio'      => 'required|string|max:255',
-            'estado'         => 'required|string|max:255',
-            'telefono'       => 'nullable|string|max:20',
+            'familia'       => 'required|string|max:255',
+            'domicilio'     => 'required|string|max:255',
+            'colonia'       => 'required|string|max:255',
+            'codigo_postal' => 'required|string|max:10',
+            'municipio'     => 'required|string|max:255',
+            'estado'        => 'required|string|max:255',
+            'telefono'      => 'nullable|string|max:20',
+            'documentos.*.archivo'       => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        Titular::create($request->all());
+        $archivosGuardados = [];
 
-        return redirect()
-            ->route('titulares.index')
-            ->with('success', 'Titular creado correctamente.');
+        try {
+            DB::beginTransaction();
+
+            $titular = Titular::create($request->only([
+                'familia', 'domicilio', 'colonia',
+                'codigo_postal', 'municipio', 'estado', 'telefono'
+            ]));
+
+            foreach ($request->file('documentos', []) as $idTipo => $item) {
+                if (empty($item['archivo'])) continue;
+
+                $archivo = $item['archivo'];
+                $nombre  = Str::uuid() . '.' . $archivo->getClientOriginalExtension();
+                $ruta    = $archivo->storeAs('documentos/titulares', $nombre, 'public');
+
+                $archivosGuardados[] = $ruta;
+
+                Documento::create([
+                    'documentable_id'   => $titular->id_titular,
+                    'documentable_type' => \App\Models\Titular::class,
+                    'id_tipo_documento' => $idTipo,
+                    'archivo'           => $ruta,
+                    'registrado_por'    => Auth::id(),
+                ]);
+            }
+
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            foreach ($archivosGuardados as $ruta) {
+                Storage::disk('public')->delete($ruta);
+            }
+
+            return redirect()->back()->with('error', 'Ocurrió un error al guardar el titular.');
+        }
+
+        return redirect()->route('titulares.index')->with('success', 'Titular creado correctamente.');
     }
 
     /**
@@ -80,7 +136,13 @@ class TitularesController extends Controller
      */
     public function edit(Titular $titular): View
     {
-        return view('titulares.edit', compact('titular'));
+        $tiposDocumentoTitular = TipoDocumento::whereHas('entidades', function ($query) {
+            $query->where('modelo', \App\Models\Titular::class);
+        })->get();
+
+        $titular->load('documentos.tipoDocumento');
+    
+        return view('titulares.edit', compact('titular', 'tiposDocumentoTitular'));
     }
 
     /**
@@ -93,24 +155,89 @@ class TitularesController extends Controller
     public function update(Request $request, Titular $titular): RedirectResponse
     {
         $request->validate([
-            'familia'        => 'required|string|max:255',
-            'domicilio'      => 'required|string|max:255',
-            'colonia'        => 'required|string|max:255',
-            'codigo_postal'  => 'required|string|max:10',
-            'municipio'      => 'required|string|max:255',
-            'estado'         => 'required|string|max:255',
-            'telefono'       => 'nullable|string|max:20',
+            'familia'       => 'required|string|max:255',
+            'domicilio'     => 'required|string|max:255',
+            'colonia'       => 'required|string|max:255',
+            'codigo_postal' => 'required|string|max:10',
+            'municipio'     => 'required|string|max:255',
+            'estado'        => 'required|string|max:255',
+            'telefono'      => 'nullable|string|max:20',
+            'documentos.*.archivo'       => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        $titular->update($request->only([
-            'familia',
-            'domicilio',
-            'colonia',
-            'codigo_postal',
-            'municipio',
-            'estado',
-            'telefono'
-        ]));
+        $archivosGuardados = [];
+
+        try {
+
+            DB::beginTransaction();
+
+            $titular->update($request->only([
+                'familia',
+                'domicilio',
+                'colonia',
+                'codigo_postal',
+                'municipio',
+                'estado',
+                'telefono'
+            ]));
+
+            foreach ($request->input('documentos', []) as $idTipo => $datos) {
+
+                if (!$request->hasFile("documentos.$idTipo.archivo")) {
+                    continue;
+                }
+
+                $archivo = $request->file("documentos.$idTipo.archivo");
+
+                $nombre = Str::uuid().'.'.$archivo->getClientOriginalExtension();
+
+                $ruta = $archivo->storeAs(
+                    'documentos/titulares',
+                    $nombre,
+                    'public'
+                );
+
+                $archivosGuardados[] = $ruta;
+
+                $docExistente = Documento::where('documentable_id', $titular->id_titular)
+                    ->where('documentable_type', \App\Models\Titular::class)
+                    ->where('id_tipo_documento', $idTipo)
+                    ->first();
+
+                if ($docExistente) {
+
+                    if ($docExistente->archivo && Storage::disk('public')->exists($docExistente->archivo)) {
+                        Storage::disk('public')->delete($docExistente->archivo);
+                    }
+
+                    $docExistente->delete();
+                }
+
+                Documento::create([
+                    'documentable_id'   => $titular->id_titular,
+                    'documentable_type' => \App\Models\Titular::class,
+                    'id_tipo_documento' => $idTipo,
+                    'archivo'           => $ruta,
+                    'fecha_emision'     => $datos['fecha_emision'] ?? null,
+                    'registrado_por'    => Auth::id(),
+                ]);
+            }
+
+            DB::commit();
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            foreach ($archivosGuardados as $ruta) {
+                Storage::disk('public')->delete($ruta);
+            }
+
+            return redirect()->back()->with(
+                'error',
+                'Ocurrió un error al actualizar el titular: '.$e->getMessage()
+            );
+        }
 
         return redirect()
             ->route('titulares.index')
@@ -140,6 +267,7 @@ class TitularesController extends Controller
      */
     public function getData(Titular $titular)
     {
+        $titular->load('documentos.tipoDocumento');
         return response()->json($titular);
     }
 
