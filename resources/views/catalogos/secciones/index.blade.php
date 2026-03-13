@@ -62,9 +62,9 @@
                         </td>
 
                         <td class="text-end" style="padding-right: 20px;">
-                            <div class="btn-group shadow-sm">
+                            
                                 <button type="button"
-                                    class="btn btn-sm btn-outline-secondary"
+                                    class="btn btn-secondary"
                                     data-bs-toggle="modal"
                                     data-bs-target="#editSeccionModal"
                                     data-id="{{ $seccion->id_seccion }}"
@@ -77,13 +77,13 @@
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" 
-                                        class="btn btn-sm btn-outline-danger"
+                                        class="btn btn-danger"
                                         onclick="return confirm('¿Deseas eliminar esta sección? Se perderá la relación con sus espacios físicos.');"
                                         title="Eliminar Sección">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
-                            </div>
+                            
                         </td>
                     </tr>
                 @empty

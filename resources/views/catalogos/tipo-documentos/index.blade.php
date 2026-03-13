@@ -47,7 +47,7 @@
                             </td>
                             <td>
                                 @forelse ($tipo->entidades as $entidad)
-                                    <span class="badge bg-secondary me-1">
+                                    <span class="badge bg-primary me-1">
                                         {{ class_basename($entidad->modelo) }}
                                     </span>
                                 @empty
@@ -55,9 +55,9 @@
                                 @endforelse
                             </td>
                             <td class="text-end" style="padding-right:20px;">
-                                <div class="btn-group shadow-sm">
+                                
                                     <button type="button" 
-                                        class="btn btn-sm btn-outline-secondary"
+                                        class="btn btn-secondary"
                                         data-bs-toggle="modal" 
                                         data-bs-target="#editTipoDocumentoModal"
                                         data-id="{{ $tipo->id_tipo_documento }}"
@@ -71,13 +71,13 @@
                                         method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        <button type="submit" class="btn btn-danger"
                                             onclick="return confirm('¿Eliminar este tipo de documento?')"
                                             title="Eliminar">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
-                                </div>
+                                
                             </td>
                         </tr>
 
