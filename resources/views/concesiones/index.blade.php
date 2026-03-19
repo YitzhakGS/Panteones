@@ -33,6 +33,7 @@
         <div class="col-md-8">
             <form method="GET" action="{{ route('concesiones.index') }}">
                 <input type="text"
+                    id="searchConcesion"
                     name="search"
                     value="{{ request('search') }}"
                     class="form-control form-control-lg"
@@ -70,10 +71,12 @@
                         data-lote="{{ $concesion->lote->numero ?? '—' }}"
                         data-titular="{{ $concesion->titular->familia }}"
                         data-uso="{{ $concesion->usoFunerario->nombre }}"
+                        data-tipo="{{ $concesion->tipo }}"
                         data-estatus="{{ $estatusNombre }}"
                         data-clase="{{ $claseEstatus }}"
                         data-inicio="{{ $concesion->fecha_inicio->format('d/m/Y') }}"
-                        data-fin="{{ $concesion->fecha_vencimiento ? $concesion->fecha_vencimiento->format('d/m/Y') : 'Sin fecha' }}"
+                        data-fin="{{ $concesion->fecha_fin ? $concesion->fecha_fin->format('d/m/Y') : 'Indefinida' }}"
+                        data-anos-adeudo="{{ $concesion->anos_en_adeudo }}"
                         data-observaciones="{{ $concesion->observaciones ?? '' }}">
 
                         {{-- Franja lateral --}}
@@ -186,6 +189,9 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('show_fecha_inicio').value  = card.dataset.inicio       ?? '';
         document.getElementById('show_fecha_fin').value     = card.dataset.fin          ?? 'N/A';
         document.getElementById('show_observaciones').value = card.dataset.observaciones ?? '';
+        document.getElementById('show_tipo').value          = card.dataset.tipo         ?? '';
+        document.getElementById('show_anos_adeudo').value   = card.dataset.anosAdeudo     ?? '0';
+
 
         // Campo estatus con color según los 5 estados
         const estatusInput = document.getElementById('show_estatus');

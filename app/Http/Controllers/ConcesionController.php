@@ -14,6 +14,8 @@ use App\Services\ConcesionService;
 
 class ConcesionController extends Controller
 {
+    public function __construct(protected ConcesionService $concesionService) {}
+
     /**
      * Listado de concesiones
      */
@@ -24,18 +26,31 @@ class ConcesionController extends Controller
             'titular',
             'usoFunerario',
             'estatus',
-            'ultimoRefrendo'
+            'ultimoRefrendo',
         ]);
 
         if ($request->filled('search')) {
             $search = $request->search;
-
             $query->where(function ($q) use ($search) {
-                $q->whereHas('lote', fn($q) => $q->where('numero', 'like', "%$search%"))
-                ->orWhereHas('titular', fn($q) => $q->where('familia', 'like', "%$search%"))
-                ->orWhereHas('estatus', fn($q) => $q->where('nombre', 'like', "%$search%"))
-                ->orWhereHas('usoFunerario', fn($q) => $q->where('nombre', 'like', "%$search%"));
+                $q->whereHas('lote',        fn($q) => $q->where('numero', 'like', "%$search%"))
+                  ->orWhereHas('titular',   fn($q) => $q->where('familia', 'like', "%$search%"))
+                  ->orWhereHas('estatus',   fn($q) => $q->where('nombre', 'like', "%$search%"))
+                  ->orWhereHas('usoFunerario', fn($q) => $q->where('nombre', 'like', "%$search%"));
             });
+        }
+
+        // Filtro por tipo
+        if ($request->filled('tipo')) {
+            $query->where('tipo', $request->tipo);
+        }
+
+        // Filtro rápido de alertas
+        if ($request->filled('alerta')) {
+            match($request->alerta) {
+                'adeudo' => $query->conAdeudo(),
+                'riesgo' => $query->enRiesgo(),
+                default  => null,
+            };
         }
 
         $concesiones = $query
@@ -46,14 +61,12 @@ class ConcesionController extends Controller
         $lotes     = Lote::orderBy('numero')->get();
         $titulares = Titular::orderBy('familia')->get();
         $usos      = CatUsoFunerario::orderBy('nombre')->get();
-        $estatus   = CatEstatus::orderBy('nombre')->get();
 
         return view('concesiones.index', compact(
             'concesiones',
             'lotes',
             'titulares',
-            'usos',
-            'estatus'
+            'usos'
         ));
     }
 
@@ -63,103 +76,118 @@ class ConcesionController extends Controller
     public function create(): View
     {
         return view('concesiones.create', [
-            'lotes'        => Lote::orderBy('numero')->get(),
-            'titulares'    => Titular::orderBy('familia')->get(),
-            'usos'         => CatUsoFunerario::orderBy('nombre')->get(),
-            'estatus'      => CatEstatus::orderBy('nombre')->get(),
+            'lotes'     => Lote::orderBy('numero')->get(),
+            'titulares' => Titular::orderBy('familia')->get(),
+            'usos'      => CatUsoFunerario::orderBy('nombre')->get(),
         ]);
     }
 
     /**
      * Guardar concesión
      */
-
-    public function store(Request $request, ConcesionService $concesionService)
+    public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'id_lote'          => 'required|exists:lotes,id_lote',
-            'id_titular'       => 'required|exists:titulares,id_titular',
-            'id_uso_funerario' => 'required|exists:uso_funerario,id_uso_funerario',
-            'fecha_inicio'     => 'required|date',
-            'monto'            => 'nullable|numeric|min:0', 
-            'observaciones'    => 'nullable|string',
+        $data = $request->validate([
+            'id_lote'           => 'required|exists:lotes,id_lote',
+            'id_titular'        => 'required|exists:titulares,id_titular',
+            'id_uso_funerario'  => 'required|exists:uso_funerario,id_uso_funerario',
+            'tipo'              => 'required|in:temporal,perpetuidad',
+            'fecha_inicio'      => 'required|date',
+            'monto'             => 'nullable|numeric|min:0',
+            'fecha_limite_pago' => 'nullable|date|after:fecha_inicio',
+            'tipo_refrendo'     => 'nullable|in:mantenimiento,administrativo',
+            'observaciones'     => 'nullable|string',
         ]);
 
-        $concesionService->crear($request->all());
+        $this->concesionService->crear($data);
 
         return redirect()
             ->route('concesiones.index')
-            ->with('success', 'Concesión creada correctamente con refrendo inicial pendiente.');
+            ->with('success', 'Concesión creada correctamente.');
     }
 
     /**
      * Ver concesión
      */
-    public function show(Concesion $concesion)
+    public function show(Concesion $concesion): mixed
     {
-        // Cargamos las relaciones y también el monto del último refrendo si existe
         $concesion->load([
             'lote',
             'titular',
             'usoFunerario',
             'estatus',
-            'ultimoRefrendo'
+            'ultimoRefrendo',
+            'refrendos',
         ]);
 
-        // SI LA PETICIÓN ES AJAX (como la de JavaScript), devolvemos JSON
         if (request()->ajax() || request()->wantsJson()) {
-            // En tu ConcesionController.php, dentro del método show:
-
             return response()->json([
-                'id_concesion'     => $concesion->id_concesion,
-                'id_lote'          => $concesion->id_lote,
-                'id_titular'       => $concesion->id_titular,
-                'id_uso_funerario' => $concesion->id_uso_funerario,
-                // Forzamos el formato ISO que requiere el input date
-                'fecha_inicio'     => \Carbon\Carbon::parse($concesion->fecha_inicio)->format('Y-m-d'),
-                'observaciones'    => $concesion->observaciones,
-                'monto'            => $concesion->ultimoRefrendo ? $concesion->ultimoRefrendo->monto : 0,
+                'id_concesion'      => $concesion->id_concesion,
+                'id_lote'           => $concesion->id_lote,
+                'id_titular'        => $concesion->id_titular,
+                'id_uso_funerario'  => $concesion->id_uso_funerario,
+                'tipo'              => $concesion->tipo,
+                'fecha_inicio'      => $concesion->fecha_inicio->format('Y-m-d'),
+                'fecha_fin'         => $concesion->fecha_fin?->format('Y-m-d'),
+                'observaciones'     => $concesion->observaciones,
+                'estatus'           => $concesion->estatus?->nombre,
+                'esta_vencida'      => $concesion->esta_vencida,
+                'anos_en_adeudo'    => $concesion->anos_en_adeudo,
+                'monto'             => $concesion->ultimoRefrendo?->monto ?? 0,
             ]);
         }
 
-        // Si es una petición normal de navegador, sigue devolviendo la vista
         return view('concesiones.show', compact('concesion'));
     }
 
     /**
-     * Editar concesión
+     * Formulario editar concesión
      */
     public function edit(Concesion $concesion): View
     {
         return view('concesiones.edit', [
             'concesion' => $concesion,
-            'lotes' => Lote::all(),
-            'titulares' => Titular::all(),
-            'usos' => CatUsoFunerario::all()
+            'lotes'     => Lote::orderBy('numero')->get(),
+            'titulares' => Titular::orderBy('familia')->get(),
+            'usos'      => CatUsoFunerario::orderBy('nombre')->get(),
         ]);
     }
 
     /**
      * Actualizar concesión
      */
-    public function update(Request $request, Concesion $concesion, ConcesionService $concesionService): RedirectResponse
+    public function update(Request $request, Concesion $concesion): RedirectResponse
     {
-        // 1. Validar (Asegúrate de que los nombres coincidan con el 'name' de tus inputs)
-        $request->validate([
+        $data = $request->validate([
             'id_lote'          => 'required|exists:lotes,id_lote',
             'id_titular'       => 'required|exists:titulares,id_titular',
             'id_uso_funerario' => 'required|exists:uso_funerario,id_uso_funerario',
+            'tipo'             => 'required|in:temporal,perpetuidad',
             'fecha_inicio'     => 'required|date',
-            'monto'            => 'nullable|numeric|min:0',
             'observaciones'    => 'nullable|string',
         ]);
 
-        // 2. Llamar al Service para procesar la actualización
-        $concesionService->actualizar($concesion, $request->all());
+        $this->concesionService->actualizar($concesion, $data);
 
         return redirect()
             ->route('concesiones.index')
             ->with('success', 'Concesión actualizada correctamente.');
+    }
+
+    /**
+     * Cancelar concesión (sin eliminar)
+     */
+    public function cancelar(Request $request, Concesion $concesion): RedirectResponse
+    {
+        $request->validate([
+            'observaciones' => 'nullable|string',
+        ]);
+
+        $this->concesionService->cancelar($concesion, $request->observaciones);
+
+        return redirect()
+            ->route('concesiones.index')
+            ->with('success', 'Concesión cancelada correctamente.');
     }
 
     /**
@@ -173,4 +201,35 @@ class ConcesionController extends Controller
             ->route('concesiones.index')
             ->with('success', 'Concesión eliminada.');
     }
+
+    /**
+     * Devuelve datos de la concesión en JSON (para modales/JS)
+     */
+    public function getData(Concesion $concesion): \Illuminate\Http\JsonResponse
+    {
+        $concesion->load([
+            'lote',
+            'titular',
+            'usoFunerario',
+            'estatus',
+            'ultimoRefrendo',
+        ]);
+
+        return response()->json([
+            'id_concesion'      => $concesion->id_concesion,
+            'id_lote'           => $concesion->id_lote,
+            'id_titular'        => $concesion->id_titular,
+            'id_uso_funerario'  => $concesion->id_uso_funerario,
+            'tipo'              => $concesion->tipo,
+            'fecha_inicio'      => $concesion->fecha_inicio->format('Y-m-d'),
+            'fecha_fin'         => $concesion->fecha_fin?->format('Y-m-d'),
+            'observaciones'     => $concesion->observaciones,
+            'estatus'           => $concesion->estatus?->nombre,
+            'esta_vencida'      => $concesion->esta_vencida,
+            'anos_en_adeudo'    => $concesion->anos_en_adeudo,
+            'monto'             => $concesion->ultimoRefrendo?->monto ?? 0,
+        ]);
+    }
+
+
 }

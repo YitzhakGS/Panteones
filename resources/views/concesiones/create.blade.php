@@ -64,7 +64,51 @@
                         </div>
                     </div>
 
-                    {{-- ── SECCIÓN 2: Uso funerario y Fecha ── --}}
+                    {{-- ── SECCIÓN 2: Tipo de concesión ── --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Tipo de concesión</span>
+                        <div class="row g-3 mt-1">
+
+                            <div class="col-12">
+                                <div class="d-flex gap-4">
+
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="radio"
+                                               name="tipo"
+                                               id="tipo_temporal"
+                                               value="temporal"
+                                               checked>
+                                        <label class="form-check-label fw-semibold" for="tipo_temporal">
+                                            <i class="bi bi-hourglass-split me-1 text-muted"></i>
+                                            Temporal
+                                            <small class="text-muted fw-normal">(7 años)</small>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="radio"
+                                               name="tipo"
+                                               id="tipo_perpetuidad"
+                                               value="perpetuidad">
+                                        <label class="form-check-label fw-semibold" for="tipo_perpetuidad">
+                                            <i class="bi bi-infinity me-1 text-muted"></i>
+                                            Perpetuidad
+                                            <small class="text-muted fw-normal">(indefinida)</small>
+                                        </label>
+                                    </div>
+
+                                </div>
+                                @error('tipo')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {{-- ── SECCIÓN 3: Uso funerario y Fecha ── --}}
                     <div class="section-block mb-3">
                         <span class="section-label">Concesión</span>
                         <div class="row g-3 mt-1">
@@ -105,7 +149,7 @@
                         </div>
                     </div>
 
-                    {{-- ── SECCIÓN 3: Refrendo + Observaciones ── --}}
+                    {{-- ── SECCIÓN 4: Refrendo + Observaciones ── --}}
                     <div class="section-block mb-1">
                         <span class="section-label">Refrendo inicial y observaciones</span>
                         <div class="row g-3 mt-1">
@@ -120,21 +164,32 @@
                                            step="0.01"
                                            min="0"
                                            name="monto"
-                                           id="input_monto"
                                            class="form-control"
-                                           placeholder="0.00"
-                                           required>
+                                           placeholder="0.00">
                                 </div>
                             </div>
 
-                            <div class="col-md-9">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-x me-1 text-muted"></i>Fecha límite de pago
+                                </label>
+                                <input type="date"
+                                       name="fecha_limite_pago"
+                                       class="form-control @error('fecha_limite_pago') is-invalid @enderror">
+                                <small class="text-muted">Opcional — se calcula automáticamente</small>
+                                @error('fecha_limite_pago')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-5">
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-chat-left-text me-1 text-muted"></i>Observaciones
                                 </label>
                                 <textarea name="observaciones"
                                           rows="2"
                                           class="form-control"
-                                          placeholder="Notas adicionales sobre esta concesión..."></textarea>
+                                          placeholder="Notas adicionales..."></textarea>
                             </div>
 
                         </div>
@@ -156,7 +211,6 @@
         </div>
     </div>
 </div>
-
 
 <script>
     document.getElementById('crear_refrendo').addEventListener('change', function () {

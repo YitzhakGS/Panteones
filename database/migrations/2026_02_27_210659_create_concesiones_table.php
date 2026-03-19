@@ -19,29 +19,18 @@ return new class extends Migration
             $table->unsignedBigInteger('id_estatus');
             $table->unsignedBigInteger('id_uso_funerario');
 
+            $table->enum('tipo', ['temporal', 'perpetuidad'])->default('temporal');
             $table->date('fecha_inicio');
-            $table->date('fecha_fin')->nullable();
+            $table->date('fecha_fin')->nullable(); // null si es perpetuidad
 
             $table->text('observaciones')->nullable();
             $table->timestamps();
-            $table->softDeletes(); 
+            $table->softDeletes();
 
-            // Foreign keys
-            $table->foreign('id_lote')
-                ->references('id_lote')
-                ->on('lotes');
-
-            $table->foreign('id_titular')
-                ->references('id_titular')
-                ->on('titulares');
-
-            $table->foreign('id_estatus')
-                ->references('id_estatus')
-                ->on('cat_estatus');
-
-            $table->foreign('id_uso_funerario')
-                ->references('id_uso_funerario')
-                ->on('uso_funerario');
+            $table->foreign('id_lote')->references('id_lote')->on('lotes');
+            $table->foreign('id_titular')->references('id_titular')->on('titulares');
+            $table->foreign('id_estatus')->references('id_estatus')->on('cat_estatus');
+            $table->foreign('id_uso_funerario')->references('id_uso_funerario')->on('uso_funerario');
         });
     }
 

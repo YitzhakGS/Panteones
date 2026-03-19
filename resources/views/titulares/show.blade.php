@@ -14,6 +14,7 @@
             </div>
 
             <input type="hidden" id="show_id">
+            <input type="hidden" id="show_fallecido">
 
             <div class="modal-body pt-3">
 
@@ -69,6 +70,13 @@
 
                 {{-- Botones --}}
                 <div class="d-flex justify-content-end gap-2 mt-2">
+                    <button type="button" 
+                            class="btn btn-outline-warning"
+                            id="btnFallecido"
+                            onclick="confirmarFallecido()"
+                            style="display:none;">
+                        <i class="bi bi-heart-pulse me-1"></i>Marcar Fallecido
+                    </button>
                     <button type="button" class="btn btn-outline-danger"
                             onclick="confirmarEliminacion()">
                         <i class="bi bi-trash me-1"></i>Eliminar
@@ -87,6 +95,10 @@
 <form id="deleteForm" method="POST" style="display:none;">
     @csrf
     @method('DELETE')
+</form>
+<form id="fallecidoForm" method="POST" style="display:none;">
+    @csrf
+    @method('PATCH')
 </form>
 
 @include('titulares.edit')
@@ -111,19 +123,54 @@ function confirmarEliminacion() {
         }
     });
 }
-// Variable global para guardar datos del titular actual
+
+function confirmarFallecido() {
+    const id = document.getElementById('show_id').value;
+    Swal.fire({
+        title: '¿Marcar como fallecido?',
+        html: `
+            <p>Esta acción realizará lo siguiente:</p>
+            <ul class="text-start small">
+                <li>El titular será marcado como fallecido</li>
+                <li>El primer beneficiario se convertirá en nuevo titular</li>
+                <li>Las concesiones serán reasignadas automáticamente</li>
+            </ul>
+            <p class="text-danger fw-bold small mb-0">Esta acción no se puede deshacer</p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, continuar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.getElementById('fallecidoForm');
+            form.action = `/titulares/${id}/fallecido`;
+            form.submit();
+        }
+    });
+}
+
 let titularActual = null;
 
-// Donde llenas el modal show (la función que ya tienes), guarda el objeto:
-// titularActual = titular;  ← agrégalo ahí
+// 👇 Muestra u oculta el botón fallecido según el estado del titular
+document.getElementById('showTitularModal').addEventListener('show.bs.modal', function () {
+    const fallecido = document.getElementById('show_fallecido').value;
+    const btnFallecido = document.getElementById('btnFallecido');
+
+    if (fallecido === '0') {
+        btnFallecido.style.display = 'inline-block'; // No fallecido → mostrar botón
+    } else {
+        btnFallecido.style.display = 'none'; // Ya fallecido → ocultar botón
+    }
+});
 
 document.getElementById('btnEditarTitular').addEventListener('click', function () {
     const id = document.getElementById('show_id').value;
 
-    // Cerrar modal show
     bootstrap.Modal.getInstance(document.getElementById('showTitularModal')).hide();
 
-    // Rellenar campos básicos
     const form = document.getElementById('editTitularForm');
     form.action = `/titulares/${id}`;
 
@@ -136,16 +183,14 @@ document.getElementById('btnEditarTitular').addEventListener('click', function (
     document.getElementById('edit_estado').value     = document.getElementById('show_estado').textContent;
     document.getElementById('edit_telefono').value   = document.getElementById('show_telefono').textContent;
 
-    // Limpiar links anteriores
     document.querySelectorAll('[id^="edit_doc_link_"]').forEach(el => el.innerHTML = '');
 
-    // Usar datos ya cargados en titularActual (sin fetch extra)
     if (titularActual && titularActual.documentos) {
         titularActual.documentos.forEach(doc => {
             const span = document.getElementById(`edit_doc_link_${doc.id_tipo_documento}`);
             if (span) {
                 span.innerHTML = `
-                    <a href="/documentos/${doc.id_documento}" target="_blank"
+                    <a href="/documentos/${doc.id}" target="_blank"
                        class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-eye me-1"></i>Ver actual
                     </a>`;
@@ -153,7 +198,6 @@ document.getElementById('btnEditarTitular').addEventListener('click', function (
         });
     }
 
-    // Usar la función expuesta por edit.blade.php
     window.abrirModalEdit();
 });
 </script>

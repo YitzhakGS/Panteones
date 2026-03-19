@@ -24,29 +24,23 @@
                     {{-- DATOS GENERALES --}}
                     <div class="section-block mb-3">
                         <span class="section-label">Datos generales</span>
-
                         <div class="row g-3 mt-1">
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1 text-muted"></i>Lote
                                 </label>
-
                                 <select id="edit_lote" name="id_lote" class="form-select" required>
+                                    <option value="">Seleccione un lote...</option>
                                     @foreach ($lotes as $lote)
                                         <option value="{{ $lote->id_lote }}">
                                             Lote {{ $lote->numero }}
                                         </option>
                                     @endforeach
                                 </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-person me-1 text-muted"></i>Titular
-                                </label>
 
                                 <select id="edit_titular" name="id_titular" class="form-select" required>
+                                    <option value="">Seleccione un titular...</option>
                                     @foreach ($titulares as $titular)
                                         <option value="{{ $titular->id_titular }}">
                                             {{ $titular->familia }}
@@ -58,17 +52,56 @@
                         </div>
                     </div>
 
+                    {{-- TIPO --}}
+                    <div class="section-block mb-3">
+                        <span class="section-label">Tipo de concesión</span>
+                        <div class="row g-3 mt-1">
+
+                            <div class="col-12">
+                                <input type="hidden" id="edit_tipo" name="tipo">
+                                <div class="d-flex gap-4">
+
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="radio"
+                                               name="tipo"
+                                               id="edit_tipo_temporal"
+                                               value="temporal">
+                                        <label class="form-check-label fw-semibold" for="edit_tipo_temporal">
+                                            <i class="bi bi-hourglass-split me-1 text-muted"></i>
+                                            Temporal
+                                            <small class="text-muted fw-normal">(7 años)</small>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="radio"
+                                               name="tipo"
+                                               id="edit_tipo_perpetuidad"
+                                               value="perpetuidad">
+                                        <label class="form-check-label fw-semibold" for="edit_tipo_perpetuidad">
+                                            <i class="bi bi-infinity me-1 text-muted"></i>
+                                            Perpetuidad
+                                            <small class="text-muted fw-normal">(indefinida)</small>
+                                        </label>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
                     {{-- CONCESIÓN --}}
                     <div class="section-block mb-3">
                         <span class="section-label">Concesión</span>
-
                         <div class="row g-3 mt-1">
 
                             <div class="col-md-8">
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-bookmarks me-1 text-muted"></i>Uso funerario
                                 </label>
-
                                 <select id="edit_uso" name="id_uso_funerario" class="form-select" required>
                                     @foreach ($usos as $uso)
                                         <option value="{{ $uso->id_uso_funerario }}">
@@ -82,7 +115,6 @@
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-calendar-event me-1 text-muted"></i>Fecha inicio
                                 </label>
-
                                 <input type="date"
                                        id="edit_fecha"
                                        name="fecha_inicio"
@@ -93,40 +125,17 @@
                         </div>
                     </div>
 
-                    {{-- REFRÉNDO --}}
+                    {{-- OBSERVACIONES --}}
                     <div class="section-block mb-1">
-                        <span class="section-label">Refrendo inicial y observaciones</span>
-
+                        <span class="section-label">Observaciones</span>
                         <div class="row g-3 mt-1">
-
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-cash-coin me-1 text-muted"></i>Monto
-                                </label>
-
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-
-                                    <input type="number"
-                                           step="0.01"
-                                           min="0"
-                                           id="edit_monto"
-                                           name="monto"
-                                           class="form-control">
-                                </div>
-                            </div>
-
-                            <div class="col-md-9">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-chat-left-text me-1 text-muted"></i>Observaciones
-                                </label>
-
+                            <div class="col-12">
                                 <textarea id="edit_observaciones"
                                           name="observaciones"
                                           rows="2"
-                                          class="form-control"></textarea>
+                                          class="form-control"
+                                          placeholder="Notas adicionales..."></textarea>
                             </div>
-
                         </div>
                     </div>
 
@@ -137,48 +146,26 @@
                     <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
                         Cancelar
                     </button>
-
                     <button type="submit" class="btn bg-base text-white px-4">
                         <i class="bi bi-check2-circle me-1"></i>Actualizar concesión
                     </button>
                 </div>
 
             </form>
-
         </div>
     </div>
 </div>
 
 <script>
-/**
- * Control de flujo para el Modal de Edición de Concesiones.
- * Este script garantiza que si el usuario cierra el modal sin guardar cambios,
- * sea redirigido automáticamente a la lista principal para limpiar el estado de la vista.
- */
-
-/** * @type {boolean} formSubmitted - Bandera para rastrear si el usuario hizo clic en "Guardar".
- */
 let formSubmitted = false;
 
-/**
- * Escucha el evento de envío del formulario.
- * Si el formulario pasa las validaciones y se envía, desactivamos la redirección automática.
- */
 document.getElementById('editConcesionForm').addEventListener('submit', () => {
     formSubmitted = true;
 });
 
-/**
- * Evento de Bootstrap que se dispara cuando el modal termina de ocultarse.
- * Se encarga de la redirección si la edición fue cancelada.
- */
-document.getElementById('editConcesionModal')
-    .addEventListener('hidden.bs.modal', function () {
-
-        // Si el modal se cerró (clic fuera, botón X o Cancelar) 
-        // pero NO se envió el formulario, forzamos el regreso al index.
-        if (!formSubmitted) {
-            window.location.href = "{{ route('concesiones.index') }}";
-        }
-    });
+document.getElementById('editConcesionModal').addEventListener('hidden.bs.modal', function () {
+    if (!formSubmitted) {
+        window.location.href = "{{ route('concesiones.index') }}";
+    }
+});
 </script>

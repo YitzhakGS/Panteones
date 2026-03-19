@@ -22,6 +22,7 @@ use App\Http\Controllers\RefrendoController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\TipoDocumentoController;
 use App\Http\Controllers\DocumentoController;
+use App\Http\Controllers\BeneficiarioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -86,6 +87,8 @@ Route::get('titulares/{titular}/data',
     [TitularesController::class, 'getData']
 )->name('titulares.data');
 
+Route::patch('titulares/{titular}/fallecido', [TitularesController::class, 'marcarFallecido'])
+    ->name('titulares.fallecido');
 
 // Rutas para los lotes
 Route::resource('lotes', LotesController::class)
@@ -107,6 +110,9 @@ Route::resource('concesiones', ConcesionController::class)
 Route::get('/concesiones/{concesion}/data',
     [ConcesionController::class, 'getData']
 )->name('concesiones.data');
+
+Route::patch('concesiones/{concesion}/cancelar', [ConcesionController::class, 'cancelar'])
+    ->name('concesiones.cancelar');
 
 // Rutas para refrendos
 Route::resource('refrendos', RefrendoController::class)
@@ -134,6 +140,18 @@ Route::resource('pagos', PagoController::class)
         'pagos' => 'pago'
     ]); 
 
+
+
+// Beneficiarios (igual que titulares)
+Route::resource('beneficiarios', BeneficiarioController::class)
+    ->parameters([
+        'beneficiarios' => 'beneficiario'
+    ]);
+
+// Para cargar datos dinámicos (modal)
+Route::get('beneficiarios/{beneficiario}/data',
+    [BeneficiarioController::class, 'getData']
+)->name('beneficiarios.data');
 
 // --- API Y ASIGNACIONES (PUNTOS CLAVE) ---
 

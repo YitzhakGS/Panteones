@@ -17,24 +17,24 @@ class CatEstatusSeeder extends Seeder
     {
         $estatus = [
             [
-                'nombre' => 'Al Corriente', 
-                'descripcion' => 'La concesión no tiene adeudos de refrendos pendientes.'
+                'nombre'      => 'Activa',
+                'descripcion' => 'Estado inicial administrativo al crear la concesión.',
             ],
             [
-                'nombre' => 'Con Adeudo', 
-                'descripcion' => 'La concesión tiene al menos un refrendo anual pendiente de pago.'
+                'nombre'      => 'Al Corriente',
+                'descripcion' => 'La concesión no tiene adeudos de refrendos pendientes.',
             ],
             [
-                'nombre' => 'Activa', 
-                'descripcion' => 'Estado inicial administrativo al crear la concesión.'
+                'nombre'      => 'Con Adeudo',
+                'descripcion' => 'La concesión tiene al menos un refrendo anual pendiente de pago.',
             ],
             [
-                'nombre' => 'Inactiva', 
-                'descripcion' => 'La concesión ha sido cerrada por traspaso o fin de vigencia.'
+                'nombre'      => 'Inactiva',
+                'descripcion' => 'La concesión ha sido cerrada por traspaso o fin de vigencia.',
             ],
             [
-                'nombre' => 'Cancelada', 
-                'descripcion' => 'Concesión anulada por falta de pago prolongada o decisión administrativa.'
+                'nombre'      => 'Cancelada',
+                'descripcion' => 'Concesión anulada por falta de pago prolongada o decisión administrativa.',
             ],
         ];
 

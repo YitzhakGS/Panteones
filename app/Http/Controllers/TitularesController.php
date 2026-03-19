@@ -33,14 +33,27 @@ class TitularesController extends Controller
         $query = Titular::with('documentos.tipoDocumento');
 
         if ($request->filled('search')) {
-            $search = $request->search;
 
-            $query->where(function ($q) use ($search) {
-                $q->where('familia', 'like', "%$search%")
-                ->orWhere('domicilio', 'like', "%$search%")
-                ->orWhere('colonia', 'like', "%$search%")
-                ->orWhere('telefono', 'like', "%$search%");
-            });
+            $search = $request->search;
+            if (str_contains(strtolower($search), 'fallecido')) {
+                    $query->withTrashed()->where('fallecido', true);
+                } else {
+                    // 👇 Búsqueda normal — incluye fallecidos si coincide el nombre
+                    $query->withTrashed()->where(function ($q) use ($search) {
+                        $q->where('familia',   'like', "%$search%")
+                        ->orWhere('domicilio', 'like', "%$search%")
+                        ->orWhere('colonia',   'like', "%$search%")
+                        ->orWhere('telefono',  'like', "%$search%");
+                    });
+                }
+            // 🔥 si escribe "fallecido" o "fallecidos"
+            if (str_contains(strtolower($search), 'fallecido')) {
+                $query->where('fallecido', true);
+            }
+
+        } else {
+            // 🔥 comportamiento por defecto
+            $query->activos();
         }
 
         $titulares = $query
@@ -285,5 +298,28 @@ class TitularesController extends Controller
         return response()->json($titular);
     }
 
+    
+    public function marcarFallecido(Titular $titular): RedirectResponse
+    {
+        // Evita doble ejecución
+        if ($titular->fallecido) {
+            return back()->with('error', 'Este titular ya fue marcado como fallecido.');
+        }
+
+        // Verifica que tenga al menos un beneficiario
+        if ($titular->beneficiarios()->count() === 0) {
+            return back()->with('error', 'No se puede marcar como fallecido: no tiene beneficiarios registrados.');
+        }
+
+        $resultado = $titular->transferirATitular();
+
+        if (!$resultado) {
+            return back()->with('error', 'No se pudo realizar la transferencia.');
+        }
+
+        return redirect()
+            ->route('titulares.index')
+            ->with('success', 'Titular marcado como fallecido. El primer beneficiario ahora es titular.');
+    }
     
 }

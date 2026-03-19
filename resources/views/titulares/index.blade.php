@@ -50,7 +50,7 @@
                         $iniciales  = strtoupper(substr($palabras[0] ?? '', 0, 1) . substr($palabras[1] ?? '', 0, 1));
                     @endphp
 
-                    <div class="titular-card"
+                    <div class="titular-card {{ $titular->fallecido ? 'fallecido' : '' }}"
                         role="button"
                         data-bs-toggle="modal"
                         data-bs-target="#showTitularModal"
@@ -62,6 +62,7 @@
                         data-municipio="{{ $titular->municipio }}"
                         data-estado="{{ $titular->estado }}"
                         data-telefono="{{ $titular->telefono }}"
+                        data-fallecido="{{ $titular->fallecido ? '1' : '0' }}"
                         data-documentos='@json(
                         $titular->documentos->map(fn($d) => [
                         "id"=>$d->id_documento,
@@ -82,6 +83,11 @@
                             {{-- Fila superior: nombre + CP --}}
                             <div class="card-row-top">
                                 <span class="titular-nombre">{{ $titular->familia }}</span>
+                                @if($titular->fallecido)
+                                    <span class="badge bg-secondary ms-2">
+                                        <i class="bi bi-x-circle me-1"></i>Fallecido
+                                    </span>
+                                @endif
                                 <span class="titular-cp">C.P. {{ $titular->codigo_postal }}</span>
                             </div>
 
@@ -173,6 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showModal.addEventListener('show.bs.modal', function (event) {
             const card = event.relatedTarget;
         document.getElementById('show_id').value              = card.dataset.id;
+        document.getElementById('show_fallecido').value = card.dataset.fallecido;
         document.getElementById('show_familia').textContent   = card.dataset.familia;
         document.getElementById('show_domicilio').textContent = card.dataset.domicilio;
         document.getElementById('show_colonia').textContent   = card.dataset.colonia;

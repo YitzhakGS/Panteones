@@ -181,6 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const card = event.relatedTarget;
         const documentos = JSON.parse(card.dataset.documentos || '[]');
+        titularActual = { documentos: documentos};
 
         documentos.forEach(doc => {
 

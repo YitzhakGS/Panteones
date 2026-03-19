@@ -16,20 +16,23 @@ return new class extends Migration
 
             $table->unsignedBigInteger('id_concesion');
 
-            $table->date('fecha_refrendo');
-            $table->date('periodo_inicio')->nullable();
-            $table->date('periodo_fin')->nullable();
-            $table->decimal('monto', 10, 2)->nullable();
-            
+            $table->enum('tipo_refrendo', ['mantenimiento', 'administrativo'])
+                ->default('mantenimiento');
 
-            $table->enum('estado', ['pendiente', 'pagado', 'cancelado'])
-             ->default('pendiente');
+            $table->date('fecha_refrendo');      // Fecha en que se registra el refrendo
+            $table->date('fecha_inicio');         // Inicio del periodo que cubre
+            $table->date('fecha_fin');            // Fin del periodo que cubre
+            $table->date('fecha_limite_pago');    // Fecha límite para pagar (puede diferir de fecha_fin)
+
+            $table->decimal('monto', 10, 2)->nullable();
+
+            $table->enum('estado', ['pendiente', 'pagado', 'vencido', 'cancelado'])
+                ->default('pendiente');
 
             $table->text('observaciones')->nullable();
             $table->timestamps();
-            $table->softDeletes(); 
+            $table->softDeletes();
 
-            // Foreign key
             $table->foreign('id_concesion')
                 ->references('id_concesion')
                 ->on('concesiones');

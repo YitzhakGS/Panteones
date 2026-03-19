@@ -2,44 +2,108 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
 
 class Refrendo extends Model
 {
-    use HasFactory , SoftDeletes;
-    protected $table = 'refrendos';
+    use SoftDeletes;
+
     protected $primaryKey = 'id_refrendo';
+    protected $table = 'refrendos';
 
     protected $fillable = [
         'id_concesion',
+        'tipo_refrendo',
         'fecha_refrendo',
-        'periodo_inicio',
-        'periodo_fin',
-        'estado',
+        'fecha_inicio',
+        'fecha_fin',
+        'fecha_limite_pago',
         'monto',
+        'estado',
         'observaciones',
     ];
 
     protected $casts = [
-        'fecha_refrendo' => 'date',
-        'periodo_inicio' => 'date',
-        'periodo_fin'    => 'date',
-        'monto'          => 'decimal:2',
+        'fecha_refrendo'    => 'date',
+        'fecha_inicio'      => 'date',
+        'fecha_fin'         => 'date',
+        'fecha_limite_pago' => 'date',
     ];
 
-    /* =========================
-       RELACIONES
-       ========================= */
+    // -------------------------------------------------------------------------
+    // Relaciones
+    // -------------------------------------------------------------------------
 
-    public function concesion()
+    public function concesion(): BelongsTo
     {
         return $this->belongsTo(Concesion::class, 'id_concesion', 'id_concesion');
     }
 
-    public function pagos()
+    // -------------------------------------------------------------------------
+    // Accessors
+    // -------------------------------------------------------------------------
+
+    /**
+     * ¿Este refrendo está vencido? (pendiente y fecha límite ya pasó)
+     */
+    public function getEstaVencidoAttribute(): bool
     {
-        return $this->hasMany(Pago::class, 'id_refrendo', 'id_refrendo');
+        return $this->estado === 'pendiente'
+            && $this->fecha_limite_pago
+            && $this->fecha_limite_pago->isPast();
+    }
+
+    /**
+     * Etiqueta legible del estado con contexto de fecha
+     */
+    public function getEstadoLabelAttribute(): string
+    {
+        if ($this->esta_vencido) {
+            return 'Vencido';
+        }
+
+        return match($this->estado) {
+            'pendiente'  => 'Pendiente',
+            'pagado'     => 'Pagado',
+            'cancelado'  => 'Cancelado',
+            'vencido'    => 'Vencido',
+            default      => ucfirst($this->estado),
+        };
+    }
+
+    // -------------------------------------------------------------------------
+    // Scopes
+    // -------------------------------------------------------------------------
+
+    public function scopePendientes($query)
+    {
+        return $query->where('estado', 'pendiente');
+    }
+
+    public function scopeVencidos($query)
+    {
+        return $query->where('estado', 'pendiente')
+                     ->where('fecha_limite_pago', '<', Carbon::today());
+    }
+
+    public function scopePagados($query)
+    {
+        return $query->where('estado', 'pagado');
+    }
+
+    public function scopePorTipo($query, string $tipo)
+    {
+        return $query->where('tipo_refrendo', $tipo);
+    }
+
+    /**
+     * Un refrendo tiene como máximo un pago.
+     */
+    public function pago(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\Pago::class, 'id_refrendo');
     }
 }
