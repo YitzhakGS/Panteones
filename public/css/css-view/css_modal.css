@@ -19,3 +19,18 @@
     top: -9px;
     left: 12px;
 }
+
+/* Ajuste para que TomSelect se vea como un input de Bootstrap */
+.ts-wrapper.form-control {
+    padding: 0 !important;
+    border: none !important;
+}
+
+.ts-control {
+    border-radius: 0.375rem !important; /* Ajustar al radio de tus otros inputs */
+    padding: 0.5rem 0.75rem !important;
+}
+
+.ts-dropdown {
+    z-index: 2000 !important; /* Para que aparezca por encima del modal */
+}

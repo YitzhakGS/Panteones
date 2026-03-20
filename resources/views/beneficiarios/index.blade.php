@@ -55,6 +55,7 @@
                         data-bs-toggle="modal"
                         data-bs-target="#showBeneficiarioModal"
                         data-id="{{ $beneficiario->id_beneficiario }}"
+                        data-id-titular="{{ $beneficiario->id_titular }}"
                         data-nombre="{{ $beneficiario->nombre }}"
                         data-domicilio="{{ $beneficiario->domicilio }}"
                         data-colonia="{{ $beneficiario->colonia }}"
@@ -177,7 +178,6 @@ document.querySelectorAll('.pagination a').forEach(link => {
 
         document.addEventListener('DOMContentLoaded', function () {
 
-            // 👇 CAMBIA AQUÍ (era showTitularModal)
             const showModal = document.getElementById('showBeneficiarioModal');
 
             if (showModal) {
@@ -186,7 +186,11 @@ document.querySelectorAll('.pagination a').forEach(link => {
 
             // 1. Guardamos los documentos en la variable global para el Edit
             const docsData = JSON.parse(card.dataset.documentos || '[]');
-            beneficiarioActual = { documentos: docsData };
+            
+            beneficiarioActual = {
+                documentos: docsData,
+                id_titular: card.dataset.idTitular
+            };
 
             // 2. Llenamos los campos del Show usando los data-attributes de la card
             document.getElementById('show_id').value              = card.dataset.id;

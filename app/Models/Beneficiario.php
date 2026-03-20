@@ -37,9 +37,31 @@ class Beneficiario extends Model
 
     protected static function booted()
     {
+        // ── Cuando cambia el titular ──────────────────────────────────────────
+        static::updating(function ($beneficiario) {
+
+            if ($beneficiario->isDirty('id_titular')) {
+
+                $titularAnterior = $beneficiario->getOriginal('id_titular');
+                $ordenAnterior   = $beneficiario->getOriginal('orden');
+
+                // 1. Reordena los beneficiarios del titular anterior
+                self::where('id_titular', $titularAnterior)
+                    ->where('orden', '>', $ordenAnterior)
+                    ->decrement('orden');
+
+                // 2. Asigna el siguiente orden en el nuevo titular
+                $nuevoOrden = (self::where('id_titular', $beneficiario->id_titular)
+                    ->withTrashed()
+                    ->max('orden') ?? 0) + 1;
+
+                $beneficiario->orden = $nuevoOrden;
+            }
+        });
+
+        // ── Al eliminar (soft delete) ─────────────────────────────────────────
         static::deleting(function ($beneficiario) {
 
-            // Solo aplica en soft delete normal
             if ($beneficiario->isForceDeleting()) {
                 return;
             }

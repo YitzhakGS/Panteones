@@ -51,7 +51,9 @@ class BeneficiarioController extends Controller
             $q->where('modelo', \App\Models\Beneficiario::class);
         })->get();
 
-        $titulares = Titular::orderBy('familia')->get();
+        $titulares = Titular::where('fallecido', 0)
+        ->orderBy('familia')
+        ->get();
 
         return view('beneficiarios.index', compact(
             'beneficiarios',
@@ -127,7 +129,9 @@ class BeneficiarioController extends Controller
 
     public function update(Request $request, Beneficiario $beneficiario): RedirectResponse
     {
+        
         $request->validate([
+            'id_titular'     => 'required|exists:titulares,id_titular',
             'nombre'         => 'required|string|max:255',
             'domicilio'      => 'required|string|max:255',
             'colonia'        => 'required|string|max:255',
@@ -144,10 +148,11 @@ class BeneficiarioController extends Controller
             DB::beginTransaction();
 
             $beneficiario->update($request->only([
-                'nombre', 'domicilio', 'colonia',
+                'id_titular', 'nombre', 'domicilio', 'colonia',
                 'codigo_postal', 'municipio', 'estado', 'telefono'
             ]));
 
+            //dd($beneficiario->wasChanged('id_titular'), $beneficiario->id_titular, $beneficiario->getOriginal('id_titular'));
             // ✅ Mismo patrón que TitularesController
             foreach ($request->input('documentos', []) as $idTipo => $datos) {
 
@@ -200,6 +205,8 @@ class BeneficiarioController extends Controller
             ->route('beneficiarios.index')
             ->with('success', 'Beneficiario actualizado correctamente');
     }
+
+    
 
     public function destroy(Beneficiario $beneficiario): RedirectResponse
     {

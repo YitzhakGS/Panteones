@@ -28,13 +28,15 @@
                                     Titular <span class="text-danger">*</span>
                                 </label>
 
-                                <select id="select-titular"
-                                    name="id_titular"
-                                    class="form-select @error('id_titular') is-invalid @enderror"
-                                    required>
-                                    <option value="">Seleccionar titular</option>
+                                <select id="select-titular" name="id_titular" class="form-select" required>
+                                    <option value=""></option> {{-- Esta línea es clave para el placeholder --}}
                                     @foreach($titulares as $titular)
-                                        <option value="{{ $titular->id_titular }}">
+                                        <option value="{{ $titular->id_titular }}" 
+                                                data-domicilio="{{ $titular->domicilio }}"
+                                                data-colonia="{{ $titular->colonia }}"
+                                                data-cp="{{ $titular->codigo_postal }}"
+                                                data-municipio="{{ $titular->municipio }}"
+                                                data-estado="{{ $titular->estado }}">
                                             {{ $titular->familia }} - {{ $titular->colonia ?? '' }}
                                         </option>
                                     @endforeach
@@ -206,25 +208,59 @@
 {{-- TOMSELECT --}}
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-
-    const select = new TomSelect("#select-titular", {
+    
+    const tsConfig = {
         create: false,
-        sortField: {
-            field: "text",
-            direction: "asc"
-        },
-        placeholder: "Buscar titular...",
-        allowEmptyOption: true
+        sortField: { field: "text", direction: "asc" },
+        placeholder: "Buscar titular...", 
+        allowEmptyOption: true, // Debe ser true para que el placeholder funcione
+        maxOptions: null,
+    };
+
+    // Inicializar Select Crear
+    const selectCreate = new TomSelect("#select-titular", tsConfig);
+    // Forzamos a que esté vacío al cargar la página
+    selectCreate.clear(); 
+
+    // Inicializar Select Editar
+    const selectEdit = new TomSelect("#select-titular-edit", tsConfig);
+
+    // Lógica de auto-rellenado (Crear)
+    selectCreate.on('change', function(value) {
+        // Si el valor está vacío (el placeholder), no hacemos nada
+        if (!value || value === "") return;
+
+        const originalOption = document.querySelector(`#select-titular option[value="${value}"]`);
+        
+        if (originalOption) {
+            const modalForm = document.getElementById('createBeneficiarioModal');
+            modalForm.querySelector('input[name="domicilio"]').value = originalOption.dataset.domicilio || '';
+            modalForm.querySelector('input[name="colonia"]').value = originalOption.dataset.colonia || '';
+            modalForm.querySelector('input[name="codigo_postal"]').value = originalOption.dataset.cp || '';
+            modalForm.querySelector('input[name="municipio"]').value = originalOption.dataset.municipio || '';
+            modalForm.querySelector('input[name="estado"]').value = originalOption.dataset.estado || '';
+        }
     });
 
-    const modal = document.getElementById('createBeneficiarioModal');
+    // Eventos de Modales
+    const modalCreate = document.getElementById('createBeneficiarioModal');
+    if (modalCreate) {
+        modalCreate.addEventListener('shown.bs.modal', function() {
+            selectCreate.clear(true); // Limpiar sin disparar eventos al abrir
+            selectCreate.focus();
+        });
+    }
 
-    modal.addEventListener('shown.bs.modal', function () {
-        select.focus();
-    });
-
+    const modalEdit = document.getElementById('editBeneficiarioModal');
+    if (modalEdit) {
+        modalEdit.addEventListener('shown.bs.modal', function () {
+            if (typeof beneficiarioActual !== 'undefined' && beneficiarioActual.id_titular) {
+                selectEdit.setValue(beneficiarioActual.id_titular);
+            }
+            selectEdit.focus();
+        });
+    }
 });
 </script>

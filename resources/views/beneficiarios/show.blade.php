@@ -153,6 +153,11 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('edit_estado').value    = document.getElementById('show_estado').innerText.trim();
             document.getElementById('edit_telefono').value  = document.getElementById('show_telefono').innerText.trim();
 
+            // Guardar el id_titular para que TomSelect lo lea al abrir el modal
+            const hiddenTitular = document.getElementById('edit_id_titular_hidden');
+            if (hiddenTitular && beneficiarioActual?.id_titular) {
+                hiddenTitular.value = beneficiarioActual.id_titular;
+            }
             const ordenEl = document.getElementById('show_orden');
             if (ordenEl) document.getElementById('edit_orden').value = ordenEl.textContent;
 
