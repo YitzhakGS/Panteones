@@ -64,6 +64,15 @@
     </a>
 </li>
 
+<li class="list-group-item bg-base border-secondary py-3 px-4">
+    <a href="{{ route('refrendos.index') }}"
+        class="d-flex align-items-center text-white text-decoration-none p-2 rounded
+        {{ Route::is('refrendos.*') ? 'fw-bold text-warning bg-primario' : '' }}">
+        <i class="bi bi-arrow-repeat fs-4 me-2"></i>
+        Refrendos
+    </a>
+</li>
+
 @elseif(Auth::user()->rol == 2)
 
 @endif

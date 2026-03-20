@@ -119,18 +119,23 @@ class ConcesionService
      */
     public function recalcularEstatus(Concesion $concesion): Concesion
     {
-        $anosEnAdeudo = $concesion->anos_en_adeudo;
+        // Activa y Cancelada son estados terminales asignados explícitamente,
+        // este método no debe sobreescribirlos.
+        $estatusIntocables = ['Activa', 'Cancelada'];
+
+        if (in_array($concesion->estatus?->nombre, $estatusIntocables)) {
+            return $concesion;
+        }
 
         $nombreEstatus = match(true) {
-            $concesion->esta_vencida        => 'Inactiva',
-            $anosEnAdeudo >= 1              => 'Con Adeudo',
-            default                         => 'Al Corriente',
+            $concesion->esta_vencida   => 'Inactiva',
+            $concesion->anos_en_adeudo >= 1 => 'Con Adeudo',
+            default                    => 'Al Corriente',
         };
 
         $estatus = CatEstatus::where('nombre', $nombreEstatus)->firstOrFail();
-
         $concesion->update(['id_estatus' => $estatus->id_estatus]);
 
-        return $concesion->fresh();
+        return $concesion->fresh(['estatus']);
     }
 }

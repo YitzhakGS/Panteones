@@ -11,6 +11,7 @@ use App\Models\Titular;
 use App\Models\CatUsoFunerario;
 use App\Models\CatEstatus;
 use App\Services\ConcesionService;
+use Illuminate\Http\JsonResponse;
 
 class ConcesionController extends Controller
 {
@@ -120,23 +121,6 @@ class ConcesionController extends Controller
             'refrendos',
         ]);
 
-        if (request()->ajax() || request()->wantsJson()) {
-            return response()->json([
-                'id_concesion'      => $concesion->id_concesion,
-                'id_lote'           => $concesion->id_lote,
-                'id_titular'        => $concesion->id_titular,
-                'id_uso_funerario'  => $concesion->id_uso_funerario,
-                'tipo'              => $concesion->tipo,
-                'fecha_inicio'      => $concesion->fecha_inicio->format('Y-m-d'),
-                'fecha_fin'         => $concesion->fecha_fin?->format('Y-m-d'),
-                'observaciones'     => $concesion->observaciones,
-                'estatus'           => $concesion->estatus?->nombre,
-                'esta_vencida'      => $concesion->esta_vencida,
-                'anos_en_adeudo'    => $concesion->anos_en_adeudo,
-                'monto'             => $concesion->ultimoRefrendo?->monto ?? 0,
-            ]);
-        }
-
         return view('concesiones.show', compact('concesion'));
     }
 
@@ -203,9 +187,9 @@ class ConcesionController extends Controller
     }
 
     /**
-     * Devuelve datos de la concesión en JSON (para modales/JS)
+     * Endpoint JSON para modales/JS — única fuente de verdad
      */
-    public function getData(Concesion $concesion): \Illuminate\Http\JsonResponse
+    public function getData(Concesion $concesion): JsonResponse
     {
         $concesion->load([
             'lote',
@@ -216,18 +200,18 @@ class ConcesionController extends Controller
         ]);
 
         return response()->json([
-            'id_concesion'      => $concesion->id_concesion,
-            'id_lote'           => $concesion->id_lote,
-            'id_titular'        => $concesion->id_titular,
-            'id_uso_funerario'  => $concesion->id_uso_funerario,
-            'tipo'              => $concesion->tipo,
-            'fecha_inicio'      => $concesion->fecha_inicio->format('Y-m-d'),
-            'fecha_fin'         => $concesion->fecha_fin?->format('Y-m-d'),
-            'observaciones'     => $concesion->observaciones,
-            'estatus'           => $concesion->estatus?->nombre,
-            'esta_vencida'      => $concesion->esta_vencida,
-            'anos_en_adeudo'    => $concesion->anos_en_adeudo,
-            'monto'             => $concesion->ultimoRefrendo?->monto ?? 0,
+            'id_concesion'     => $concesion->id_concesion,
+            'id_lote'          => $concesion->id_lote,
+            'id_titular'       => $concesion->id_titular,
+            'id_uso_funerario' => $concesion->id_uso_funerario,
+            'tipo'             => $concesion->tipo,
+            'fecha_inicio'     => $concesion->fecha_inicio->format('Y-m-d'),
+            'fecha_fin'        => $concesion->fecha_fin?->format('Y-m-d'),
+            'observaciones'    => $concesion->observaciones,
+            'estatus'          => $concesion->estatus?->nombre,
+            'esta_vencida'     => $concesion->esta_vencida,
+            'anos_en_adeudo'   => $concesion->anos_en_adeudo,
+            'monto'            => $concesion->ultimoRefrendo?->monto ?? 0,
         ]);
     }
 

@@ -4,15 +4,40 @@ namespace App\Services;
 
 use App\Models\Refrendo;
 use App\Models\Concesion;
+use App\Models\ConfigGlobal;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class RefrendoService
 {
-    /**
-     * Crear un nuevo refrendo para una concesión.
-     * Puede ser llamado manualmente o desde ConcesionService al crear una concesión.
-     */
+    // -------------------------------------------------------------------------
+    // Método privado — centraliza la decisión de fecha límite
+    // -------------------------------------------------------------------------
+
+    private function calcularFechaLimite(Carbon $fechaFin, ?string $fechaManual): Carbon
+    {
+        // Si viene fecha manual explícita desde el formulario, siempre respetarla
+        if ($fechaManual) {
+            return Carbon::parse($fechaManual);
+        }
+
+        $modo = ConfigGlobal::get('modo_fecha_limite', 'global');
+
+        return match($modo) {
+            // Usa la fecha global guardada en config, o fecha_fin como fallback
+            'global' => Carbon::parse(
+                ConfigGlobal::get('fecha_limite_pago') ?? $fechaFin
+            ),
+            // Cada concesión calcula su propia fecha desde su fecha_fin
+            'por_concesion' => $fechaFin->copy(),
+            default => $fechaFin->copy(),
+        };
+    }
+
+    // -------------------------------------------------------------------------
+    // Crear refrendo
+    // -------------------------------------------------------------------------
+
     public function crear(array $data): Refrendo
     {
         return DB::transaction(function () use ($data) {
@@ -22,25 +47,22 @@ class RefrendoService
 
             $ultimo = $concesion->ultimoRefrendo;
 
-            // 1. Evitar duplicado si ya hay un refrendo pendiente sin vencer
             if ($ultimo && $ultimo->estado === 'pendiente' && ! $ultimo->esta_vencido) {
                 throw new \Exception('Ya existe un refrendo pendiente vigente para esta concesión.');
             }
 
-            // 2. Calcular fecha_inicio del nuevo periodo
             $fechaInicio = $ultimo
                 ? Carbon::parse($ultimo->fecha_fin)
                 : Carbon::parse($concesion->fecha_inicio);
 
-            // 3. fecha_fin = inicio + 1 año
             $fechaFin = $fechaInicio->copy()->addYear();
 
-            // 4. fecha_limite_pago: usa la del usuario o calcula automáticamente
-            $fechaLimitePago = isset($data['fecha_limite_pago']) && $data['fecha_limite_pago']
-                ? Carbon::parse($data['fecha_limite_pago'])
-                : $fechaFin->copy(); // por defecto: igual a fecha_fin
+            // ← Antes eran 4 líneas de lógica inline, ahora una sola llamada
+            $fechaLimitePago = $this->calcularFechaLimite(
+                $fechaFin,
+                $data['fecha_limite_pago'] ?? null
+            );
 
-            // 5. Crear refrendo
             $refrendo = Refrendo::create([
                 'id_concesion'      => $concesion->id_concesion,
                 'tipo_refrendo'     => $data['tipo_refrendo'] ?? 'mantenimiento',
@@ -57,10 +79,10 @@ class RefrendoService
         });
     }
 
-    /**
-     * Generar el siguiente refrendo anual de una concesión.
-     * Solo se puede generar si el último refrendo ya fue pagado.
-     */
+    // -------------------------------------------------------------------------
+    // Generar siguiente refrendo anual
+    // -------------------------------------------------------------------------
+
     public function generarSiguiente(Concesion $concesion, string $tipo = 'mantenimiento'): Refrendo
     {
         $ultimo = $concesion->ultimoRefrendo;
@@ -77,5 +99,22 @@ class RefrendoService
             'id_concesion'  => $concesion->id_concesion,
             'tipo_refrendo' => $tipo,
         ]);
+    }
+
+    // -------------------------------------------------------------------------
+    // Fecha límite global
+    // -------------------------------------------------------------------------
+
+    public function setFechaLimiteGlobal(string $fecha): int
+    {
+        return DB::transaction(function () use ($fecha) {
+
+            ConfigGlobal::set('fecha_limite_pago', $fecha);
+
+            $actualizados = Refrendo::where('estado', 'pendiente')
+                ->update(['fecha_limite_pago' => $fecha]);
+
+            return $actualizados;
+        });
     }
 }

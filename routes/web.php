@@ -115,14 +115,13 @@ Route::patch('concesiones/{concesion}/cancelar', [ConcesionController::class, 'c
     ->name('concesiones.cancelar');
 
 // Rutas para refrendos
-Route::resource('refrendos', RefrendoController::class)
-    ->parameters([
-        'refrendos' => 'refrendo'
-    ]);
+// Refrendos
+Route::get('/refrendos', [RefrendoController::class, 'index'])->name('refrendos.index');
+Route::post('/refrendos/fecha-limite', [RefrendoController::class, 'setFechaLimite'])->name('refrendos.setFechaLimite');
+Route::get('/refrendos/{refrendo}/data', [RefrendoController::class, 'getData'])->name('refrendos.data');
 
-Route::get('/refrendos/{refrendo}/data',
-    [RefrendoController::class, 'getData']
-)->name('refrendos.data');
+// Pagos
+Route::post('/pagos', [PagoController::class, 'store'])->name('pagos.store');
 
 // Rutas para catálogo de tipos de documento
 Route::resource('tipo-documentos', TipoDocumentoController::class)
