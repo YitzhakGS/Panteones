@@ -28,19 +28,20 @@
                                     Titular <span class="text-danger">*</span>
                                 </label>
 
-                                <select id="select-titular" name="id_titular" class="form-select" required>
-                                    <option value=""></option> {{-- Esta línea es clave para el placeholder --}}
-                                    @foreach($titulares as $titular)
-                                        <option value="{{ $titular->id_titular }}" 
-                                                data-domicilio="{{ $titular->domicilio }}"
-                                                data-colonia="{{ $titular->colonia }}"
-                                                data-cp="{{ $titular->codigo_postal }}"
-                                                data-municipio="{{ $titular->municipio }}"
-                                                data-estado="{{ $titular->estado }}">
-                                            {{ $titular->familia }} - {{ $titular->colonia ?? '' }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div class="input-group">
+                                    <select id="select-titular" name="id_titular" required>
+                                        <option value=""></option>
+                                        @foreach($titulares as $titular)
+                                            <option value="{{ $titular->id_titular }}" >
+                                                {{ $titular->familia }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <button type="button" class="input-group-text" id="btnTitularBeneficiario">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </div>
 
                                 @error('id_titular')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -205,37 +206,43 @@
     </div>
 </div>
 
-{{-- TOMSELECT --}}
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     
+    let tsTitularBeneficiario = null;
+
     const tsConfig = {
+        openOnFocus: false,
         create: false,
         sortField: { field: "text", direction: "asc" },
-        placeholder: "Buscar titular...", 
-        allowEmptyOption: true, // Debe ser true para que el placeholder funcione
-        maxOptions: null,
+        placeholder: "Buscar titular...",
+        allowEmptyOption: true,
+        maxOptions: 4,
+        onInitialize: function() {
+            // 🔥 mismo hack que ya usas
+            this.wrapper.style.setProperty('width', '85%', 'important');
+        }
     };
 
-    // Inicializar Select Crear
-    const selectCreate = new TomSelect("#select-titular", tsConfig);
-    // Forzamos a que esté vacío al cargar la página
-    selectCreate.clear(); 
+    // Inicializar UNA vez
+    if (!tsTitularBeneficiario) {
+        tsTitularBeneficiario = new TomSelect("#select-titular", tsConfig);
 
-    // Inicializar Select Editar
-    const selectEdit = new TomSelect("#select-titular-edit", tsConfig);
+        // Botón abre dropdown
+        document.getElementById('btnTitularBeneficiario').addEventListener('click', () => {
+            tsTitularBeneficiario.open();
+        });
+    }
 
-    // Lógica de auto-rellenado (Crear)
-    selectCreate.on('change', function(value) {
-        // Si el valor está vacío (el placeholder), no hacemos nada
+    // 🔥 Auto-rellenado (igual que ya tenías)
+    tsTitularBeneficiario.on('change', function(value) {
         if (!value || value === "") return;
 
         const originalOption = document.querySelector(`#select-titular option[value="${value}"]`);
         
         if (originalOption) {
             const modalForm = document.getElementById('createBeneficiarioModal');
+
             modalForm.querySelector('input[name="domicilio"]').value = originalOption.dataset.domicilio || '';
             modalForm.querySelector('input[name="colonia"]').value = originalOption.dataset.colonia || '';
             modalForm.querySelector('input[name="codigo_postal"]').value = originalOption.dataset.cp || '';
@@ -244,23 +251,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Eventos de Modales
+    // Modal create
     const modalCreate = document.getElementById('createBeneficiarioModal');
+
     if (modalCreate) {
         modalCreate.addEventListener('shown.bs.modal', function() {
-            selectCreate.clear(true); // Limpiar sin disparar eventos al abrir
-            selectCreate.focus();
+            tsTitularBeneficiario.clear(true);
+            tsTitularBeneficiario.refreshState();
         });
     }
 
-    const modalEdit = document.getElementById('editBeneficiarioModal');
-    if (modalEdit) {
-        modalEdit.addEventListener('shown.bs.modal', function () {
-            if (typeof beneficiarioActual !== 'undefined' && beneficiarioActual.id_titular) {
-                selectEdit.setValue(beneficiarioActual.id_titular);
-            }
-            selectEdit.focus();
-        });
-    }
 });
 </script>

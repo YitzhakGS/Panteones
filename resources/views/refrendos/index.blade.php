@@ -85,8 +85,13 @@
                          data-fecha-fin="{{ $refrendo->fecha_fin->format('d/m/Y') }}"
                          data-estado="{{ $estadoLabel }}"
                          data-clase="{{ $claseEstado }}"
+                         data-pago-id="{{ $refrendo->pago?->id_pago }}"
                          data-observaciones="{{ $refrendo->observaciones ?? '' }}"
-                         data-tiene-pago="{{ $refrendo->pago ? '1' : '0' }}">
+                         data-tiene-pago="{{ $refrendo->pago ? '1' : '0' }}"
+                         data-pago-fecha="{{ $refrendo->pago?->fecha_pago?->format('d/m/Y') }}"
+                         data-pago-monto="{{ $refrendo->pago?->monto }}"
+                         data-pago-folio="{{ $refrendo->pago?->folio_ticket }}"
+                         data-pago-forma="{{ $refrendo->pago?->forma_pago }}">
 
                         <div class="card-accent {{ $claseEstado }}"></div>
 
@@ -194,10 +199,76 @@
 
 @push('scripts')
 <script>
-document.getElementById('searchRefrendo').addEventListener('keyup', function () {
-    const value = this.value.toLowerCase();
-    document.querySelectorAll('.concesion-card').forEach(card => {
-        card.style.display = card.innerText.toLowerCase().includes(value) ? '' : 'none';
+document.addEventListener('DOMContentLoaded', function () {
+    const modalShow = document.getElementById('showRefrendoModal');
+    const modalPagoEl = document.getElementById('pagoRefrendoModal');
+    const formPago = document.getElementById('formPagoRefrendo');
+
+    // Función para resetear backdrops y cerrar
+    function forceHideShow() {
+        const inst = bootstrap.Modal.getInstance(modalShow);
+        if (inst) inst.hide();
+        // Limpieza de emergencia para evitar pantalla negra
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style = "";
+    }
+
+    // --- ACCIÓN: REGISTRAR NUEVO PAGO ---
+    document.getElementById('btnRegistrarPago')?.addEventListener('click', function() {
+        const id = document.getElementById('show_id_refrendo').value;
+        const card = document.querySelector(`.concesion-card[data-id="${id}"]`);
+
+        forceHideShow();
+
+        setTimeout(() => {
+            // Configurar para CREAR
+            document.getElementById('titulo-modal').innerText = 'Registrar Pago';
+            document.getElementById('btn-submit-pago').querySelector('span').innerText = 'Registrar pago';
+            document.getElementById('metodo-edicion').innerHTML = ''; // Limpiar PUT
+            formPago.action = "{{ route('pagos.store') }}";
+
+            // Llenar datos básicos
+            document.getElementById('pago_id_refrendo').value = id;
+            document.getElementById('pago_lote').value = card.dataset.lote;
+            document.getElementById('pago_titular').value = card.dataset.titular;
+            document.getElementById('pago_monto').value = card.dataset.monto;
+            
+            // Limpiar campos variables
+            document.getElementById('pago_fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('pago_folio').value = '';
+            document.getElementById('pago_obs').value = '';
+
+            new bootstrap.Modal(modalPagoEl).show();
+        }, 400);
+    });
+
+    // --- ACCIÓN: EDITAR PAGO EXISTENTE ---
+    document.getElementById('btnEditarPago')?.addEventListener('click', function() {
+        const id = document.getElementById('show_id_refrendo').value;
+        const card = document.querySelector(`.concesion-card[data-id="${id}"]`);
+
+        forceHideShow();
+
+        setTimeout(() => {
+            // Configurar para EDITAR
+            document.getElementById('titulo-modal').innerText = 'Editar Pago';
+            document.getElementById('btn-submit-pago').querySelector('span').innerText = 'Actualizar pago';
+            document.getElementById('metodo-edicion').innerHTML = '<input type="hidden" name="_method" value="PUT">';
+            formPago.action = `/pagos/${card.dataset.pagoId}`;
+
+            // Inyectar datos cargados de la card
+            document.getElementById('pago_id_refrendo').value = id;
+            document.getElementById('pago_lote').value = card.dataset.lote;
+            document.getElementById('pago_titular').value = card.dataset.titular;
+            document.getElementById('pago_monto').value = card.dataset.pagoMonto;
+            document.getElementById('pago_fecha').value = card.dataset.pagoFecha; // Asegúrate que venga en formato YYYY-MM-DD
+            document.getElementById('pago_forma').value = card.dataset.pagoForma;
+            document.getElementById('pago_folio').value = card.dataset.pagoFolio;
+            document.getElementById('pago_obs').value = card.dataset.observaciones;
+
+            new bootstrap.Modal(modalPagoEl).show();
+        }, 400);
     });
 });
 </script>

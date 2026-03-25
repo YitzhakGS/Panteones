@@ -1,5 +1,5 @@
 <div class="modal fade" id="createConcesionModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
 
             {{-- HEADER --}}
@@ -27,38 +27,42 @@
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1 text-muted"></i>Lote
                                 </label>
-                                <select name="id_lote"
-                                        class="form-select @error('id_lote') is-invalid @enderror"
-                                        required>
-                                    <option value="">Seleccione un lote...</option>
-                                    @foreach ($lotes as $lote)
-                                        <option value="{{ $lote->id_lote }}">
-                                            Lote {{ $lote->numero }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('id_lote')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+
+                                <div class="input-group">
+                                    <select id="create_lote" name="id_lote" required>
+                                        <option value=""></option>
+                                        @foreach ($lotes as $lote)
+                                            <option value="{{ $lote->id_lote }}">
+                                                Lote {{ $lote->numero }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <button type="button" class="input-group-text" id="btnLote">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-person me-1 text-muted"></i>Titular
                                 </label>
-                                <select name="id_titular"
-                                        class="form-select @error('id_titular') is-invalid @enderror"
-                                        required>
-                                    <option value="">Seleccione un titular...</option>
-                                    @foreach ($titulares as $titular)
-                                        <option value="{{ $titular->id_titular }}">
-                                            {{ $titular->familia }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('id_titular')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+
+                                <div class="input-group">
+                                    <select id="create_titular" name="id_titular" required>
+                                        <option value=""></option>
+                                        @foreach ($titulares as $titular)
+                                            <option value="{{ $titular->id_titular }}">
+                                                {{ $titular->familia }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <button type="button" class="input-group-text" id="btnTitular">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </div>
                             </div>
 
                         </div>
@@ -211,18 +215,50 @@
         </div>
     </div>
 </div>
-
 <script>
-    document.getElementById('crear_refrendo').addEventListener('change', function () {
-        const fields = document.getElementById('refrendo-fields');
-        const inputMonto = document.getElementById('input_monto');
-        
-        if(this.checked) {
-            fields.style.display = 'block';
-            inputMonto.setAttribute('required', 'required');
-        } else {
-            fields.style.display = 'none';
-            inputMonto.removeAttribute('required');
+let tsTitularCreate = null;
+let tsLoteCreate = null;
+
+document.getElementById('createConcesionModal').addEventListener('shown.bs.modal', function () {
+
+    const tsConfig = {
+        openOnFocus: false,
+        create: false,
+        sortField: { field: "text", direction: "asc" },
+        allowEmptyOption: true,
+        maxOptions: 10,
+        onInitialize: function() {
+            // Eliminamos cualquier ancho fijo que la librería intente poner
+            this.wrapper.style.setProperty('width', '85%', 'important');
         }
-    });
+    };
+
+    if (!tsTitularCreate) {
+        tsTitularCreate = new TomSelect('#create_titular', {
+            ...tsConfig,
+            placeholder: "Buscar titular..."
+        });
+
+        document.getElementById('btnTitular').addEventListener('click', () => {
+            tsTitularCreate.open();
+        });
+    }
+
+    if (!tsLoteCreate) {
+        tsLoteCreate = new TomSelect('#create_lote', {
+            ...tsConfig,
+            placeholder: "Buscar lote..."
+        });
+
+        document.getElementById('btnLote').addEventListener('click', () => {
+            tsLoteCreate.open();
+        });
+    }
+
+    // Refrescar estado para asegurar que el ancho se recalcule con el modal abierto
+    tsTitularCreate.clear(true);
+    tsLoteCreate.clear(true);
+    tsTitularCreate.refreshState();
+    tsLoteCreate.refreshState();
+});
 </script>

@@ -123,6 +123,7 @@ Route::get('/refrendos/{refrendo}/data', [RefrendoController::class, 'getData'])
 // Pagos
 Route::post('/pagos', [PagoController::class, 'store'])->name('pagos.store');
 
+
 // Rutas para catálogo de tipos de documento
 Route::resource('tipo-documentos', TipoDocumentoController::class)
     ->parameters([

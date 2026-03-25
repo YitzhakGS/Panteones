@@ -25,6 +25,11 @@
                 data-bs-toggle="modal" data-bs-target="#createTitularModal">
                 <i class="bi bi-plus-circle"></i> Nuevo Titular
             </button>
+            {{-- Nuevo Beneficiario --}}
+            <button type="button" class="btn bg-base text-white"
+                data-bs-toggle="modal" data-bs-target="#createBeneficiarioModal">
+                <i class="bi bi-person-plus me-1"></i> Nuevo Beneficiario
+            </button>
         </div>
         <div class="col-md-8">
             <form method="GET" action="{{ route('titulares.index') }}">
@@ -155,6 +160,7 @@
 
 {{-- Modal create --}}
 @include('titulares.create')
+@include('beneficiarios.create')
 @if ($titulares->count() > 0)
     @include('titulares.show') 
 @endif

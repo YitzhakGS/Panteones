@@ -1,3 +1,4 @@
+/* ── SECCIONES DEL MODAL ── */
 .section-block {
     background: #f8fafc;
     border: 1px solid #e9eef4;
@@ -20,17 +21,60 @@
     left: 12px;
 }
 
-/* Ajuste para que TomSelect se vea como un input de Bootstrap */
+/* ── FIX DEFINITIVO PARA TOMSELECT EN INPUT-GROUP ── */
+
+/* 1. Contenedor principal del TomSelect */
+.input-group > .ts-wrapper {
+    flex: 1 1 auto !important; /* Ocupa el espacio sobrante */
+    width: 1% !important;      /* Fuerza al flexbox a calcular el ancho */
+    min-width: 0 !important;
+    display: flex !important;
+}
+
+/* 2. El control (la caja visible del select) */
+.input-group > .ts-wrapper .ts-control {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    align-items: center;
+    border: 1px solid #dee2e6 !important;
+    border-top-right-radius: 0 !important;   /* Pegado al botón */
+    border-bottom-right-radius: 0 !important;
+    padding: 0.5rem 0.75rem !important;
+    background-color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+/* 3. El botón del icono (el de la flecha) */
+.input-group > .input-group-text {
+    flex-shrink: 0 !important; /* Impide que el botón se achique o desaparezca */
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    background-color: #ffffff;
+    border-left: none !important; /* Evita doble borde */
+    cursor: pointer;
+}
+
+/* 4. Ajustes del buscador interno */
+.ts-wrapper .ts-control input {
+    width: 100% !important;
+    display: inline-block !important;
+}
+
+/* 5. Dropdown (Asegura que flote sobre el modal) */
+.ts-dropdown {
+    z-index: 2000 !important;
+}
+
+/* Quitar bordes si TomSelect hereda clases de form-control */
 .ts-wrapper.form-control {
     padding: 0 !important;
     border: none !important;
+    background: transparent !important;
 }
 
-.ts-control {
-    border-radius: 0.375rem !important; /* Ajustar al radio de tus otros inputs */
-    padding: 0.5rem 0.75rem !important;
-}
-
-.ts-dropdown {
-    z-index: 2000 !important; /* Para que aparezca por encima del modal */
+/* Estado Focus (Borde azul) */
+.ts-wrapper.focus .ts-control {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15) !important;
 }

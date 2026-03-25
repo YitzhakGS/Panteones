@@ -30,4 +30,32 @@ class PagoController extends Controller
             return back()->with('error', $e->getMessage());
         }
     }
+
+    public function update(Request $request, $pagoId): RedirectResponse
+    {
+        $request->validate([
+            'fecha_pago'   => 'required|date',
+            'monto'        => 'required|numeric|min:0',
+            'folio_ticket' => 'nullable|string|max:100',
+            'forma_pago'   => 'nullable|string|max:100',
+            'observaciones'=> 'nullable|string'
+        ]);
+
+        try {
+            $pago = \App\Models\Pago::findOrFail($pagoId);
+
+            $pago->update([
+                'fecha_pago'   => $request->fecha_pago,
+                'monto'        => $request->monto,
+                'folio_ticket' => $request->folio_ticket,
+                'forma_pago'   => $request->forma_pago,
+                'observaciones'=> $request->observaciones,
+            ]);
+
+            return back()->with('success', 'Pago actualizado correctamente.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
 }

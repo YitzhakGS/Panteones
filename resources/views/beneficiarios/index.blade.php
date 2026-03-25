@@ -22,10 +22,19 @@
     {{-- Barra superior --}}
     <div class="titulares-header mb-3 row align-items-center">
         <div class="col-md-4 text-start">
+
+            {{-- Crear beneficiario --}}
             <button type="button" class="btn bg-base text-white"
                 data-bs-toggle="modal" data-bs-target="#createBeneficiarioModal">
                 <i class="bi bi-plus-circle"></i> Nuevo Beneficiario
             </button>
+
+            {{-- Crear titular --}}
+            <button type="button" class="btn bg-base text-white"
+                data-bs-toggle="modal" data-bs-target="#createTitularModal">
+                <i class="bi bi-person-plus me-1"></i> Nuevo Titular
+            </button>
+
         </div>
         <div class="col-md-8">
             <form method="GET" action="{{ route('beneficiarios.index') }}">
@@ -160,6 +169,7 @@
 
 {{-- Modales --}}
 @include('beneficiarios.create')
+@include('titulares.create')
 @if ($beneficiarios->count() > 0)
     @include('beneficiarios.show') 
 @endif

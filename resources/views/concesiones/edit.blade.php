@@ -21,32 +21,53 @@
 
                 <div class="modal-body pt-3">
 
-                    {{-- DATOS GENERALES --}}
+                    {{-- ── SECCIÓN 1: Lote y Titular ── --}}
                     <div class="section-block mb-3">
                         <span class="section-label">Datos generales</span>
                         <div class="row g-3 mt-1">
 
+                            {{-- LOTE --}}
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">
                                     <i class="bi bi-geo-alt me-1 text-muted"></i>Lote
                                 </label>
-                                <select id="edit_lote" name="id_lote" class="form-select" required>
-                                    <option value="">Seleccione un lote...</option>
-                                    @foreach ($lotes as $lote)
-                                        <option value="{{ $lote->id_lote }}">
-                                            Lote {{ $lote->numero }}
-                                        </option>
-                                    @endforeach
-                                </select>
 
-                                <select id="edit_titular" name="id_titular" class="form-select" required>
-                                    <option value="">Seleccione un titular...</option>
-                                    @foreach ($titulares as $titular)
-                                        <option value="{{ $titular->id_titular }}">
-                                            {{ $titular->familia }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div class="input-group">
+                                    <select id="edit_lote" name="id_lote" required>
+                                        <option value=""></option>
+                                        @foreach ($lotes as $lote)
+                                            <option value="{{ $lote->id_lote }}">
+                                                Lote {{ $lote->numero }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <button type="button" class="input-group-text" id="btnLoteEdit">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- TITULAR --}}
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-person me-1 text-muted"></i>Titular
+                                </label>
+
+                                <div class="input-group">
+                                    <select id="edit_titular" name="id_titular" required>
+                                        <option value=""></option>
+                                        @foreach ($titulares as $titular)
+                                            <option value="{{ $titular->id_titular }}">
+                                                {{ $titular->familia }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <button type="button" class="input-group-text" id="btnTitularEdit">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </div>
                             </div>
 
                         </div>
@@ -125,17 +146,50 @@
                         </div>
                     </div>
 
-                    {{-- OBSERVACIONES --}}
+                    {{-- REFRENDO --}}
                     <div class="section-block mb-1">
-                        <span class="section-label">Observaciones</span>
+                        <span class="section-label">Refrendo y observaciones</span>
                         <div class="row g-3 mt-1">
-                            <div class="col-12">
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-cash-coin me-1 text-muted"></i>Monto
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text text-muted">$</span>
+                                    <input type="number"
+                                        step="0.01"
+                                        min="0"
+                                        id="edit_monto"
+                                        name="monto"
+                                        class="form-control"
+                                        placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-x me-1 text-muted"></i>Fecha límite de pago
+                                </label>
+                                <input type="date"
+                                    id="edit_fecha_limite"
+                                    name="fecha_limite_pago"
+                                    class="form-control">
+                            </div>
+
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-chat-left-text me-1 text-muted"></i>Observaciones
+                                </label>
+
                                 <textarea id="edit_observaciones"
                                           name="observaciones"
                                           rows="2"
                                           class="form-control"
                                           placeholder="Notas adicionales..."></textarea>
+
                             </div>
+
                         </div>
                     </div>
 
@@ -167,5 +221,65 @@ document.getElementById('editConcesionModal').addEventListener('hidden.bs.modal'
     if (!formSubmitted) {
         window.location.href = "{{ route('concesiones.index') }}";
     }
+
+    formSubmitted = false;
+
+    if (tsTitularEdit) tsTitularEdit.clear();
+    if (tsLoteEdit) tsLoteEdit.clear();
+});
+
+let tsTitularEdit = null;
+let tsLoteEdit = null;
+
+document.getElementById('editConcesionModal').addEventListener('shown.bs.modal', function () {
+
+    const tsConfig = {
+        openOnFocus: false,
+        create: false,
+        sortField: { field: "text", direction: "asc" },
+        allowEmptyOption: true,
+        maxOptions: 10,
+        onInitialize: function() {
+            // 👇 mismo hack que ya usas y funciona
+            this.wrapper.style.setProperty('width', '85%', 'important');
+        }
+    };
+
+    // TITULAR
+    if (!tsTitularEdit) {
+        tsTitularEdit = new TomSelect('#edit_titular', {
+            ...tsConfig,
+            placeholder: "Buscar titular..."
+        });
+
+        document.getElementById('btnTitularEdit').addEventListener('click', () => {
+            tsTitularEdit.open();
+        });
+    }
+
+    // LOTE
+    if (!tsLoteEdit) {
+        tsLoteEdit = new TomSelect('#edit_lote', {
+            ...tsConfig,
+            placeholder: "Buscar lote..."
+        });
+
+        document.getElementById('btnLoteEdit').addEventListener('click', () => {
+            tsLoteEdit.open();
+        });
+    }
+
+    // 🔥 setear valores
+    if (concesionActual && concesionActual.id_titular) {
+        tsTitularEdit.setValue(concesionActual.id_titular, true);
+    }
+
+    if (concesionActual && concesionActual.id_lote) {
+        tsLoteEdit.setValue(concesionActual.id_lote, true);
+    }
+
+    // 🔥 refrescar estado (igual que create)
+    tsTitularEdit.refreshState();
+    tsLoteEdit.refreshState();
 });
 </script>

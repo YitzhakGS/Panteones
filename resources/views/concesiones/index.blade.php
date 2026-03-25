@@ -28,6 +28,18 @@
                 data-bs-target="#createConcesionModal">
                 <i class="bi bi-plus-circle"></i> Nueva Concesión
             </button>
+            <button type="button" 
+                    class="btn bg-base text-white"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createTitularModal">
+                <i class="bi bi-person-plus me-1"></i> Nuevo Titular
+            </button>
+            <button type="button" 
+                    class="btn bg-base text-white"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createLoteModal">
+                <i class="bi bi-person-plus me-1"></i> Nuevo Lote
+            </button>
         </div>
 
         <div class="col-md-8">
@@ -145,6 +157,8 @@
 
 @include('concesiones.show')
 @include('concesiones.create')
+@include('titulares.create')
+@include('lotes.create')
 
 
 @push('scripts')

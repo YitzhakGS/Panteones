@@ -23,6 +23,10 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link href="{{ asset('css/css-view/css_modal.css') }}" rel="stylesheet" type="text/css" />
 
+    {{-- TOMSELECT --}}
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+
+
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 
@@ -74,6 +78,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://kit.fontawesome.com/eca8824b90.js" crossorigin="anonymous"></script>
     <script src="{{ asset('js/administration.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
     <footer class="footer">
         @include('adminmenu.layouts.partials.footer')

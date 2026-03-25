@@ -143,12 +143,14 @@ class ConcesionController extends Controller
     public function update(Request $request, Concesion $concesion): RedirectResponse
     {
         $data = $request->validate([
-            'id_lote'          => 'required|exists:lotes,id_lote',
-            'id_titular'       => 'required|exists:titulares,id_titular',
-            'id_uso_funerario' => 'required|exists:uso_funerario,id_uso_funerario',
-            'tipo'             => 'required|in:temporal,perpetuidad',
-            'fecha_inicio'     => 'required|date',
-            'observaciones'    => 'nullable|string',
+            'id_lote'           => 'required|exists:lotes,id_lote',
+            'id_titular'        => 'required|exists:titulares,id_titular',
+            'id_uso_funerario'  => 'required|exists:uso_funerario,id_uso_funerario',
+            'tipo'              => 'required|in:temporal,perpetuidad',
+            'fecha_inicio'      => 'required|date',
+            'observaciones'     => 'nullable|string',
+            'monto'             => 'nullable|numeric|min:0',
+            'fecha_limite_pago' => 'nullable|date',
         ]);
 
         $this->concesionService->actualizar($concesion, $data);
@@ -212,6 +214,7 @@ class ConcesionController extends Controller
             'esta_vencida'     => $concesion->esta_vencida,
             'anos_en_adeudo'   => $concesion->anos_en_adeudo,
             'monto'            => $concesion->ultimoRefrendo?->monto ?? 0,
+            'fecha_limite_pago' => $concesion->ultimoRefrendo?->fecha_limite_pago?->format('Y-m-d'),
         ]);
     }
 

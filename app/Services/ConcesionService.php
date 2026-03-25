@@ -90,6 +90,18 @@ class ConcesionService
                 'observaciones'    => $data['observaciones'] ?? null,
             ]);
 
+            if (isset($data['monto']) || isset($data['fecha_limite_pago'])) {
+
+                $refrendo = $concesion->ultimoRefrendo;
+
+                if ($refrendo) {
+                    $refrendo->update([
+                        'monto' => $data['monto'] ?? $refrendo->monto,
+                        'fecha_limite_pago' => $data['fecha_limite_pago'] ?? $refrendo->fecha_limite_pago,
+                    ]);
+                } 
+            }
+
             return $concesion->fresh();
         });
     }
@@ -108,6 +120,13 @@ class ConcesionService
                 'fecha_fin'     => Carbon::today(),
                 'observaciones' => $observaciones ?? $concesion->observaciones,
             ]);
+
+            // 🔥 CLAVE: cancelar refrendos pendientes
+            $concesion->refrendos()
+                ->where('estado', 'pendiente')
+                ->update([
+                    'estado' => 'cancelado'
+                ]);
 
             return $concesion->fresh();
         });

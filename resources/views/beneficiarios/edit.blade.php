@@ -28,21 +28,24 @@
                         <div class="row g-3 mt-1">
                             <div class="col-md-12">
                                 <label class="form-label fw-semibold">
-                                    <i class="bi bi-person-check me-1 text-muted"></i>Cambiar Titular <span class="text-danger">*</span>
+                                    <i class="bi bi-person-check me-1 text-muted"></i>
+                                    Cambiar Titular <span class="text-danger">*</span>
                                 </label>
-                                <select id="select-titular-edit" name="id_titular" class="form-select" required>
-                                    <option value=""></option>
-                                    @foreach($titulares as $titular)
-                                        <option value="{{ $titular->id_titular }}"
-                                                data-domicilio="{{ $titular->domicilio }}"
-                                                data-colonia="{{ $titular->colonia }}"
-                                                data-cp="{{ $titular->codigo_postal }}"
-                                                data-municipio="{{ $titular->municipio }}"
-                                                data-estado="{{ $titular->estado }}">
-                                            {{ $titular->familia }} - {{ $titular->colonia ?? '' }}
-                                        </option>
-                                    @endforeach
-                                </select>
+
+                                <div class="input-group">
+                                    <select id="select-titular-edit" name="id_titular" required>
+                                        <option value=""></option>
+                                        @foreach($titulares as $titular)
+                                            <option value="{{ $titular->id_titular }}">
+                                                {{ $titular->familia }}  
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <button type="button" class="input-group-text" id="btnTitularEditBenef">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -162,24 +165,44 @@ window.abrirModalEditBeneficiario = function() {
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    let tsTitularEditBenef = null;
+
     const tsConfig = {
+        openOnFocus: false,
         create: false,
         sortField: { field: "text", direction: "asc" },
         placeholder: "Buscar titular...",
         allowEmptyOption: true,
-        maxOptions: null,
+        maxOptions: 4,
+        onInitialize: function() {
+            // 🔥 mismo hack que ya usas
+            this.wrapper.style.setProperty('width', '85%', 'important');
+        }
     };
 
-    const selectEdit = new TomSelect("#select-titular-edit", tsConfig);
+    // Inicializar UNA vez
+    if (!tsTitularEditBenef) {
+        tsTitularEditBenef = new TomSelect("#select-titular-edit", tsConfig);
 
-    const modalEdit = document.getElementById('editBeneficiarioModal');
-    if (modalEdit) {
-        modalEdit.addEventListener('shown.bs.modal', function () {
-            if (typeof beneficiarioActual !== 'undefined' && beneficiarioActual.id_titular) {
-                selectEdit.setValue(beneficiarioActual.id_titular, true);
-            }
-            selectEdit.focus();
+        document.getElementById('btnTitularEditBenef').addEventListener('click', () => {
+            tsTitularEditBenef.open();
         });
     }
+
+    const modalEdit = document.getElementById('editBeneficiarioModal');
+
+    if (modalEdit) {
+        modalEdit.addEventListener('shown.bs.modal', function () {
+
+            // 🔥 setear valor actual
+            if (typeof beneficiarioActual !== 'undefined' && beneficiarioActual.id_titular) {
+                tsTitularEditBenef.setValue(beneficiarioActual.id_titular, true);
+            }
+
+            // 🔥 refrescar estado como en tus otros modales
+            tsTitularEditBenef.refreshState();
+        });
+    }
+
 });
 </script>

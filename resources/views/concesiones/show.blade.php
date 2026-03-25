@@ -164,17 +164,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const card = event.relatedTarget;
         if (!card) return;
 
-        // 1. Obtener el estatus de la card (ajusta 'cancelada' según cómo venga de tu BD)
         const estatusNombre = card.dataset.estatus ?? '';
-        const btnCancelar = document.getElementById('btnCancelarConcesion');
 
-        // 2. Lógica para ocultar/mostrar el botón
-        // Usamos toLowerCase() para evitar problemas con mayúsculas/minúsculas
-        if (estatusNombre.toLowerCase() === 'cancelada') {
-            btnCancelar.classList.add('d-none'); // Oculta el botón usando Bootstrap
-        } else {
-            btnCancelar.classList.remove('d-none'); // Lo muestra si no está cancelada
-        }
+        const btnCancelar = document.getElementById('btnCancelarConcesion');
+        const btnEditar   = document.getElementById('btnEditarConcesion');
+
+        const esCancelada = estatusNombre.toLowerCase() === 'cancelada';
+
+        // BOTÓN CANCELAR
+        btnCancelar.classList.toggle('d-none', esCancelada);
+
+        // BOTÓN EDITAR
+        btnEditar.classList.toggle('d-none', esCancelada);
 
         document.getElementById('show_id_concesion').value   = card.dataset.id            ?? '';
         document.getElementById('show_lote').value           = card.dataset.lote           ?? '';
@@ -210,7 +211,9 @@ function confirmarEliminacionConcesion() {
             let form = document.createElement('form');
             form.action   = `/concesiones/${id}`;
             form.method   = 'POST';
-            form.innerHTML = `@csrf @method('DELETE')`;
+            // CORRECTO — sin Blade dentro del template literal
+            form.innerHTML = '<input type="hidden" name="_token" value="{{ csrf_token() }}">'
+                          + '<input type="hidden" name="_method" value="DELETE">';
             document.body.appendChild(form);
             form.submit();
         }
@@ -246,8 +249,9 @@ document.getElementById('btnCancelarConcesion').addEventListener('click', functi
     });
 });
 
+// Variable global para TomSelect (igual que beneficiarioActual)
+let concesionActual = {};
 
-// Editar — abre modal con datos del servidor
 document.getElementById('btnEditarConcesion').addEventListener('click', function () {
     const id = document.getElementById('show_id_concesion').value;
 
@@ -260,20 +264,24 @@ document.getElementById('btnEditarConcesion').addEventListener('click', function
     })
     .then(r => { if (!r.ok) throw new Error(); return r.json(); })
     .then(data => {
+        // 1. Guardar en variable global para que shown.bs.modal lo lea
+        concesionActual = data;
+
         const form = document.getElementById('editConcesionForm');
         form.action = `/concesiones/${data.id_concesion}`;
 
-        document.getElementById('edit_id_concesion').value   = data.id_concesion;
-        document.getElementById('edit_lote').value           = data.id_lote;
-        document.getElementById('edit_titular').value        = data.id_titular;
-        document.getElementById('edit_uso').value            = data.id_uso_funerario;
-        document.getElementById('edit_tipo').value           = data.tipo;
-        document.getElementById('edit_fecha').value          = data.fecha_inicio;
-        document.getElementById('edit_observaciones').value  = data.observaciones ?? '';
+        document.getElementById('edit_id_concesion').value      = data.id_concesion;
+        document.getElementById('edit_uso').value               = data.id_uso_funerario;
+        document.getElementById('edit_fecha').value             = data.fecha_inicio;
+        document.getElementById('edit_observaciones').value     = data.observaciones ?? '';
+        document.getElementById('edit_monto').value             = data.monto ?? '';
+        document.getElementById('edit_fecha_limite').value = data.fecha_limite_pago ?? '';
 
-        // Marcar el radio correcto
-        document.querySelector(`input[name="tipo"][value="${data.tipo}"]`).checked = true;
+        // 2. Marcar radio tipo
+        const tipoRadio = document.querySelector(`input[name="tipo"][value="${data.tipo}"]`);
+        if (tipoRadio) tipoRadio.checked = true;
 
+        // 3. Abrir modal
         new bootstrap.Modal(document.getElementById('editConcesionModal')).show();
     })
     .catch(() => Swal.fire('Error', 'No se pudieron cargar los datos para editar', 'error'));

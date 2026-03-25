@@ -36,6 +36,7 @@ class RefrendoController extends Controller
                 'pendientes' => $query->pendientes(),
                 'vencidos'   => $query->vencidos(),
                 'pagados'    => $query->pagados(),
+                'cancelado'  => $query->where('estado', 'cancelado'),
                 default      => null,
             };
         }
@@ -118,11 +119,14 @@ class RefrendoController extends Controller
      */
     public function show(Refrendo $refrendo): View
     {
-        $refrendo->load('concesion.lote', 'concesion.titular');
+        $refrendo->load(
+            'concesion.lote',
+            'concesion.titular',
+            'pago' // 👈 ESTA ES LA CLAVE
+        );
 
         return view('refrendos.show', compact('refrendo'));
     }
-
     /**
      * Generar siguiente refrendo anual desde la vista de una concesión
      */
