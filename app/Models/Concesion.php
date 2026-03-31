@@ -142,4 +142,9 @@ class Concesion extends Model
         return $query->whereNull('fecha_fin')
                      ->orWhere('fecha_fin', '>=', Carbon::today());
     }
+
+    public function movimientosFinados()
+    {
+        return $this->hasMany(MovimientoFinado::class, 'id_concesion', 'id_concesion');
+    }
 }

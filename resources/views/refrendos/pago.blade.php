@@ -80,3 +80,17 @@
         </div>
     </div>
 </div>
+
+<script>
+let formSubmitted = false;
+
+document.getElementById('pagoRefrendoModal').querySelector('form').addEventListener('submit', () => {
+    formSubmitted = true;
+});
+
+document.getElementById('pagoRefrendoModal').addEventListener('hidden.bs.modal', function () {
+    if (!formSubmitted) {
+        window.location.href = "{{ route('refrendos.index') }}";
+    }
+});
+</script>

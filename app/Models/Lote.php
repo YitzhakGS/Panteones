@@ -66,12 +66,12 @@ class Lote extends Model
 
     public function concesiones()
     {
-        return $this->hasMany(Concesion::class, 'lote_id');
+        return $this->hasMany(Concesion::class, 'id_lote', 'id_lote');
     }
 
     public function concesionActiva()
-    {
-        return $this->hasOne(Concesion::class, 'lote_id')
+        {
+            return $this->hasOne(Concesion::class, 'lote_id')
             ->whereNull('fecha_fin')
             ->whereHas('estatus', fn($q) => $q->where('nombre', 'Vigente'));
     }
