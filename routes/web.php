@@ -2,7 +2,6 @@
 
 
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\rolController;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +22,8 @@ use App\Http\Controllers\PagoController;
 use App\Http\Controllers\TipoDocumentoController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\BeneficiarioController;
+use App\Http\Controllers\FinadoController;
+use App\Http\Controllers\MovimientoFinadoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -181,3 +182,12 @@ Route::resource('documentos', DocumentoController::class)
 Route::get('/documentos/{documento}/descargar',
     [DocumentoController::class,'descargar']
 )->name('documentos.descargar');
+
+// Rutas para finados
+
+Route::resource('finados', FinadoController::class)
+    ->parameters(['finados' => 'finado']);
+
+Route::post('finados/{finado}/inhumar', [FinadoController::class, 'inhumar']);
+Route::post('finados/{finado}/exhumar', [FinadoController::class, 'exhumar']);
+Route::post('finados/{finado}/reinhumar', [FinadoController::class, 'reinhumar']);

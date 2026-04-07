@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Finado;
 use App\Models\MovimientoFinado;
-use Illuminate\Support\Facades\DB;
 use Exception;
 
 class FinadoService
@@ -22,18 +21,20 @@ class FinadoService
             throw new Exception('El finado ya está inhumado');
         }
 
-        if (!isset($data['id_concesion'])) {
-            throw new Exception('Se requiere id_concesion para exhumar');
-        }
-
         return MovimientoFinado::create([
-            'id_finado'     => $idFinado,
-            'id_concesion'  => $idConcesion,
-            'tipo'          => 'inhumacion',
-            'fecha'         => $data['fecha'] ?? now(),
+            'id_finado' => $idFinado,
+            'id_concesion' => $idConcesion,
+            'id_concesion_origen' => null, // 🔥 inicio
+
+            'tipo' => 'inhumacion',
+            'fecha' => $data['fecha'] ?? now(),
             'observaciones' => $data['observaciones'] ?? null,
+
+            // 🔥 nuevos
+            'es_misma_ubicacion' => false,
+            'ubicacion_destino_externa' => null,
+            'solicitante' => $data['solicitante'] ?? null,
         ]);
-        
     }
 
     // -------------------------
@@ -48,17 +49,28 @@ class FinadoService
         if ($estado !== 'inhumado') {
             throw new Exception('El finado no está inhumado');
         }
-        
-        if (!isset($data['id_concesion'])) {
-            throw new Exception('Se requiere id_concesion para exhumar');
+
+        $actual = $finado->ultimoMovimiento?->id_concesion;
+
+        if (!$actual) {
+            throw new Exception('No se pudo determinar la ubicación actual');
         }
 
         return MovimientoFinado::create([
-            'id_finado'     => $idFinado,
-            'id_concesion'  => $data['id_concesion'],
-            'tipo'          => 'exhumacion',
-            'fecha'         => $data['fecha'] ?? now(),
+            'id_finado' => $idFinado,
+
+            // 🔥 destino puede ser null (cremación, salida, etc.)
+            'id_concesion' => $data['id_concesion'] ?? null,
+            'id_concesion_origen' => $actual,
+
+            'tipo' => 'exhumacion',
+            'fecha' => $data['fecha'] ?? now(),
             'observaciones' => $data['observaciones'] ?? null,
+
+            // 🔥 nuevos
+            'es_misma_ubicacion' => $data['es_misma_ubicacion'] ?? false,
+            'ubicacion_destino_externa' => $data['ubicacion_destino_externa'] ?? null,
+            'solicitante' => $data['solicitante'] ?? null,
         ]);
     }
 
@@ -67,7 +79,6 @@ class FinadoService
     // -------------------------
     public function reinhumar(int $idFinado, int $idConcesion, array $data = [])
     {
-
         $finado = Finado::findOrFail($idFinado);
 
         $estado = $this->obtenerEstadoActual($finado);
@@ -76,16 +87,22 @@ class FinadoService
             throw new Exception('El finado debe estar exhumado para reinhumar');
         }
 
-        if (!isset($data['id_concesion'])) {
-            throw new Exception('Se requiere id_concesion para exhumar');
-        }
+        $actual = $finado->ultimoMovimiento?->id_concesion_origen
+            ?? $finado->ultimoMovimiento?->id_concesion;
 
         return MovimientoFinado::create([
-            'id_finado'     => $idFinado,
-            'id_concesion'  => $idConcesion,
-            'tipo'          => 'reinhumacion',
-            'fecha'         => $data['fecha'] ?? now(),
+            'id_finado' => $idFinado,
+            'id_concesion' => $idConcesion,
+            'id_concesion_origen' => $actual,
+
+            'tipo' => 'reinhumacion',
+            'fecha' => $data['fecha'] ?? now(),
             'observaciones' => $data['observaciones'] ?? null,
+
+            // 🔥 nuevos
+            'es_misma_ubicacion' => $data['es_misma_ubicacion'] ?? false,
+            'ubicacion_destino_externa' => null,
+            'solicitante' => $data['solicitante'] ?? null,
         ]);
     }
 
@@ -96,6 +113,7 @@ class FinadoService
     {
         $ultimo = $finado->movimientos()
             ->latest('fecha')
+            ->latest('id_movimiento') // 🔥 evita empates
             ->first();
 
         if (!$ultimo) {
@@ -109,5 +127,3 @@ class FinadoService
         };
     }
 }
-
-

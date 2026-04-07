@@ -16,14 +16,21 @@ class MovimientoFinado extends Model
 
     protected $fillable = [
         'id_finado',
-        'id_concesion',
+        'id_concesion', // destino
+        'id_concesion_origen', // 🔥 origen
+
         'tipo',
         'fecha',
         'observaciones',
+
+        'ubicacion_destino_externa',
+        'es_misma_ubicacion',
+        'solicitante',
     ];
 
     protected $casts = [
         'fecha' => 'date',
+        'es_misma_ubicacion' => 'boolean',
     ];
 
     // 🔗 Relaciones
@@ -38,6 +45,12 @@ class MovimientoFinado extends Model
         return $this->belongsTo(Concesion::class, 'id_concesion', 'id_concesion');
     }
 
+    public function concesionOrigen(): BelongsTo
+    {
+        return $this->belongsTo(Concesion::class, 'id_concesion_origen', 'id_concesion');
+    }
+
+    // 🔧 Utilidad
     public static function contarActivosEnConcesion(int $idConcesion)
     {
         return self::where('id_concesion', $idConcesion)

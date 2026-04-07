@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Finado extends Model
 {
@@ -21,6 +22,8 @@ class Finado extends Model
         'fecha_defuncion',
         'sexo',
         'observaciones',
+        'solicitante',
+        'tipo_construccion',
     ];
 
     protected $casts = [
@@ -28,14 +31,18 @@ class Finado extends Model
     ];
 
     // 🔗 Relaciones
+
     public function movimientos(): HasMany
     {
         return $this->hasMany(MovimientoFinado::class, 'id_finado', 'id_finado');
     }
 
-    public function ultimoMovimiento()
+    public function ultimoMovimiento(): HasOne
     {
         return $this->hasOne(MovimientoFinado::class, 'id_finado', 'id_finado')
-            ->latestOfMany('fecha');
+            ->ofMany([
+                'fecha' => 'max',
+                'id_movimiento' => 'max',
+            ]);
     }
 }

@@ -87,6 +87,43 @@
         </a>
     </li>
 
+    <li class="list-group-item bg-base border-secondary py-3 px-4">
+        <a href="{{ route('finados.index') }}"
+            class="d-flex align-items-center text-white text-decoration-none p-2 rounded
+            {{ Route::is('finados.*') ? 'fw-bold text-warning bg-primario' : '' }}">
+            <i class="bi bi-person-lines-fill fs-4 me-2 text-light"></i>
+            Finados
+        </a>
+    </li>
+
+    @php
+    $isReportesActive = Route::is('reportes.*');
+    @endphp
+    <li class="list-group-item bg-base border-secondary py-3 px-4">
+        <a href="#submenuReportes" data-bs-toggle="collapse" 
+        aria-expanded="{{ $isReportesActive ? 'true' : 'false' }}"
+        class="d-flex align-items-center text-white text-decoration-none p-2 rounded {{ $isReportesActive ? '' : 'collapsed' }}">
+            <i class="bi bi-bar-chart-line fs-4 me-2 text-info"></i> 
+            Reportes
+            <i class="bi bi-caret-down-fill ms-auto"></i>
+        </a>
+        <ul class="collapse list-unstyled ms-4 mt-2 {{ $isReportesActive ? 'show' : '' }}" id="submenuReportes">
+            <li>
+                <a href="#"
+                    class="d-flex align-items-center text-white text-decoration-none p-2 rounded">
+                    <i class="bi bi-file-earmark-bar-graph fs-5 me-2"></i> 
+                    Padrón de contribuyentes
+                </a>
+            </li>
+            <li>
+                <a href="#"
+                    class="d-flex align-items-center text-white text-decoration-none p-2 rounded">
+                    <i class="bi bi-archive fs-5 me-2"></i> 
+                    Registro de exhumaciones
+                </a>
+            </li>
+        </ul>
+    </li>
 @elseif(Auth::user()->rol == 2)
     {{-- Lógica para el rol 2 aquí --}}
 @endif

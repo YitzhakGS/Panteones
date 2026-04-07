@@ -11,13 +11,19 @@ return new class extends Migration {
             $table->id('id_movimiento');
 
             $table->unsignedBigInteger('id_finado');
-            $table->unsignedBigInteger('id_concesion');
+            $table->unsignedBigInteger('id_concesion')->nullable(); //destino del movimiento
+            $table->unsignedBigInteger('id_concesion_origen')->nullable(); //origen del movimiento (solo para exhumaciones)
 
             $table->enum('tipo', ['inhumacion', 'exhumacion', 'reinhumacion']);
              // inhumacion, exhumacion, reinhumacion
             $table->date('fecha');
 
             $table->text('observaciones')->nullable();
+
+            $table->string('ubicacion_destino_externa')->nullable(); 
+            $table->boolean('es_misma_ubicacion')->default(false);
+            $table->string('solicitante')->nullable();
+
 
             $table->timestamps();
             $table->softDeletes();
@@ -28,6 +34,10 @@ return new class extends Migration {
                   ->on('finados');
 
             $table->foreign('id_concesion')
+                  ->references('id_concesion')
+                  ->on('concesiones');
+
+            $table->foreign('id_concesion_origen')
                   ->references('id_concesion')
                   ->on('concesiones');
         });
