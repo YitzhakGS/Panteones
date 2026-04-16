@@ -128,33 +128,15 @@ function confirmarEliminacionFinado() {
 
 // EDITAR FINADO
 document.getElementById('btnEditarFinado')?.addEventListener('click', function () {
-
     const f = window.finadoActual;
+    if (!f) { console.error('No hay datos del finado'); return; }
 
-    if (!f) {
-        console.error('No hay datos del finado');
-        return;
-    }
+    // Guardar en variable global para llenar después del show
+    window.finadoParaEditar = f;
 
-    // Llenar form
-    document.getElementById('edit_id').value = f.id;
-    document.getElementById('edit_nombre').value = f.nombre || '';
-    document.getElementById('edit_apellido_paterno').value = f.apellidoPaterno || '';
-    document.getElementById('edit_apellido_materno').value = f.apellidoMaterno || '';
-    document.getElementById('edit_fecha_defuncion').value = f.fecha_defuncion_iso || '';
-    document.getElementById('edit_sexo').value = f.sexo || '';
-    document.getElementById('edit_tipo_construccion').value = f.tipoConstruccion || '';
-    document.getElementById('edit_observaciones').value = f.observaciones || '';
-
-    // action
     document.getElementById('editFinadoForm').action = `/finados/${f.id}`;
 
-    // cerrar show
-    bootstrap.Modal.getInstance(
-        document.getElementById('showFinadoModal')
-    )?.hide();
-
-    // abrir edit
+    bootstrap.Modal.getInstance(document.getElementById('showFinadoModal'))?.hide();
     window.abrirModalEdit();
 });
 

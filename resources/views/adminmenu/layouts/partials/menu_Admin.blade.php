@@ -109,14 +109,14 @@
         </a>
         <ul class="collapse list-unstyled ms-4 mt-2 {{ $isReportesActive ? 'show' : '' }}" id="submenuReportes">
             <li>
-                <a href="#"
+                <a href="{{ route('reportes.concesiones') }}"
                     class="d-flex align-items-center text-white text-decoration-none p-2 rounded">
                     <i class="bi bi-file-earmark-bar-graph fs-5 me-2"></i> 
                     Padrón de contribuyentes
                 </a>
             </li>
             <li>
-                <a href="#"
+                <a href="{{ route('reportes.exhumaciones') }}"
                     class="d-flex align-items-center text-white text-decoration-none p-2 rounded">
                     <i class="bi bi-archive fs-5 me-2"></i> 
                     Registro de exhumaciones

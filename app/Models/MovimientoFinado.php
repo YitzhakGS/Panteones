@@ -43,4 +43,9 @@ class MovimientoFinado extends Model
     {
         return $this->belongsTo(Concesion::class, 'id_ubicacion_actual', 'id_concesion');
     }
+
+    public function concesion()
+    {
+        return $this->belongsTo(Concesion::class, 'id_ubicacion_actual');
+    }
 }

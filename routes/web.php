@@ -23,6 +23,7 @@ use App\Http\Controllers\TipoDocumentoController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\BeneficiarioController;
 use App\Http\Controllers\FinadoController;
+use App\Http\Controllers\ReporteFinadoController;
 use App\Http\Controllers\MovimientoFinadoController;
 
 /*
@@ -194,3 +195,6 @@ Route::prefix('finados')->group(function () {
     Route::post('{finado}/reinhumar',   [FinadoController::class, 'reinhumar'])->name('finados.reinhumar');
     Route::post('{finado}/mover',       [FinadoController::class, 'mover'])->name('finados.mover');
 });
+
+Route::get('/reportes/exhumaciones', [ReporteFinadoController::class, 'exhumaciones'])->name('reportes.exhumaciones');
+Route::get('/reportes/concesiones',  [ReporteFinadoController::class, 'concesiones'])->name('reportes.concesiones');

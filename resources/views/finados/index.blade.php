@@ -78,6 +78,13 @@
                         data-apellido-materno="{{ $finado->apellido_materno }}"
                         data-fecha="{{ optional($finado->fecha_defuncion)->format('d/m/Y') }}"
                         data-fecha-iso="{{ optional($finado->fecha_defuncion)->format('Y-m-d') }}"
+                        @php
+                            $movInhumacion = $finado->movimientos
+                                ->whereIn('tipo', ['inhumacion'])
+                                ->sortByDesc('fecha')
+                                ->first();
+                        @endphp
+                        data-fecha-inhumacion-iso="{{ optional($movInhumacion?->fecha)->format('Y-m-d') }}"
                         data-sexo="{{ $finado->sexo }}"
                         data-observaciones="{{ $finado->observaciones }}"
                         data-tipo-construccion="{{ $finado->tipo_construccion }}"
@@ -274,7 +281,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 apellidoMaterno: ds.apellidoMaterno,
                 sexo: ds.sexo,
                 fecha_defuncion: ds.fecha,
-                    fecha_defuncion_iso: ds.fechaIso, // 👈 importante
+                fecha_defuncion_iso: ds.fechaIso, // 👈 importante
+                fecha_inhumacion_iso: ds.fechaInhumacionIso, // 👈 importante
                 tipoConstruccion: ds.tipoConstruccion,
                 observaciones: ds.observaciones,
                 concesionId: ds.concesionId,

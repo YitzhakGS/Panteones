@@ -80,6 +80,50 @@
                         </div>
                     </div>
 
+                    <div class="section-block mb-3">
+                        <span class="section-label">
+                            <i class="bi bi-geo-alt me-1"></i> Inhumación inicial
+                            <span class="text-muted fw-normal">(opcional — puedes registrarla después)</span>
+                        </span>
+
+                        <div class="row g-3 mt-1">
+
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">
+                                    Concesión a la que fue inhumado el finado
+                                </label>
+                                <div class="input-group">
+                                    <select id="edit_select_concesion" name="id_ubicacion_actual" class="form-control">
+                                        <option value=""></option>
+                                        @foreach($concesiones as $c)
+                                            {{-- AHORA --}}
+                                            @php
+                                                $familia = $c->titular?->familia ?? '—';
+                                                $seccion = optional($c->lote?->espaciosActuales->first()?->seccion)->nombre ?? '—';
+                                                $numero  = $c->lote?->numero ?? '—';
+                                            @endphp
+                                            <option value="{{ $c->id_concesion }}">
+                                                {{ $familia }} — {{ $seccion }}, Lote {{ $numero }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    
+                                    <button type="button" class="input-group-text" id="btnEditConcesion">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">
+                                    Fecha de inhumación
+                                </label>
+                                <input id="edit_fecha_inhumacion" type="date" name="fecha" class="form-control">
+                            </div>
+
+                        </div>
+                    </div>
+
                     {{-- SECCIÓN 2: OBSERVACIONES --}}
                     <div class="section-block mb-3">
                         <span class="section-label">
@@ -104,7 +148,6 @@
         </div>
     </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -112,24 +155,26 @@ document.addEventListener('DOMContentLoaded', function () {
     let editModalOpenedFinado = false;
     let tsEditConcesion = null;
 
-    // TomSelect
     const select = document.getElementById('edit_select_concesion');
-
     if (select) {
         tsEditConcesion = new TomSelect(select, {
             openOnFocus: false,
             create: false,
+            sortField: { field: "text", direction: "asc" },
             placeholder: 'Buscar concesión...',
             allowEmptyOption: true,
-            maxOptions: 5
+            maxOptions: null, // ✅ sin límite, igual que en create
+            onInitialize: function() {
+                this.wrapper.style.setProperty('width', '85%', 'important');
+            }
         });
 
+        // ✅ ID corregido para que no colisione con el del create
         document.getElementById('btnEditConcesion')?.addEventListener('click', () => {
             tsEditConcesion.open();
         });
     }
 
-    // Submit seguro
     const form = document.getElementById('editFinadoForm');
     if (form) {
         form.addEventListener('submit', () => {
@@ -137,9 +182,39 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Evento cierre modal
     const modal = document.getElementById('editFinadoModal');
     if (modal) {
+
+        modal.addEventListener('shown.bs.modal', function () {
+            const f = window.finadoParaEditar;
+            if (!f) return;
+            
+            console.log('finadoParaEditar:', f); // 👈 agrega esto
+            
+            document.getElementById('edit_id').value                = f.id || '';
+            document.getElementById('edit_nombre').value            = f.nombre || '';
+            document.getElementById('edit_apellido_paterno').value  = f.apellidoPaterno || '';
+            document.getElementById('edit_apellido_materno').value  = f.apellidoMaterno || '';
+            document.getElementById('edit_fecha_defuncion').value   = f.fecha_defuncion_iso || '';
+            document.getElementById('edit_sexo').value              = f.sexo || '';
+            document.getElementById('edit_tipo_construccion').value = f.tipoConstruccion || '';
+            document.getElementById('edit_observaciones').value     = f.observaciones || '';
+
+            // ✅ Fecha de inhumación
+            const campoFecha = document.getElementById('edit_fecha_inhumacion');
+            if (campoFecha) {
+                campoFecha.value = f.fecha_inhumacion_iso || '';
+            }
+
+            // ✅ TomSelect: limpiar primero, luego setear
+            if (tsEditConcesion) {
+                tsEditConcesion.clear(true);
+                if (f.concesionId) {
+                    tsEditConcesion.setValue(f.concesionId, true);
+                }
+            }
+        });
+
         modal.addEventListener('hidden.bs.modal', function () {
             if (!formSubmittedFinado && editModalOpenedFinado) {
                 window.location.href = "/finados";
@@ -148,7 +223,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Función global
     window.abrirModalEdit = function () {
         editModalOpenedFinado = true;
         new bootstrap.Modal(document.getElementById('editFinadoModal')).show();

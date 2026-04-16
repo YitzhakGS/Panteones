@@ -109,6 +109,8 @@ class FinadoController extends Controller
     public function update(Request $request, Finado $finado)
     {
         try {
+
+            // 1. actualizar datos base del finado
             $finado->update($request->only([
                 'nombre',
                 'apellido_paterno',
@@ -118,6 +120,30 @@ class FinadoController extends Controller
                 'observaciones',
                 'tipo_construccion',
             ]));
+
+            // 2. actualizar inhumación (concesión + fecha) si vienen en request
+            if ($request->filled('id_ubicacion_actual') || $request->filled('fecha')) {
+
+                $mov = $finado->movimientos()
+                    ->where('tipo', 'inhumacion')
+                    ->latest('fecha')
+                    ->first();
+
+                if ($mov) {
+
+                    $concesion = Concesion::with([
+                        'lote.espaciosActuales.seccion',
+                        'lote.espaciosActuales.tipoEspacioFisico',
+                    ])->findOrFail($request->id_ubicacion_actual);
+
+                    $mov->update([
+                        'id_ubicacion_actual' => $request->id_ubicacion_actual,
+                        'ubicacion_actual'    => app(FinadoService::class)
+                            ->formatearUbicacion($concesion),
+                        'fecha'               => $request->fecha,
+                    ]);
+                }
+            }
 
             return redirect()->route('finados.index')
                 ->with('success', 'Finado actualizado');
