@@ -11,33 +11,28 @@ return new class extends Migration {
             $table->id('id_movimiento');
 
             $table->unsignedBigInteger('id_finado');
-            $table->unsignedBigInteger('id_concesion')->nullable(); //destino del movimiento
-            $table->unsignedBigInteger('id_concesion_origen')->nullable(); //origen del movimiento (solo para exhumaciones)
+            $table->unsignedBigInteger('id_ubicacion_actual')->nullable();
 
-            $table->enum('tipo', ['inhumacion', 'exhumacion', 'reinhumacion']);
-             // inhumacion, exhumacion, reinhumacion
+            $table->string('ubicacion_actual')->nullable();
+            $table->string('ubicacion_anterior')->nullable();
+
+            $table->enum('tipo', ['inhumacion', 'exhumacion', 'reinhumacion', 'movimiento']);
             $table->date('fecha');
-
+            $table->string('solicitante')->nullable();
             $table->text('observaciones')->nullable();
 
-            $table->string('ubicacion_destino_externa')->nullable(); 
             $table->boolean('es_misma_ubicacion')->default(false);
-            $table->string('solicitante')->nullable();
-
+            $table->boolean('es_externo')->default(false);
+            $table->string('ubicacion_externa')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
 
-            // 🔗 FKs
             $table->foreign('id_finado')
                   ->references('id_finado')
                   ->on('finados');
 
-            $table->foreign('id_concesion')
-                  ->references('id_concesion')
-                  ->on('concesiones');
-
-            $table->foreign('id_concesion_origen')
+            $table->foreign('id_ubicacion_actual')
                   ->references('id_concesion')
                   ->on('concesiones');
         });

@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Finado;
+use App\Models\Concesion;
 use App\Services\FinadoService;
 use Illuminate\Http\Request;
-use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use App\Models\Concesion;
 use Illuminate\Support\Facades\Log;
-
+use App\Models\CatSeccion;
+use App\Models\Lote;
+use Exception;
 
 class FinadoController extends Controller
 {
@@ -21,37 +23,46 @@ class FinadoController extends Controller
     }
 
     // -------------------------
+    // Helper: envuelve cualquier movimiento en transaction + manejo de error
+    // -------------------------
+    private function runMovimiento(callable $callback): JsonResponse
+    {
+        try {
+            return DB::transaction($callback);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    // -------------------------
     // LISTAR
     // -------------------------
     public function index(Request $request)
     {
         $finados = Finado::with([
-            'ultimoMovimiento.concesion.lote.espaciosActuales.seccion',
-            'ultimoMovimiento.concesion.lote.espaciosActuales.tipoEspacioFisico',
-            'movimientos.concesion.lote.espaciosActuales.seccion',
+            'ultimoMovimiento',
+            'movimientos',
         ])
-        ->when($request->search, function ($query, $search) {
-            $query->where('nombre', 'like', "%$search%")
-                ->orWhere('apellido_paterno', 'like', "%$search%")
-                ->orWhere('apellido_materno', 'like', "%$search%");
-        })
+        ->when($request->search, fn($q, $s) =>
+            $q->where('nombre', 'like', "%$s%")
+            ->orWhere('apellido_paterno', 'like', "%$s%")
+            ->orWhere('apellido_materno', 'like', "%$s%")
+        )
         ->latest()
         ->paginate(10);
 
         $concesiones = Concesion::with([
+            'titular',
             'lote.espaciosActuales.seccion',
-            'lote.espaciosActuales.tipoEspacioFisico'
+            'lote.espaciosActuales.tipoEspacioFisico',
         ])->get();
 
-        return view('finados.index', compact('finados', 'concesiones'));
-    }
+        // 👇 ESTE ES EL NUEVO
+        $secciones = CatSeccion::orderBy('nombre')->get();
 
-    // -------------------------
-    // MOSTRAR
-    // -------------------------
-    public function show($id)
-    {
-        return Finado::with(['movimientos', 'ultimoMovimiento'])->findOrFail($id);
+        $lotes = Lote::orderBy('numero')->get();
+
+        return view('finados.index', compact('finados', 'concesiones', 'secciones', 'lotes'));
     }
 
     // -------------------------
@@ -59,31 +70,32 @@ class FinadoController extends Controller
     // -------------------------
     public function store(Request $request)
     {
+
         try {
             return DB::transaction(function () use ($request) {
 
-                $finado = Finado::create([
-                    'nombre' => $request->nombre,
-                    'apellido_paterno' => $request->apellido_paterno,
-                    'apellido_materno' => $request->apellido_materno,
-                    'fecha_defuncion' => $request->fecha_defuncion,
-                    'sexo' => $request->sexo,
-                    'observaciones' => $request->observaciones,
-                    'tipo_construccion' => $request->tipo_construccion,
-                    'solicitante' => $request->solicitante, 
+                $request->validate([
+                    'nombre'          => 'required|string',
+                    'fecha_defuncion' => 'required|date',
+                    'sexo'            => 'required|in:Masculino,Femenino',
+                    'id_ubicacion_actual' => 'required|exists:concesiones,id_concesion',
+                    'tipo_construccion' => 'nullable|in:cripta,capilla',
                 ]);
 
-                // 🔥 Inhumación inicial
-                if ($request->id_concesion) {
-                    $this->service->inhumar(
-                        $finado->id_finado,
-                        $request->id_concesion,
-                        $request->all()
-                    );
-                }
+                $finado = Finado::create($request->only([
+                    'nombre',
+                    'apellido_paterno',
+                    'apellido_materno',
+                    'fecha_defuncion',
+                    'sexo',
+                    'observaciones',
+                    'tipo_construccion',
+                ]));
+
+                $this->service->inhumar($finado, $request->id_ubicacion_actual, $request->all());
 
                 return redirect()->route('finados.index')
-                ->with('success', 'Finado registrado correctamente');
+                    ->with('success', 'Finado registrado correctamente');
             });
 
         } catch (Exception $e) {
@@ -94,11 +106,9 @@ class FinadoController extends Controller
     // -------------------------
     // ACTUALIZAR
     // -------------------------
-    public function update(Request $request, $id)
+    public function update(Request $request, Finado $finado)
     {
         try {
-            $finado = Finado::findOrFail($id);
-
             $finado->update($request->only([
                 'nombre',
                 'apellido_paterno',
@@ -106,9 +116,6 @@ class FinadoController extends Controller
                 'fecha_defuncion',
                 'sexo',
                 'observaciones',
-
-                // 🔥 NUEVOS
-                'solicitante',
                 'tipo_construccion',
             ]));
 
@@ -123,83 +130,59 @@ class FinadoController extends Controller
     // -------------------------
     // ELIMINAR
     // -------------------------
-    public function destroy($id)
+    public function destroy(Finado $finado)
     {
         try {
-            $finado = Finado::findOrFail($id);
             $finado->delete();
 
-            // Redirección con mensaje de éxito
             return redirect()->route('finados.index')
                 ->with('success', 'El finado ha sido eliminado correctamente.');
 
-        } catch (\Exception $e) {
-            // Logueamos el error internamente para que tú puedas revisarlo en storage/logs/laravel.log
-            Log::error("Error al eliminar finado ID {$id}: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Error al eliminar finado ID {$finado->id_finado}: " . $e->getMessage());
 
-            // Redireccionamos al index con un mensaje de error amigable
             return redirect()->route('finados.index')
-                ->with('error', 'No se pudo eliminar el registro. Es posible que tenga historial relacionado o problemas de permisos.');
+                ->with('error', 'No se pudo eliminar el registro. Es posible que tenga historial relacionado.');
         }
     }
 
     // =========================================================
-    // 🔥 MOVIMIENTOS
+    // MOVIMIENTOS — usan route model binding + helper
     // =========================================================
 
-    public function inhumar(Request $request, $id)
+    public function inhumar(Request $request, Finado $finado)
     {
-        try {
-            return DB::transaction(function () use ($request, $id) {
-
-                $mov = $this->service->inhumar(
-                    $id,
-                    $request->id_concesion,
-                    $request->all()
-                );
-
-                return response()->json($mov);
-            });
-
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
-        }
+        return $this->runMovimiento(fn() =>
+            response()->json(
+                $this->service->inhumar($finado, $request->id_concesion, $request->all())
+            )
+        );
     }
 
-    public function exhumar(Request $request, $id)
+    public function exhumar(Request $request, Finado $finado)
     {
-        try {
-            return DB::transaction(function () use ($request, $id) {
-
-                $mov = $this->service->exhumar(
-                    $id,
-                    $request->all()
-                );
-
-                return response()->json($mov);
-            });
-
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
-        }
+        return $this->runMovimiento(fn() =>
+            response()->json(
+                $this->service->exhumar($finado, $request->all())
+            )
+        );
     }
 
-    public function reinhumar(Request $request, $id)
+    public function reinhumar(Request $request, Finado $finado)
     {
-        try {
-            return DB::transaction(function () use ($request, $id) {
+        return $this->runMovimiento(fn() =>
+            response()->json(
+                $this->service->reinhumar($finado, $request->id_concesion, $request->all())
+            )
+        );
+    }
 
-                $mov = $this->service->reinhumar(
-                    $id,
-                    $request->id_concesion,
-                    $request->all()
-                );
-
-                return response()->json($mov);
-            });
-
-        } catch (Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
-        }
+    public function mover(Request $request, Finado $finado)
+    {
+        return $this->runMovimiento(fn() =>
+            response()->json(
+                $this->service->mover($finado, $request->id_ubicacion_actual, $request->all())
+            )
+        );
     }
 }

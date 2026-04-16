@@ -16,45 +16,31 @@ class MovimientoFinado extends Model
 
     protected $fillable = [
         'id_finado',
-        'id_concesion', // destino
-        'id_concesion_origen', // 🔥 origen
-
+        'id_ubicacion_actual',
+        'ubicacion_actual',
+        'ubicacion_anterior',
         'tipo',
         'fecha',
-        'observaciones',
-
-        'ubicacion_destino_externa',
-        'es_misma_ubicacion',
         'solicitante',
+        'observaciones',
+        'es_misma_ubicacion',
+        'es_externo',
+        'ubicacion_externa',
     ];
 
     protected $casts = [
-        'fecha' => 'date',
-        'es_misma_ubicacion' => 'boolean',
+        'fecha'             => 'date',
+        'es_misma_ubicacion'=> 'boolean',
+        'es_externo'        => 'boolean',
     ];
-
-    // 🔗 Relaciones
 
     public function finado(): BelongsTo
     {
         return $this->belongsTo(Finado::class, 'id_finado', 'id_finado');
     }
 
-    public function concesion(): BelongsTo
+    public function ubicacionActual(): BelongsTo
     {
-        return $this->belongsTo(Concesion::class, 'id_concesion', 'id_concesion');
-    }
-
-    public function concesionOrigen(): BelongsTo
-    {
-        return $this->belongsTo(Concesion::class, 'id_concesion_origen', 'id_concesion');
-    }
-
-    // 🔧 Utilidad
-    public static function contarActivosEnConcesion(int $idConcesion)
-    {
-        return self::where('id_concesion', $idConcesion)
-            ->whereIn('tipo', ['inhumacion', 'reinhumacion'])
-            ->count();
+        return $this->belongsTo(Concesion::class, 'id_ubicacion_actual', 'id_concesion');
     }
 }

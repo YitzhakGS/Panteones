@@ -9,7 +9,6 @@
                     <h5 class="modal-title fw-bold" id="showFinadoModalLabel">
                         <i class="bi bi-person-vcard me-2 text-muted"></i>Detalle del Finado
                     </h5>
-                    <p class="text-muted small mb-0">Información registrada del finado</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -83,6 +82,11 @@
                         <i class="bi bi-pencil-square me-1"></i>Editar
                     </button>
 
+                    <button type="button" class="btn btn-outline-primary"
+                            id="btnMoverFinado" onclick="abrirMoverFinado()">
+                        <i class="bi bi-arrow-left-right me-1"></i>Mover
+                    </button>
+
                 </div>
 
             </div>
@@ -97,6 +101,7 @@
 </form>
 
 @include('finados.edit')
+@include('finados.movimiento')
 
 <script>
 function confirmarEliminacionFinado() {
@@ -120,43 +125,37 @@ function confirmarEliminacionFinado() {
     });
 }
 
-// EDITAR
-document.getElementById('btnEditarFinado').addEventListener('click', function () {
 
-    const id = document.getElementById('show_id').value;
+// EDITAR FINADO
+document.getElementById('btnEditarFinado')?.addEventListener('click', function () {
 
-    bootstrap.Modal.getInstance(document.getElementById('showFinadoModal')).hide();
+    const f = window.finadoActual;
 
-    const form = document.getElementById('editFinadoForm');
-    form.action = `/finados/${id}`;
-
-    document.getElementById('edit_id').value = id;
-    document.getElementById('edit_nombre').value = finadoActual.nombre || '';
-    document.getElementById('edit_apellido_paterno').value = finadoActual.apellidoPaterno || '';
-    document.getElementById('edit_apellido_materno').value = finadoActual.apellidoMaterno || '';
-    document.getElementById('edit_observaciones').value = finadoActual.observaciones || '';
-
-    // ✅ Convertir fecha de d/m/Y a Y-m-d para el input date
-    const partes = (finadoActual.fecha_defuncion || '').split('/');
-    const fechaISO = partes.length === 3 ? `${partes[2]}-${partes[1]}-${partes[0]}` : '';
-    document.getElementById('edit_fecha_defuncion').value = window.finadoActual.fecha_defuncion_iso || fechaISO || '';
-
-    // ✅ Selects — forzar con setTimeout para asegurar que el modal ya abrió
-    setTimeout(() => {
-        document.getElementById('edit_sexo').value = finadoActual.sexo || '';
-        document.getElementById('edit_tipo_construccion').value = finadoActual.tipoConstruccion || '';
-    }, 100);
-
-    // ✅ Limpiar sección de movimiento al abrir
-    document.getElementById('edit_tipo_movimiento').value = '';
-    document.getElementById('edit_fecha_movimiento').value = '';
-    document.getElementById('edit_solicitante').value = '';
-    document.getElementById('edit_obs_movimiento').value = '';
-    const wrapper = document.getElementById('edit_concesion_wrapper');
-    if (wrapper) {
-        wrapper.classList.add('d-none');
+    if (!f) {
+        console.error('No hay datos del finado');
+        return;
     }
 
+    // Llenar form
+    document.getElementById('edit_id').value = f.id;
+    document.getElementById('edit_nombre').value = f.nombre || '';
+    document.getElementById('edit_apellido_paterno').value = f.apellidoPaterno || '';
+    document.getElementById('edit_apellido_materno').value = f.apellidoMaterno || '';
+    document.getElementById('edit_fecha_defuncion').value = f.fecha_defuncion_iso || '';
+    document.getElementById('edit_sexo').value = f.sexo || '';
+    document.getElementById('edit_tipo_construccion').value = f.tipoConstruccion || '';
+    document.getElementById('edit_observaciones').value = f.observaciones || '';
+
+    // action
+    document.getElementById('editFinadoForm').action = `/finados/${f.id}`;
+
+    // cerrar show
+    bootstrap.Modal.getInstance(
+        document.getElementById('showFinadoModal')
+    )?.hide();
+
+    // abrir edit
     window.abrirModalEdit();
 });
+
 </script>

@@ -125,18 +125,17 @@
                                     Concesión destino
                                 </label>
                                 <div class="input-group">
-                                    <select id="select-concesion" name="id_concesion">
+                                    <select id="select-concesion" name="id_ubicacion_actual">
                                         <option value=""></option>
                                         @foreach($concesiones as $c)
+                                            {{-- AHORA --}}
                                             @php
-                                                $espacio = $c->lote?->espacioActual;
-                                                $seccion = optional($espacio?->seccion)->nombre ?? '—';
-                                                $tipo    = optional($espacio?->tipoEspacioFisico)->nombre ?? '';
-                                                $nombre  = $espacio?->nombre ?? '';
-                                                $numero  = $c->lote?->numero ?? '';
+                                                $familia = $c->titular?->familia ?? '—';
+                                                $seccion = optional($c->lote?->espaciosActuales->first()?->seccion)->nombre ?? '—';
+                                                $numero  = $c->lote?->numero ?? '—';
                                             @endphp
                                             <option value="{{ $c->id_concesion }}">
-                                                {{ $seccion }}, {{ $tipo }} {{ $nombre }}, Lote {{ $numero }}
+                                                {{ $familia }} — {{ $seccion }}, Lote {{ $numero }}
                                             </option>
                                         @endforeach
                                     </select>

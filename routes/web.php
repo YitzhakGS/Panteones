@@ -188,6 +188,9 @@ Route::get('/documentos/{documento}/descargar',
 Route::resource('finados', FinadoController::class)
     ->parameters(['finados' => 'finado']);
 
-Route::post('finados/{finado}/inhumar', [FinadoController::class, 'inhumar']);
-Route::post('finados/{finado}/exhumar', [FinadoController::class, 'exhumar']);
-Route::post('finados/{finado}/reinhumar', [FinadoController::class, 'reinhumar']);
+Route::prefix('finados')->group(function () {
+    Route::post('{finado}/inhumar',     [FinadoController::class, 'inhumar'])->name('finados.inhumar');
+    Route::post('{finado}/exhumar',     [FinadoController::class, 'exhumar'])->name('finados.exhumar');
+    Route::post('{finado}/reinhumar',   [FinadoController::class, 'reinhumar'])->name('finados.reinhumar');
+    Route::post('{finado}/mover',       [FinadoController::class, 'mover'])->name('finados.mover');
+});

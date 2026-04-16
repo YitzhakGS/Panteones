@@ -52,29 +52,20 @@
                         $palabras = explode(' ', $nombreCompleto);
                         $iniciales = strtoupper(substr($palabras[0] ?? '', 0, 1) . substr($palabras[1] ?? '', 0, 1));
 
-                        $ultimo = $finado->ultimoMovimiento;
-                        $espacio = $ultimo?->concesion?->lote?->espacioActual;
+                        $ultimo    = $finado->ultimoMovimiento;
+                        $ubicacion = $ultimo?->ubicacion_actual ?? 'Sin ubicación'; // ✅ punto y coma
 
                         $estado = match(optional($ultimo)->tipo) {
-                            'inhumacion', 'reinhumacion' => 'INHUMADO',
-                            'exhumacion' => 'EXHUMADO',
-                            default => 'SIN MOVIMIENTOS'
+                            'inhumacion', 'reinhumacion', 'movimiento' => 'INHUMADO',
+                            'exhumacion'                               => 'EXHUMADO',
+                            default                                    => 'SIN MOVIMIENTOS'
                         };
 
                         $badgeColor = match($estado) {
                             'INHUMADO' => 'bg-success',
                             'EXHUMADO' => 'bg-warning text-dark',
-                            default => 'bg-secondary'
+                            default    => 'bg-secondary'
                         };
-
-                        $ubicacion = $espacio
-                            ? trim(
-                                optional($espacio->seccion)->nombre . ', ' .
-                                optional($espacio->tipoEspacioFisico)->nombre . ' ' .
-                                $espacio->nombre . ', Lote ' .
-                                $ultimo->concesion->lote->numero
-                            )
-                            : 'Sin ubicación';
                     @endphp
 
                     <div class="titular-card"
@@ -91,14 +82,16 @@
                         data-observaciones="{{ $finado->observaciones }}"
                         data-tipo-construccion="{{ $finado->tipo_construccion }}"
                         data-estado="{{ $estado }}"
+                        data-concesion-id="{{ $ultimo?->id_ubicacion_actual }}"
                         data-ubicacion="{{ $ubicacion }}"
+                        data-lote-id="{{ $ultimo?->ubicacionActual?->lote?->id_lote }}"
                         data-movimientos="{{ 
                             $finado->movimientos->map(fn($m) => [
                                 'tipo' => $m->tipo,
                                 'fecha' => $m->fecha ? $m->fecha->format('d/m/Y') : null,
-                                'origen' => $m->concesion?->lote?->seccion?->nombre ?? null,
-                                'destino' => $m->concesion?->lote?->seccion?->nombre ?? null,
-                                'externa' => $m->ubicacion_destino_externa,
+                                'origen'  => $m->ubicacion_anterior,
+                                'destino' => $m->es_externo ? $m->ubicacion_externa : $m->ubicacion_actual,
+                                'externa' => $m->ubicacion_externa,
                                 'solicitante' => $m->solicitante
                             ])->toJson()
                         }}"
@@ -173,19 +166,107 @@
 @endif
 
 @endsection
-
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    // =========================
+    // HELPERS
+    // =========================
+
+    function cargarEspaciosFisicos({ seccionId, selectId }) {
+        const select = document.getElementById(selectId);
+
+        if (!select) return;
+
+        if (!seccionId) {
+            select.innerHTML = '<option value="">Selecciona primero una sección</option>';
+            return;
+        }
+
+        select.innerHTML = '<option>Cargando...</option>';
+        select.disabled = true;
+
+        fetch(`/api/secciones/${seccionId}/espacios-fisicos`)
+            .then(res => res.json())
+            .then(espacios => {
+                select.innerHTML = '<option value="">-- Seleccione --</option>';
+
+                espacios.forEach(e => {
+                    const opt = document.createElement('option');
+                    opt.value = e.id_espacio_fisico;
+                    opt.textContent = `${e.tipo} - ${e.nombre}`;
+                    select.appendChild(opt);
+                });
+
+                select.disabled = false;
+            })
+            .catch(() => {
+                select.innerHTML = '<option>Error al cargar</option>';
+                select.disabled = false;
+            });
+    }
+
+    function calcularSuperficie(prefix) {
+        const get = id => parseFloat(document.getElementById(`${prefix}_${id}`)?.value) || 0;
+
+        const n = get('med_norte');
+        const s = get('med_sur');
+        const o = get('med_oriente');
+        const p = get('med_poniente');
+
+        if ((n > 0 || s > 0) && (o > 0 || p > 0)) {
+            const ancho = (n + s) / ((n > 0 && s > 0) ? 2 : 1);
+            const largo = (o + p) / ((o > 0 && p > 0) ? 2 : 1);
+
+            const target = document.getElementById(`${prefix}_metros_cuadrados`);
+            if (target) {
+                target.value = (ancho * largo).toFixed(2);
+            }
+        }
+    }
+
+    function bindSubformEventos() {
+        // medidas
+        document.querySelectorAll('.lote-measure-input').forEach(input => {
+            input.removeEventListener('input', handleSubformInput);
+            input.addEventListener('input', handleSubformInput);
+        });
+
+        // sección → espacios
+        const seccion = document.getElementById('lote_seccion');
+        if (seccion) {
+            seccion.removeEventListener('change', handleSeccionChange);
+            seccion.addEventListener('change', handleSeccionChange);
+        }
+    }
+
+    function handleSubformInput() {
+        calcularSuperficie('lote');
+    }
+
+    function handleSeccionChange(e) {
+        cargarEspaciosFisicos({
+            seccionId: e.target.value,
+            selectId: 'lote_espacio'
+        });
+    }
+
+    // =========================
+    // SHOW MODAL (finado)
+    // =========================
 
     const showModal = document.getElementById('showFinadoModal');
 
     if (showModal) {
         showModal.addEventListener('show.bs.modal', function (event) {
             const card = event.relatedTarget;
-            const ds = card.dataset; // Shortcut para los datos de la card
+            const ds = card.dataset;
 
-            // 1. Guardar estado global para el modal Edit
+            console.log(ds);
+
+            const estado = (ds.estado || '').trim().toUpperCase();
+
             window.finadoActual = {
                 id: ds.id,
                 nombre: ds.nombre,
@@ -193,81 +274,203 @@ document.addEventListener('DOMContentLoaded', function () {
                 apellidoMaterno: ds.apellidoMaterno,
                 sexo: ds.sexo,
                 fecha_defuncion: ds.fecha,
-                fecha_defuncion_iso: ds.fechaIso,
+                    fecha_defuncion_iso: ds.fechaIso, // 👈 importante
                 tipoConstruccion: ds.tipoConstruccion,
-                observaciones: ds.observaciones
+                observaciones: ds.observaciones,
+                concesionId: ds.concesionId,
+                loteId: ds.loteId
             };
 
-            // 2. Llenar campos del Modal Show con validaciones
+            document.getElementById('show_sexo').textContent = ds.sexo || '—';
+            document.getElementById('show_fecha_defuncion').textContent = ds.fecha || '—';
+            document.getElementById('show_tipo_construccion').textContent = ds.tipoConstruccion || '—';
+            document.getElementById('show_observaciones').textContent = ds.observaciones || '—';
+
             document.getElementById('show_id').value = ds.id;
-            
-            document.getElementById('show_nombre').textContent = 
+            document.getElementById('show_nombre').textContent =
                 `${ds.nombre} ${ds.apellidoPaterno ?? ''} ${ds.apellidoMaterno ?? ''}`;
 
-            document.getElementById('show_sexo').textContent = ds.sexo || 'No especificado';
-
-            // Corrección Fecha de Defunción
-            const fechaTxt = document.getElementById('show_fecha_defuncion');
-            fechaTxt.textContent = (ds.fecha && ds.fecha !== '—') ? ds.fecha : 'Sin registro';
-            fechaTxt.className = (ds.fecha && ds.fecha !== '—') ? 'fw-semibold mb-0' : 'text-muted mb-0 small';
-
-            // Corrección Tipo de Construcción
-            const constTxt = document.getElementById('show_tipo_construccion');
-            constTxt.textContent = ds.tipoConstruccion 
-                ? ds.tipoConstruccion.charAt(0).toUpperCase() + ds.tipoConstruccion.slice(1) 
-                : 'No tiene';
-            constTxt.className = ds.tipoConstruccion ? 'fw-semibold mb-0' : 'text-muted mb-0 small';
-
-            document.getElementById('show_estado').textContent = ds.estado || '—';
+            document.getElementById('show_estado').textContent = estado;
             document.getElementById('show_ubicacion').textContent = ds.ubicacion || '—';
 
-            // Observaciones
-            const obsTxt = document.getElementById('show_observaciones');
-            obsTxt.textContent = (ds.observaciones && ds.observaciones !== 'null') 
-                ? ds.observaciones 
-                : 'Sin observaciones adicionales';
-            obsTxt.className = (ds.observaciones && ds.observaciones !== 'null') ? 'fw-semibold mb-0' : 'text-muted mb-0 small';
+            document.getElementById('btnMoverFinado').style.display =
+                estado === 'INHUMADO' ? '' : 'none';
 
-            // 3. Historial de movimientos
             const movimientos = JSON.parse(ds.movimientos || '[]');
             const container = document.getElementById('show_movimientos_container');
+
             container.innerHTML = '';
 
             if (movimientos.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-4">
-                        <i class="bi bi-clock-history fs-2 text-muted"></i>
-                        <p class="text-muted mb-0 mt-2">Sin movimientos registrados</p>
-                    </div>
-                `;
-            } else {
-                movimientos.forEach(m => {
-                    let badge = (m.tipo === 'inhumacion') ? 'bg-success' : 
-                                (m.tipo === 'exhumacion') ? 'bg-warning text-dark' : 
-                                (m.tipo === 'reinhumacion') ? 'bg-info text-dark' : 'bg-secondary';
-
-                    container.innerHTML += `
-                        <div class="card mb-2 shadow-sm border-0">
-                            <div class="card-body py-2 px-3">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="badge ${badge}">${m.tipo.toUpperCase()}</span>
-                                    <small class="text-muted">${m.fecha ?? '—'}</small>
-                                </div>
-                                <div class="small text-muted">
-                                    <i class="bi bi-arrow-left-right me-1"></i>
-                                    ${m.origen ?? '—'} → ${m.externa ?? m.destino ?? '—'}
-                                </div>
-                                <div class="small text-muted">
-                                    <i class="bi bi-person me-1"></i>
-                                    ${m.solicitante ?? 'Sin solicitante'}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
+                container.innerHTML = '<p class="text-muted">Sin movimientos registrados</p>';
+                return;
             }
+
+            movimientos.forEach(mov => {
+                const div = document.createElement('div');
+                div.classList.add('border', 'rounded', 'p-2', 'mb-2');
+
+                div.innerHTML = `
+                                    
+
+                                        <!-- HEADER -->
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-arrow-left-right me-1"></i>
+                                                ${mov.tipo.toUpperCase()}
+                                            </span>
+
+                                            <span class="small text-muted">
+                                                <i class="bi bi-calendar3 me-1"></i>
+                                                ${mov.fecha ?? 'Sin fecha'}
+                                            </span>
+                                        </div>
+
+                                        <!-- FLOW -->
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+
+                                            <div class="text-center w-45">
+                                                <div class="small text-muted">Ubicación Anterior</div>
+                                                <div class="fw-semibold">${mov.origen ?? '—'}</div>
+                                            </div>
+
+                                            <div class="text-center px-2">
+                                                <i class="bi bi-arrow-right fs-5 text-secondary"></i>
+                                            </div>
+
+                                            <div class="text-center w-45">
+                                                <div class="small text-muted">Ubicación Actual</div>
+                                                <div class="fw-semibold">${mov.destino ?? '—'}</div>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- FOOTER -->
+                                        <div class="small text-muted border-top pt-2">
+                                            <div class="small text-muted">Solicitante</div>
+                                            <i class="bi bi-person-circle me-1"></i>
+                                            ${mov.solicitante ?? '—'}
+                                        </div>
+
+                                    
+                                `;
+
+                container.appendChild(div);
+            });
+
+            document.getElementById('show_sexo').textContent = ds.sexo || '—';
+            document.getElementById('show_fecha_defuncion').textContent = ds.fecha || '—';
+            document.getElementById('show_tipo_construccion').textContent = ds.tipoConstruccion || '—';
+            document.getElementById('show_observaciones').textContent = ds.observaciones || 'Sin observaciones';
         });
     }
+
+    // =========================
+    // ABRIR MODAL MOVIMIENTO
+    // =========================
+
+    window.abrirMoverFinado = function () {
+
+        const f = window.finadoActual || {};
+
+        const estado = document.getElementById('show_estado').textContent.trim().toUpperCase();
+
+        if (estado !== 'INHUMADO') {
+            Swal.fire('Error', 'Solo puedes mover finados inhumados', 'error');
+            return;
+        }
+
+        document.getElementById('mov_tipo').value      = 'mover';
+        document.getElementById('mov_id_finado').value = f.id;
+        document.getElementById('mov_concesion_actual').value = f.concesionId || '';
+        document.getElementById('mov_lote_id').value = f.loteId || '';
+
+        document.getElementById('mov_ubicacion_texto').textContent =
+            document.getElementById('show_ubicacion')?.textContent || 'Sin ubicación';
+
+        document.getElementById('mov_titulo').textContent = 'Mover finado';
+
+        bootstrap.Modal.getInstance(document.getElementById('showFinadoModal'))?.hide();
+
+        const modal = new bootstrap.Modal(document.getElementById('movimientoFinadoModal'));
+        modal.show();
+    };
+
+    // =========================
+    // MODAL MOVIMIENTO
+    // =========================
+
+    const modalMovimiento = document.getElementById('movimientoFinadoModal');
+
+    if (modalMovimiento) {
+        modalMovimiento.addEventListener('shown.bs.modal', function () {
+
+            // activar subform
+            bindSubformEventos();
+
+            // mostrar subform directo (porque mover = interno)
+            document.getElementById('subform_lote').style.display = '';
+        });
+    }
+
+    // =========================
+    // GUARDAR
+    // =========================
+
+    document.getElementById('mov_btn_guardar')?.addEventListener('click', async function () {
+
+        const idFinado = document.getElementById('mov_id_finado').value;
+        const fecha = document.getElementById('mov_fecha').value;
+        const solicitante = document.getElementById('mov_solicitante').value;
+
+        if (!fecha || !solicitante) {
+            Swal.fire('Error', 'Faltan datos', 'error');
+            return;
+        }
+
+        const id_lote = document.getElementById('mov_lote_id').value;
+
+        if (!id_lote) {
+            Swal.fire('Error', 'No hay lote', 'error');
+            return;
+        }
+
+        const id_ubicacion_actual = document.getElementById('mov_concesion_actual').value;
+
+        try {
+            const res = await fetch(`/finados/${idFinado}/mover`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({
+                    id_lote,
+                    fecha,
+                    solicitante,
+                    id_ubicacion_actual
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                Swal.fire('Error', data.error ?? 'Error', 'error');
+                return;
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Movimiento registrado',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => window.location.reload());
+
+        } catch {
+            Swal.fire('Error', 'Error de conexión', 'error');
+        }
+    });
+
 });
 </script>
 @endpush

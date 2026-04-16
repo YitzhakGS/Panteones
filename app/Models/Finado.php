@@ -22,7 +22,6 @@ class Finado extends Model
         'fecha_defuncion',
         'sexo',
         'observaciones',
-        'solicitante',
         'tipo_construccion',
     ];
 
@@ -30,19 +29,15 @@ class Finado extends Model
         'fecha_defuncion' => 'date',
     ];
 
-    // 🔗 Relaciones
-
     public function movimientos(): HasMany
     {
         return $this->hasMany(MovimientoFinado::class, 'id_finado', 'id_finado');
     }
 
-    public function ultimoMovimiento(): HasOne
+    public function ultimoMovimiento()
     {
         return $this->hasOne(MovimientoFinado::class, 'id_finado', 'id_finado')
-            ->ofMany([
-                'fecha' => 'max',
-                'id_movimiento' => 'max',
-            ]);
+            ->latest('fecha')
+            ->latest('id_movimiento');
     }
 }

@@ -130,26 +130,50 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
     const editModal = document.getElementById('editLoteModal');
-    if (editModal) editModal.addEventListener('show.bs.modal', handleEditLoteModal);
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', handleEditLoteModal);
+    }
 
     const showModal = document.getElementById('showLoteModal');
-    if (showModal) showModal.addEventListener('show.bs.modal', handleShowLoteModal);
+    if (showModal) {
+        showModal.addEventListener('show.bs.modal', handleShowLoteModal);
+    }
 
-    // Buscador
-    document.getElementById('searchLote').addEventListener('keyup', function () {
+    // -------------------------
+    // BUSCADOR
+    // -------------------------
+    document.getElementById('searchLote')?.addEventListener('keyup', function () {
         const value = this.value.toLowerCase();
         document.querySelectorAll('tbody tr').forEach(row => {
             row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
         });
     });
 
-    // Cálculo superficie
+    // -------------------------
+    // CALCULO SUPERFICIE (EDIT)
+    // -------------------------
     document.querySelectorAll('.edit-measure-input').forEach(input => {
         input.addEventListener('input', calcularSuperficieEdit);
     });
+
+    // -------------------------
+    // CAMBIO DE SECCION (EDIT)
+    // 🔥 ESTE ES EL QUE TE FALTABA
+    // -------------------------
+    document.getElementById('edit-select-seccion-ajax')?.addEventListener('change', function () {
+        const seccionId = this.value;
+
+        cargarEspaciosFisicos(seccionId, null);
+    });
+
 });
 
+
+// -------------------------
+// EDIT MODAL
+// -------------------------
 function handleEditLoteModal(event) {
     const loteId = event.relatedTarget.dataset.id;
     const form = document.getElementById('editLoteForm');
@@ -159,13 +183,15 @@ function handleEditLoteModal(event) {
     fetch(`/lotes/${loteId}/data`)
         .then(res => res.json())
         .then(data => {
+
             form.querySelector('[name="numero"]').value = data.numero ?? '';
             document.getElementById('edit_metros_cuadrados').value = data.metros_cuadrados ?? '';
             document.getElementById('current_espacio_id').value = data.id_espacio_fisico ?? '';
 
-            ['med_norte', 'med_sur', 'med_oriente', 'med_poniente',
-             'col_norte', 'col_sur', 'col_oriente', 'col_poniente',
-             'referencias'
+            [
+                'med_norte','med_sur','med_oriente','med_poniente',
+                'col_norte','col_sur','col_oriente','col_poniente',
+                'referencias'
             ].forEach(f => {
                 const input = form.querySelector(`[name="${f}"]`);
                 if (input) input.value = data[f] ?? '';
@@ -174,18 +200,24 @@ function handleEditLoteModal(event) {
             const selectSeccion = document.getElementById('edit-select-seccion-ajax');
             selectSeccion.value = data.id_seccion || '';
 
+            // 🔥 cargar áreas automáticamente
             if (data.id_seccion) {
                 cargarEspaciosFisicos(data.id_seccion, data.id_espacio_fisico);
             }
         });
 }
 
+
+// -------------------------
+// SHOW MODAL
+// -------------------------
 function handleShowLoteModal(event) {
     const loteId = event.relatedTarget.dataset.id;
 
     fetch(`/lotes/${loteId}/data`)
         .then(res => res.json())
         .then(data => {
+
             document.getElementById('show_lote_numero').textContent      = data.numero ?? '—';
             document.getElementById('show_lote_superficie').textContent  = data.metros_cuadrados ?? '—';
             document.getElementById('show_lote_referencias').textContent = data.referencias ?? 'Sin referencias registradas...';
@@ -195,52 +227,71 @@ function handleShowLoteModal(event) {
                     ? `${data.nombre_seccion} · ${data.tipo_espacio} - ${data.nombre_espacio}`
                     : 'Sin ubicación asignada';
 
-            ['norte', 'sur', 'oriente', 'poniente'].forEach(dir => {
+            ['norte','sur','oriente','poniente'].forEach(dir => {
                 document.getElementById(`show_med_${dir}`).textContent = data[`med_${dir}`] ?? '—';
                 document.getElementById(`show_col_${dir}`).textContent = data[`col_${dir}`] ?? '—';
             });
         });
 }
 
-function cargarEspaciosFisicos(seccionId, seleccionadoId) {
-    const selectEspacio = document.getElementById('edit-select-espacio-ajax');
-    selectEspacio.innerHTML = '<option value="">Cargando áreas...</option>';
-    selectEspacio.disabled = true;
+
+// -------------------------
+// CARGAR ESPACIOS
+// -------------------------
+function cargarEspaciosFisicos(seccionId, seleccionadoId = null, selectId = 'edit-select-espacio-ajax') {
+
+    const select = document.getElementById(selectId);
+
+    if (!seccionId) {
+        select.innerHTML = '<option value="">Selecciona primero una sección</option>';
+        return;
+    }
+
+    select.innerHTML = '<option value="">Cargando áreas...</option>';
+    select.disabled = true;
 
     fetch(`/api/secciones/${seccionId}/espacios-fisicos`)
-        .then(res => {
-            if (!res.ok) throw new Error('Error en la carga');
-            return res.json();
-        })
+        .then(res => res.json())
         .then(espacios => {
-            selectEspacio.innerHTML = '<option value="">-- Seleccione el Área Específica --</option>';
+
+            select.innerHTML = '<option value="">-- Seleccione el Área Específica --</option>';
+
             espacios.forEach(e => {
                 const opt = document.createElement('option');
                 opt.value = e.id_espacio_fisico;
                 opt.textContent = `${e.tipo} - ${e.nombre}`;
-                if (e.id_espacio_fisico == seleccionadoId) opt.selected = true;
-                selectEspacio.appendChild(opt);
+
+                if (seleccionadoId && e.id_espacio_fisico == seleccionadoId) {
+                    opt.selected = true;
+                }
+
+                select.appendChild(opt);
             });
-            selectEspacio.disabled = false;
-        })
-        .catch(error => {
-            console.error('Error AJAX:', error);
-            selectEspacio.innerHTML = '<option value="">Error al cargar áreas</option>';
-            selectEspacio.disabled = false;
+
+            select.disabled = false;
         });
 }
 
+
+// -------------------------
+// CALCULAR SUPERFICIE (EDIT)
+// -------------------------
 function calcularSuperficieEdit() {
+
     const modal = document.getElementById('editLoteModal');
+
     const n = parseFloat(modal.querySelector('[name="med_norte"]').value) || 0;
     const s = parseFloat(modal.querySelector('[name="med_sur"]').value) || 0;
     const o = parseFloat(modal.querySelector('[name="med_oriente"]').value) || 0;
     const p = parseFloat(modal.querySelector('[name="med_poniente"]').value) || 0;
 
     if ((n > 0 || s > 0) && (o > 0 || p > 0)) {
+
         const ancho = (n + s) / ((n > 0 && s > 0) ? 2 : 1);
         const largo = (o + p) / ((o > 0 && p > 0) ? 2 : 1);
-        document.getElementById('edit_metros_cuadrados').value = (ancho * largo).toFixed(2);
+
+        document.getElementById('edit_metros_cuadrados').value =
+            (ancho * largo).toFixed(2);
     }
 }
 </script>

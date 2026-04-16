@@ -16,10 +16,7 @@ return new class extends Migration {
 
             $table->date('fecha_defuncion')->nullable();
             $table->string('sexo', 10)->nullable();
-
             $table->text('observaciones')->nullable();
-            
-            $table->string('solicitante')->nullable();
             $table->enum('tipo_construccion', ['cripta', 'capilla'])->nullable();
 
             $table->timestamps();
