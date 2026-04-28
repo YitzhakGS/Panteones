@@ -22,7 +22,7 @@ class BeneficiarioController extends Controller
 
         if ($request->filled('search')) {
 
-            $query->withTrashed();
+            //$query->withTrashed(); no se ni porque chucha puse esto xd
 
             $search = $request->search;
 
@@ -42,7 +42,7 @@ class BeneficiarioController extends Controller
         }
 
         $beneficiarios = $query
-            ->orderBy('id_titular')
+            ->orderBy('id_titular', 'desc')
             ->orderBy('orden')
             ->paginate(10)
             ->withQueryString();
@@ -122,9 +122,9 @@ class BeneficiarioController extends Controller
             return back()->with('error', 'Error al guardar beneficiario');
         }
 
-        return redirect()
-            ->route('beneficiarios.index')
-            ->with('success', 'Beneficiario creado correctamente');
+        $destino = $request->input('redirect_to', route('beneficiarios.index'));
+
+        return redirect($destino)->with('success', 'Beneficiario creado correctamente.');
     }
 
     public function update(Request $request, Beneficiario $beneficiario): RedirectResponse

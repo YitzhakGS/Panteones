@@ -146,14 +146,13 @@
                     </div>
                 @endforelse
             </div>
-
+        </div>
+        
             @if(method_exists($titulares, 'links'))
-                <div class="pagination-container d-flex justify-content-center mt-3">
+                <div class="pagination-container d-flex justify-content-center mt-3" style="margin-bottom: 40px;">
                     {{ $titulares->links() }}
                 </div>
             @endif
-
-        </div>
     </div>
 </div>
 

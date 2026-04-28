@@ -155,15 +155,13 @@
                     </div>
                 @endforelse
             </div>
-
-            {{-- Paginación --}}
-            @if(method_exists($beneficiarios, 'links'))
-                <div class="pagination-container d-flex justify-content-center mt-3">
-                    {{ $beneficiarios->links() }}
-                </div>
-            @endif
-
         </div>
+        {{-- Paginación --}}
+        @if(method_exists($beneficiarios, 'links'))
+            <div class="pagination-container d-flex justify-content-center mt-3" style="margin-bottom: 40px;">
+                {{ $beneficiarios->links() }}
+            </div>
+        @endif
     </div>
 </div>
 

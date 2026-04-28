@@ -40,4 +40,10 @@ class Finado extends Model
             ->latest('fecha')
             ->latest('id_movimiento');
     }
+
+    public function ultimoMovimientoOnly(): HasOne
+    {
+        return $this->hasOne(MovimientoFinado::class, 'id_finado', 'id_finado')
+            ->latestOfMany('fecha');
+    }
 }

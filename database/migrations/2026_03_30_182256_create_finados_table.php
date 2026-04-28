@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->date('fecha_defuncion')->nullable();
             $table->string('sexo', 10)->nullable();
             $table->text('observaciones')->nullable();
-            $table->enum('tipo_construccion', ['cripta', 'capilla'])->nullable();
+            $table->enum('tipo_construccion', ['Cortina', 'Juego de lozas', 'Fosa derecha','Cortina con lozas'])->nullable();
 
             $table->timestamps();
             $table->softDeletes();

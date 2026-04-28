@@ -59,6 +59,7 @@
                     @endforelse
                 </tbody>
             </table>
+            {{ $datos->links() }}
         </div>
 
     </div>

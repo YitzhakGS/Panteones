@@ -34,21 +34,29 @@ class TitularesController extends Controller
 
         if ($request->filled('search')) {
 
-            $search = $request->search;
-            if (str_contains(strtolower($search), 'fallecido')) {
-                    $query->withTrashed()->where('fallecido', true);
-                } else {
-                    // 👇 Búsqueda normal — incluye fallecidos si coincide el nombre
-                    $query->withTrashed()->where(function ($q) use ($search) {
-                        $q->where('familia',   'like', "%$search%")
-                        ->orWhere('domicilio', 'like', "%$search%")
-                        ->orWhere('colonia',   'like', "%$search%")
-                        ->orWhere('telefono',  'like', "%$search%");
-                    });
-                }
-            // 🔥 si escribe "fallecido" o "fallecidos"
-            if (str_contains(strtolower($search), 'fallecido')) {
+            $search = trim($request->search);
+            $terms  = preg_split('/\s+/', $search);
+            $esFallecido = str_contains(strtolower($search), 'fallecido');
+
+            $query->withTrashed();
+
+            if ($esFallecido) {
                 $query->where('fallecido', true);
+            } else {
+                $query->where(function ($q) use ($terms) {
+                    foreach ($terms as $term) {
+                        $like = "%{$term}%";
+
+                        $q->where(function ($q2) use ($like) {
+                            $q2->whereRaw('LOWER(COALESCE(familia,   "")) LIKE LOWER(?)', [$like])
+                            ->orWhereRaw('LOWER(COALESCE(domicilio, "")) LIKE LOWER(?)', [$like])
+                            ->orWhereRaw('LOWER(COALESCE(colonia,   "")) LIKE LOWER(?)', [$like])
+                            ->orWhereRaw('LOWER(COALESCE(municipio, "")) LIKE LOWER(?)', [$like])
+                            ->orWhereRaw('LOWER(COALESCE(estado,    "")) LIKE LOWER(?)', [$like])
+                            ->orWhereRaw('LOWER(COALESCE(telefono,  "")) LIKE LOWER(?)', [$like]);
+                        });
+                    }
+                });
             }
 
         } else {
@@ -57,7 +65,7 @@ class TitularesController extends Controller
         }
 
         $titulares = $query
-            ->orderBy('familia')
+            ->orderBy('familia', 'desc')
             ->paginate(15)
             ->withQueryString();
 
@@ -141,7 +149,9 @@ class TitularesController extends Controller
             return redirect()->back()->with('error', 'Ocurrió un error al guardar el titular.');
         }
 
-        return redirect()->route('titulares.index')->with('success', 'Titular creado correctamente.');
+        $destino = $request->input('redirect_to', route('titulares.index'));
+        cache()->forget('titulares_vivos');
+        return redirect($destino)->with('success', 'Titular creado correctamente.');
     }
 
     /**
@@ -266,6 +276,7 @@ class TitularesController extends Controller
             );
         }
 
+        cache()->forget('titulares_vivos');
         return redirect()
             ->route('titulares.index')
             ->with('success', 'Titular actualizado correctamente.');

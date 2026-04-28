@@ -13,14 +13,11 @@ class UsoFunerarioSeeder extends Seeder
     public function run(): void
     {
         $usos = [
-            'Fosa individual',
-            'Fosa doble',
-            'Fosa triple',
+            'Nicho',
+            'Capilla',
             'Gaveta',
-            'Osario',
-            'Cenizario',
-            'Cripta familiar',
-            'Tumba vertical',
+            'Fosa',
+            'Guarda Restos',
         ];
 
         foreach ($usos as $uso) {

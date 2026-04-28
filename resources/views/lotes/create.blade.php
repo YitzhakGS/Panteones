@@ -15,7 +15,7 @@
 
             <form action="{{ route('lotes.store') }}" method="POST">
                 @csrf
-
+                <input type="hidden" name="redirect_to" value="{{ url()->current() }}">
                 <div class="modal-body pt-3">
 
                     {{-- ── SECCIÓN 1: Identificación ── --}}

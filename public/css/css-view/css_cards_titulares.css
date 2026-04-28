@@ -8,7 +8,7 @@
 .titulares-wrapper {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 210px);
+    height: calc(100vh - 220px); /* topbar ~70px + brs ~80px + header ~70px */
     min-height: 0;
     overflow: hidden;
 }
@@ -22,15 +22,16 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    overflow: hidden; /* ← añadir esto */
 }
 
 .cards-scroll-container {
     flex: 1;
     overflow-y: auto;
-    padding: 14px 14px 30px;
+    padding: 14px 14px 14px; /* ← quita el padding-bottom exagerado */
     min-height: 0;
     background-color: #edf0f5;
-    border-radius: 10px;
+    border-radius: 10px 10px 0 0; /* ← solo redondea arriba */
 }
 
 /* Scrollbar */
@@ -266,8 +267,13 @@
 .pagination-container {
     position: relative;
     z-index: 0;
-    overflow: hidden;
-    margin-top: 16px;
+    padding: 8px 14px;
+    background: #edf0f5;
+    border-radius: 0 0 10px 10px;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    flex-shrink: 0; /* ← nunca se comprime */
+    
 }
 
 .pagination-container nav { width: 100%; }

@@ -29,30 +29,40 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
+        View::composer('beneficiarios.create', function ($view) {
+            $view->with([
+                'tiposDocumento' => cache()->remember('tipos_doc_beneficiario', 3600, fn() =>
+                    TipoDocumento::whereHas('entidades', function ($q) {
+                        $q->where('modelo', \App\Models\Beneficiario::class);
+                    })->get()
+                ),
+                'titulares' => cache()->remember('titulares_vivos', 60, fn() =>
+                    Titular::where('fallecido', 0)
+                        ->orderBy('familia')
+                        ->select('id_titular', 'familia') // solo lo que necesitas en el select
+                        ->get()
+                ),
+            ]);
+        });
+
         View::composer('titulares.create', function ($view) {
             $view->with('tiposDocumentoTitular',
-                TipoDocumento::whereHas('entidades', function ($q) {
-                    $q->where('modelo', \App\Models\Titular::class);
-                })->get()
+                cache()->remember('tipos_doc_titular', 3600, fn() =>
+                    TipoDocumento::whereHas('entidades', function ($q) {
+                        $q->where('modelo', \App\Models\Titular::class);
+                    })->get()
+                )
             );
         });
 
         View::composer('lotes.create', function ($view) {
             $view->with([
-                'secciones' => CatSeccion::orderBy('nombre')->get(),
-                'espaciosFisicos' => EspacioFisico::orderBy('nombre')->get()
-            ]);
-        });
-
-        View::composer('beneficiarios.create', function ($view) {
-            $view->with([
-                'tiposDocumento' => TipoDocumento::whereHas('entidades', function ($q) {
-                    $q->where('modelo', \App\Models\Beneficiario::class);
-                })->get(),
-
-                'titulares' => Titular::where('fallecido', 0)
-                    ->orderBy('familia')
-                    ->get()
+                'secciones'      => cache()->remember('secciones', 3600, fn() =>
+                    CatSeccion::orderBy('nombre')->get()
+                ),
+                'espaciosFisicos' => cache()->remember('espacios_fisicos', 3600, fn() =>
+                    EspacioFisico::orderBy('nombre')->get()
+                ),
             ]);
         });
       

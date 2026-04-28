@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\CatSeccion;
 use App\Models\Lote;
+use Illuminate\Http\withQueryString;
 use Exception;
 
 class FinadoController extends Controller
@@ -39,17 +40,55 @@ class FinadoController extends Controller
     // -------------------------
     public function index(Request $request)
     {
-        $finados = Finado::with([
+        $query = Finado::with([
             'ultimoMovimiento',
-            'movimientos',
-        ])
-        ->when($request->search, fn($q, $s) =>
-            $q->where('nombre', 'like', "%$s%")
-            ->orWhere('apellido_paterno', 'like', "%$s%")
-            ->orWhere('apellido_materno', 'like', "%$s%")
-        )
-        ->latest()
-        ->paginate(10);
+            'ultimoMovimientoOnly',
+        ]);
+
+        // ── BUSCADOR ──────────────────────────────────────────
+        if ($request->filled('search')) {
+            $terms = preg_split('/\s+/', trim($request->search));
+
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $like = '%' . mb_strtolower($term) . '%';
+
+                    $q->where(function ($q2) use ($like) {
+                        $q2->whereRaw('LOWER(COALESCE(nombre,          "")) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(apellido_paterno,"")) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(apellido_materno,"")) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(sexo,           "")) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(observaciones,  "")) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(tipo_construccion,"")) LIKE ?', [$like])
+                        // buscar por ubicación desde el último movimiento
+                        ->orWhereHas('ultimoMovimiento', fn($r) =>
+                            $r->whereRaw('LOWER(COALESCE(ubicacion_actual,"")) LIKE ?', [$like])
+                        );
+                    });
+                }
+            });
+        }
+
+        // ── FILTRO ESTADO ─────────────────────────────────────
+        $estado = $request->input('estado');
+
+        if ($estado && $estado !== 'todos') {
+            match($estado) {
+                'inhumado' => $query->whereHas('ultimoMovimiento', fn($q) =>
+                    $q->whereIn('tipo', ['inhumacion', 'reinhumacion', 'movimiento'])
+                ),
+                'exhumado' => $query->whereHas('ultimoMovimiento', fn($q) =>
+                    $q->where('tipo', 'exhumacion')
+                ),
+                'sin_movimientos' => $query->whereDoesntHave('ultimoMovimiento'),
+                default => null,
+            };
+        }
+
+        $finados = $query
+            ->latest()
+            ->paginate(15)
+            ->appends($request->query());
 
         $concesiones = Concesion::with([
             'titular',
@@ -57,10 +96,8 @@ class FinadoController extends Controller
             'lote.espaciosActuales.tipoEspacioFisico',
         ])->get();
 
-        // 👇 ESTE ES EL NUEVO
         $secciones = CatSeccion::orderBy('nombre')->get();
-
-        $lotes = Lote::orderBy('numero')->get();
+        $lotes     = Lote::orderBy('numero')->get();
 
         return view('finados.index', compact('finados', 'concesiones', 'secciones', 'lotes'));
     }

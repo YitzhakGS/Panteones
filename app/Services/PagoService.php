@@ -10,7 +10,7 @@ use Exception;
 
 class PagoService
 {
-    public function __construct(protected ConcesionService $concesionService) {}
+    public function __construct(protected ConcesionService $concesionService, protected RefrendoService $refrendoService) {}
 
     public function registrar(array $data): Pago
     {
@@ -46,6 +46,10 @@ class PagoService
             ]);
 
             $refrendo->update(['estado' => 'pagado']);
+
+
+            // Generar automáticamente el siguiente refrendo anual
+            $this->refrendoService->generarSiguiente($refrendo->concesion); // 👈 agregar esto
 
             // Delegar el recálculo de estatus al ConcesionService
             $this->concesionService->recalcularEstatus($refrendo->concesion);

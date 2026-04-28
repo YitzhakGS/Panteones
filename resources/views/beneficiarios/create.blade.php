@@ -15,7 +15,7 @@
 
             <form action="{{ route('beneficiarios.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-
+                <input type="hidden" name="redirect_to" value="{{ url()->current() }}">
                 <div class="modal-body pt-3">
 
                     {{-- SECCIÓN 0: Titular --}}

@@ -11,6 +11,8 @@ class ReporteFinadoController extends Controller
 
     public function exhumaciones(Request $request)
     {
+        $query = $request->query();
+        
         $filtros = $request->only(['fecha_inicio', 'fecha_fin']);
         $datos   = $this->service->reporteExhumaciones($filtros);
 

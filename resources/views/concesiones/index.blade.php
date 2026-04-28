@@ -145,7 +145,7 @@
             </div>
 
             {{-- Paginación --}}
-            <div class="pagination-container d-flex justify-content-center mt-3">
+            <div class="pagination-container d-flex justify-content-center mt-3" style="margin-bottom: 80px;">
                 {{ $concesiones->links() }}
             </div>
 
@@ -160,27 +160,15 @@
 @include('titulares.create')
 @include('lotes.create')
 
-
 @push('scripts')
 <script>
-/**
- * Buscador en tiempo real
- */
-document.getElementById('searchConcesion').addEventListener('keyup', function () {
-    const value = this.value.toLowerCase();
-    document.querySelectorAll('.concesion-card').forEach(card => {
-        card.style.display = card.innerText.toLowerCase().includes(value) ? '' : 'none';
-    });
-});
 
-/**
- * Modal de detalle — rellena los campos con los datos de la card
- */
+// 👇 Código del modal separado
 document.addEventListener('DOMContentLoaded', function () {
+
     const showModal = document.getElementById('showConcesionModal');
     if (!showModal) return;
 
-    // Colores por estatus para el campo de texto del modal
     const estatusColores = {
         'Al Corriente': '#15803d',
         'Con Adeudo':   '#b91c1c',
@@ -193,26 +181,24 @@ document.addEventListener('DOMContentLoaded', function () {
         const card = event.relatedTarget;
         if (!card) return;
 
+        document.getElementById('show_id_concesion').value  = card.dataset.id ?? '';
+        document.getElementById('show_lote').value          = card.dataset.lote ?? '';
+        document.getElementById('show_titular').value       = card.dataset.titular ?? '';
+        document.getElementById('show_uso').value           = card.dataset.uso ?? '';
+        document.getElementById('show_fecha_inicio').value  = card.dataset.inicio ?? '';
+        document.getElementById('show_fecha_fin').value     = card.dataset.fin ?? 'N/A';
+        document.getElementById('show_observaciones').value = card.dataset.observaciones ?? '';
+        document.getElementById('show_tipo').value          = card.dataset.tipo ?? '';
+        document.getElementById('show_anos_adeudo').value   = card.dataset.anosAdeudo ?? '0';
+
+        const estatusInput = document.getElementById('show_estatus');
         const estatusNombre = card.dataset.estatus ?? '';
 
-        // Rellenar campos
-        document.getElementById('show_id_concesion').value  = card.dataset.id          ?? '';
-        document.getElementById('show_lote').value          = card.dataset.lote         ?? '';
-        document.getElementById('show_titular').value       = card.dataset.titular      ?? '';
-        document.getElementById('show_uso').value           = card.dataset.uso          ?? '';
-        document.getElementById('show_fecha_inicio').value  = card.dataset.inicio       ?? '';
-        document.getElementById('show_fecha_fin').value     = card.dataset.fin          ?? 'N/A';
-        document.getElementById('show_observaciones').value = card.dataset.observaciones ?? '';
-        document.getElementById('show_tipo').value          = card.dataset.tipo         ?? '';
-        document.getElementById('show_anos_adeudo').value   = card.dataset.anosAdeudo     ?? '0';
-
-
-        // Campo estatus con color según los 5 estados
-        const estatusInput = document.getElementById('show_estatus');
-        estatusInput.value      = estatusNombre;
-        estatusInput.style.color     = estatusColores[estatusNombre] ?? '#475569';
+        estatusInput.value = estatusNombre;
+        estatusInput.style.color = estatusColores[estatusNombre] ?? '#475569';
         estatusInput.style.fontWeight = estatusColores[estatusNombre] ? '700' : '400';
     });
+
 });
 </script>
 @endpush

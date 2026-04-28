@@ -23,12 +23,37 @@ class LotesController extends Controller
         ]);
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);               // quita espacios extremos
+            $terms  = preg_split('/\s+/', $search);         // divide por espacios múltiples
 
-            $query->where(function ($q) use ($search) {
-                $q->where('numero', 'like', "%$search%")
-                ->orWhere('ubicacion', 'like', "%$search%")
-                ->orWhere('colindancias', 'like', "%$search%");
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $like = "%{$term}%";
+
+                    $q->where(function ($q2) use ($like) {
+                        // Columnas directas del lote
+                        $q2->whereRaw('LOWER(numero) LIKE LOWER(?)', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(col_norte,""))   LIKE LOWER(?)', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(col_sur,""))     LIKE LOWER(?)', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(col_oriente,"")) LIKE LOWER(?)', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(col_poniente,"")) LIKE LOWER(?)', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(referencias,"")) LIKE LOWER(?)', [$like])
+                        ->orWhereRaw('CAST(metros_cuadrados AS CHAR) LIKE ?', [$like])
+
+                        // Sección
+                        ->orWhereHas('espaciosActuales.seccion', fn($r) =>
+                            $r->whereRaw('LOWER(nombre) LIKE LOWER(?)', [$like])
+                        )
+
+                        // Espacio físico (nombre y tipo)
+                        ->orWhereHas('espaciosActuales', fn($r) =>
+                            $r->whereRaw('LOWER(nombre) LIKE LOWER(?)', [$like])
+                        )
+                        ->orWhereHas('espaciosActuales.tipoEspacioFisico', fn($r) =>
+                            $r->whereRaw('LOWER(nombre) LIKE LOWER(?)', [$like])
+                        );
+                    });
+                }
             });
         }
 
@@ -56,9 +81,9 @@ class LotesController extends Controller
 
         $loteService->create($request->all());
 
-        return redirect()
-            ->route('lotes.index')
-            ->with('success', 'Lote creado correctamente.');
+        $destino = $request->input('redirect_to', route('lotes.index'));
+
+        return redirect($destino)->with('success', 'Lote creado correctamente.');
     }
 
     public function show(Lote $lote): View

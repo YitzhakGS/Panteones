@@ -7,7 +7,7 @@
 .titulares-wrapper {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 210px);
+    height: calc(100vh - 230px);
     min-height: 0;
     overflow: hidden;
 }
@@ -21,17 +21,17 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    overflow: hidden; /* ← añadir */
 }
 
 .cards-scroll-container {
     flex: 1;
     overflow-y: auto;
-    padding: 14px 14px 30px;
+    padding: 14px;
     min-height: 0;
     background-color: #edf0f5;
-    border-radius: 10px;
+    border-radius: 10px 10px 0 0; /* ← solo arriba */
 }
-
 /* Scrollbar elegante */
 .cards-scroll-container::-webkit-scrollbar { width: 6px; }
 .cards-scroll-container::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
@@ -228,8 +228,12 @@
 .pagination-container {
     position: relative;
     z-index: 0;
-    overflow: hidden;
-    margin-top: 16px;
+    padding: 8px 14px;
+    background: #edf0f5;
+    border-radius: 0 0 10px 10px;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    flex-shrink: 0;
 }
 
 .pagination-container nav { width: 100%; }
@@ -260,4 +264,66 @@
     z-index: 0 !important;
 }
 
+/* ── RESPONSIVO ── */
+
+/* Tablet: grid 2 columnas */
+@media (max-width: 991px) {
+    .card-data {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px 8px;
+    }
+
+    .card-inner {
+        flex-wrap: wrap;
+        padding: 12px 14px;
+        gap: 10px;
+    }
+
+    .card-status {
+        border-left: none;
+        border-top: 1px dashed #e2e8f0;
+        padding-left: 0;
+        padding-top: 8px;
+        min-width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+/* Móvil: grid 1 columna, lote en fila */
+@media (max-width: 576px) {
+    .card-data {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card-lote {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        min-width: 100%;
+        padding-right: 0;
+        border-right: none;
+        border-bottom: 1px dashed #e2e8f0;
+        padding-bottom: 8px;
+    }
+
+    .lote-num {
+        font-size: 1.1rem;
+    }
+
+    .card-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .data-value {
+        font-size: .82rem;
+    }
+
+    .titulares-header .col-md-4 {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+}
 

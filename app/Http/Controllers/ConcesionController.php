@@ -12,6 +12,7 @@ use App\Models\CatUsoFunerario;
 use App\Models\CatEstatus;
 use App\Services\ConcesionService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class ConcesionController extends Controller
 {
@@ -31,12 +32,38 @@ class ConcesionController extends Controller
         ]);
 
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('lote',        fn($q) => $q->where('numero', 'like', "%$search%"))
-                  ->orWhereHas('titular',   fn($q) => $q->where('familia', 'like', "%$search%"))
-                  ->orWhereHas('estatus',   fn($q) => $q->where('nombre', 'like', "%$search%"))
-                  ->orWhereHas('usoFunerario', fn($q) => $q->where('nombre', 'like', "%$search%"));
+
+            $search = Str::of($request->search)
+                ->lower()
+                ->ascii() // quita acentos
+                ->trim();
+
+            $words = collect(explode(' ', $search))->filter();
+
+            $query->where(function ($q) use ($words) {
+
+                foreach ($words as $word) {
+
+                    $q->where(function ($sub) use ($word) {
+
+                        $like = "%{$word}%";
+
+                        $sub->whereHas('lote', fn($q) =>
+                                $q->whereRaw('LOWER(numero) LIKE ?', [$like])
+                            )
+                            ->orWhereHas('titular', fn($q) =>
+                                $q->whereRaw('LOWER(familia) LIKE ?', [$like])
+                            )
+                            ->orWhereHas('estatus', fn($q) =>
+                                $q->whereRaw('LOWER(nombre) LIKE ?', [$like])
+                            )
+                            ->orWhereHas('usoFunerario', fn($q) =>
+                                $q->whereRaw('LOWER(nombre) LIKE ?', [$like])
+                            );
+                    });
+
+                }
+
             });
         }
 
@@ -55,7 +82,7 @@ class ConcesionController extends Controller
         }
 
         $concesiones = $query
-            ->orderBy('fecha_inicio', 'desc')
+            ->orderBy('id_concesion', 'desc')
             ->paginate(15)
             ->withQueryString();
 

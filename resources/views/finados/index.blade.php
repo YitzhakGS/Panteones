@@ -92,15 +92,18 @@
                         data-concesion-id="{{ $ultimo?->id_ubicacion_actual }}"
                         data-ubicacion="{{ $ubicacion }}"
                         data-lote-id="{{ $ultimo?->ubicacionActual?->lote?->id_lote }}"
+                        @php
+                            $m = $finado->ultimoMovimientoOnly
+                        @endphp
                         data-movimientos="{{ 
-                            $finado->movimientos->map(fn($m) => [
+                            $m ? json_encode([[
                                 'tipo' => $m->tipo,
                                 'fecha' => $m->fecha ? $m->fecha->format('d/m/Y') : null,
                                 'origen'  => $m->ubicacion_anterior,
                                 'destino' => $m->es_externo ? $m->ubicacion_externa : $m->ubicacion_actual,
                                 'externa' => $m->ubicacion_externa,
                                 'solicitante' => $m->solicitante
-                            ])->toJson()
+                            ]]) : '[]'
                         }}"
                     >
 
@@ -156,7 +159,7 @@
             </div>
 
             @if(method_exists($finados, 'links'))
-                <div class="pagination-container d-flex justify-content-center mt-3">
+                <div class="pagination-container d-flex justify-content-center mt-3" style="padding-bottom: 40px;">
                     {{ $finados->links() }}
                 </div>
             @endif

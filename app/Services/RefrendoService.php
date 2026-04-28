@@ -98,6 +98,7 @@ class RefrendoService
         return $this->crear([
             'id_concesion'  => $concesion->id_concesion,
             'tipo_refrendo' => $tipo,
+            'monto'         => $ultimo->monto, // Por defecto, el mismo monto del último refrendo
         ]);
     }
 

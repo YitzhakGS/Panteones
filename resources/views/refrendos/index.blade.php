@@ -21,22 +21,12 @@
     {{-- Barra superior --}}
     <div class="titulares-header mb-3 row align-items-center g-2">
 
-        {{-- Botón fecha límite global --}}
-        <div class="col-md-3 text-start">
-            <button type="button"
-                    class="btn bg-base text-white"
-                    data-bs-toggle="modal"
-                    data-bs-target="#fechaLimiteModal">
-                <i class="bi bi-calendar-range"></i> Fecha límite global
-            </button>
-        </div>
-
         {{-- Filtros de estado --}}
-        <div class="col-md-5">
+        <div class="col-md-4">
             <div class="d-flex gap-2 flex-wrap">
                 @foreach(['todos' => 'Todos', 'pendientes' => 'Pendiente', 'vencidos' => 'Vencido', 'pagados' => 'Pagado', 'cancelado' => 'Cancelado'] as $valor => $etiqueta)
-                    <a href="{{ route('refrendos.index', array_merge(request()->query(), ['estado' => $valor])) }}"
-                       class="btn btn-sm {{ request('estado', 'todos') === $valor ? 'bg-base text-white' : 'btn-outline-secondary' }}">
+                    <a href="{{ route('refrendos.index', ['estado' => $valor]) }}"
+                    class="btn btn-sm {{ request('estado') === $valor ? 'bg-base text-white' : 'btn-outline-secondary' }}">
                         {{ $etiqueta }}
                     </a>
                 @endforeach
@@ -44,11 +34,16 @@
         </div>
 
         {{-- Buscador --}}
-        <div class="col-md-4">
-            <input type="text"
-                   id="searchRefrendo"
-                   class="form-control form-control-lg"
-                   placeholder="Buscar por lote o titular...">
+        <div class="col-md-8">
+            <form method="GET" action="{{ route('refrendos.index') }}">
+                <input type="hidden" name="estado" value="">  {{-- ← limpia el estado al buscar --}}
+                <input type="text"
+                    id="searchRefrendo"
+                    name="search"
+                    class="form-control form-control-lg"
+                    placeholder="Buscar por lote o titular..."
+                    value="{{ request('search') }}">
+            </form>
         </div>
 
     </div>
@@ -141,7 +136,7 @@
 
             </div>
 
-            <div class="pagination-container d-flex justify-content-center mt-3">
+            <div class="pagination-container d-flex justify-content-center mt-3" style="margin-bottom: 80px;">
                 {{ $refrendos->links() }}
             </div>
 

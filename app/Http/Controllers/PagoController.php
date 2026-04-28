@@ -13,19 +13,28 @@ class PagoController extends Controller
      */
     public function store(Request $request, PagoService $pagoService): RedirectResponse
     {
+        $refrendo = \App\Models\Refrendo::findOrFail($request->id_refrendo);
+
         $request->validate([
-            'id_refrendo' => 'required|exists:refrendos,id_refrendo',
-            'fecha_pago'  => 'required|date',
-            'monto'       => 'required|numeric|min:0',
-            'folio_ticket'=> 'nullable|string|max:100',
-            'forma_pago'  => 'nullable|string|max:100',
-            'observaciones'=> 'nullable|string'
+            'id_refrendo'   => 'required|exists:refrendos,id_refrendo',
+            'fecha_pago'    => 'required|date',
+            'monto'         => 'required|numeric|min:0',
+            'folio_ticket'  => 'nullable|string|max:100',
+            'forma_pago'    => 'nullable|string|max:100',
+            'observaciones' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) use ($request, $refrendo) {
+                    if ((float) $request->monto > (float) $refrendo->monto && empty($value)) {
+                        $fail('Las observaciones son obligatorias cuando el monto supera el del refrendo.');
+                    }
+                },
+            ],
         ]);
 
         try {
             $pagoService->registrar($request->all());
-
-            return back()->with('success', 'Pago registrado correctamente.');
+            return redirect()->route('refrendos.index')->with('success', 'Pago registrado correctamente.');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -52,7 +61,7 @@ class PagoController extends Controller
                 'observaciones'=> $request->observaciones,
             ]);
 
-            return back()->with('success', 'Pago actualizado correctamente.');
+            return redirect()->route('refrendos.index')->with('success', 'Pago actualizado correctamente.');
 
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());

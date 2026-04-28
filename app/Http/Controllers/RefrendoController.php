@@ -9,6 +9,7 @@ use App\Models\Refrendo;
 use App\Models\Concesion;
 use App\Models\ConfigGlobal;
 use App\Services\RefrendoService;
+use Illuminate\Support\Str;
 
 class RefrendoController extends Controller
 {
@@ -25,14 +26,33 @@ class RefrendoController extends Controller
             'pago',
         ]);
 
-        // Filtro por tipo
-        if ($request->filled('tipo_refrendo')) {
-            $query->porTipo($request->tipo_refrendo);
-        }
+        // ── BUSCADOR ──────────────────────────────────────────
+        if ($request->filled('search')) {
+            $terms = preg_split('/\s+/', trim($request->search));
 
-        // Filtro por estado
-        if ($request->filled('estado')) {
-            match($request->estado) {
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $like = '%' . mb_strtolower($term) . '%';
+
+                    $q->where(function ($q2) use ($like) {
+                        $q2->whereHas('concesion.lote', fn($r) =>
+                                $r->whereRaw('LOWER(numero) LIKE ?', [$like])
+                            )
+                        ->orWhereHas('concesion.titular', fn($r) =>
+                                $r->whereRaw('LOWER(COALESCE(familia,"")) LIKE ?', [$like])
+                            )
+                        ->orWhereRaw('LOWER(COALESCE(tipo_refrendo,"")) LIKE ?', [$like]);
+                    });
+                }
+            });
+        }
+        
+        // ── FILTRO ESTADO ─────────────────────────────────────
+        // Solo aplica si viene un estado distinto de 'todos'
+        $estado = $request->input('estado');
+
+        if ($estado && $estado !== 'todos') {
+            match($estado) {
                 'pendientes' => $query->pendientes(),
                 'vencidos'   => $query->vencidos(),
                 'pagados'    => $query->pagados(),
@@ -41,12 +61,16 @@ class RefrendoController extends Controller
             };
         }
 
+        // ── FILTRO TIPO ───────────────────────────────────────
+        if ($request->filled('tipo_refrendo')) {
+            $query->porTipo($request->tipo_refrendo);
+        }
+
         $refrendos = $query
-            ->orderBy('fecha_refrendo', 'desc')
+            ->orderBy('id_refrendo', 'desc')
             ->paginate(15)
             ->withQueryString();
 
-        // Fecha límite global actual
         $fechaLimitePago = ConfigGlobal::get('fecha_limite_pago');
 
         return view('refrendos.index', compact('refrendos', 'fechaLimitePago'));
