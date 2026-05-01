@@ -99,9 +99,14 @@
                             <div class="card-divider"></div>
                             <div class="card-row-bottom">
 
-                                <div style="display:inline-flex; align-items:center; gap:4px; font-size:.90rem; font-weight:600; color:#065f46; background:#d1fae5; border:1px solid #6ee7b7; border-radius:20px; padding:2px 10px; white-space:nowrap; flex-shrink:0;">
-                                    <i class="bi bi-person-check" style="font-size:.65rem; color:#065f46;"></i>
-                                    <span>Titular: {{ optional($beneficiario->titular)->familia ?? '—' }}</span>
+                                {{-- Chip Titular --}}
+                                <div style="display:inline-flex; align-items:center; gap:4px; font-size:.90rem; font-weight:600;
+                                    {{ $beneficiario->titular?->trashed() 
+                                        ? 'color:#991b1b; background:#fee2e2; border:1px solid #fca5a5;' 
+                                        : 'color:#065f46; background:#d1fae5; border:1px solid #6ee7b7;' }}
+                                    border-radius:20px; padding:2px 10px; white-space:nowrap; flex-shrink:0;">
+                                    <i class="bi bi-person-check" style="font-size:.65rem;"></i>
+                                    <span>Titular: {{ $beneficiario->titular?->familia ?? '—' }}</span>
                                 </div>
 
                                 <div class="data-chip">

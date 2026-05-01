@@ -36,8 +36,8 @@ class EspaciosFisicosController extends Controller
 
         // Cambiamos get() por paginate() para activar la paginación de Laravel
         $espaciosFisicos = EspacioFisico::with([
-            'seccion', // Carga la sección directamente
-            'tipoEspacioFisico'
+            'seccion'            =>fn($query) => $query->withTrashed(), // Carga la sección directamente
+            'tipoEspacioFisico'  =>fn($query) => $query->withTrashed(), // Carga el tipo de espacio físico directamente
         ])
         ->orderBy('id_espacio_fisico', 'desc') // Opcional: mostrar los más nuevos primero
         ->paginate(10); // Esto genera los links y limita la consulta SQL
@@ -103,8 +103,8 @@ class EspaciosFisicosController extends Controller
     public function show(EspacioFisico $espacioFisico): View
     {
         $espacioFisico->load([
-            'seccion',
-            'tipoEspacioFisico',
+            'seccion'            =>fn($query) => $query->withTrashed(),
+            'tipoEspacioFisico'  =>fn($query) => $query->withTrashed(),
             'lotes'
         ]);
 

@@ -64,16 +64,27 @@
                             @endif
                         </td>
                         <td>
-                            <div class="ubicacion-text">
-                                <i class="bi bi-geo-alt-fill text-primary me-1"></i>
-                                <span class="fw-bold">
-                                    {{ $lote->espaciosActuales->first()->seccion->nombre ?? 'N/A' }}
+                            <div class="ubicacion-text">                                
+                                @php $espacio = $lote->espaciosActuales->first(); @endphp
+
+                                {{-- Sección --}}
+                                <span class="fw-bold {{ $espacio?->seccion?->trashed() ? 'text-danger' : '' }}">
+                                    {{ $espacio?->seccion?->nombre ?? 'N/A' }}
+                                    @if($espacio?->seccion?->trashed())
+                                        <i class="bi bi-trash3 ms-1 text-danger" title="Esta sección fue eliminada"></i>
+                                    @endif
                                 </span>
+
                                 <br>
-                                <span class="text-muted">
-                                    {{ $lote->espaciosActuales->first()->tipoEspacioFisico->nombre ?? 'Sin tipo' }}
+
+                                {{-- Espacio físico --}}
+                                <span class="{{ $espacio?->trashed() ? 'text-danger' : 'text-muted' }}">
+                                    {{ $espacio?->tipoEspacioFisico?->nombre ?? 'Sin tipo' }}
                                     -
-                                    {{ $lote->espaciosActuales->first()->nombre ?? 'Sin área' }}
+                                    {{ $espacio?->nombre ?? 'Sin área' }}
+                                    @if($espacio?->trashed())
+                                        <i class="bi bi-trash3 ms-1 text-danger" title="Este espacio físico fue eliminado"></i>
+                                    @endif
                                 </span>
                             </div>
                         </td>

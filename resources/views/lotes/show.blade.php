@@ -35,8 +35,8 @@
                                 <i class="bi bi-box me-1 text-muted"></i>Superficie
                             </label>
                             <div class="input-group">
-                                <span type="text" id="show_lote_superficie"
-                                       class="form-control bg-light border-0 fw-bold" readonly></span>
+                                <span id="show_lote_superficie"
+                                    class="form-control bg-light border-0 fw-bold"></span>
                                 <span class="input-group-text bg-light border-0 text-muted">m²</span>
                             </div>
                         </div>
@@ -45,9 +45,9 @@
                             <label class="form-label fw-semibold">
                                 <i class="bi bi-pin-map-fill me-1 text-muted"></i>Ubicación actual
                             </label>
-                            <span type="text" id="show_lote_ubicacion"
-                                   class="form-control bg-light border-0" readonly
-                                   placeholder="Sin ubicación asignada"></span>
+                            <span id="show_lote_ubicacion"
+                                class="form-control bg-light border-0"
+                                placeholder="Sin ubicación asignada"></span>
                         </div>
 
                     </div>
@@ -151,4 +151,3 @@
         </div>
     </div>
 </div>
-

@@ -63,15 +63,14 @@
                 @forelse ($concesiones as $concesion)
 
                     @php
-                        $estatusNombre = $concesion->estatus->nombre;
+                        $estatusNombre = $concesion->estatus?->nombre ?? 'Inactiva';
                         $claseEstatus  = match($estatusNombre) {
-                            'Al Corriente' => 'al-corriente',
-                            'Con Adeudo'   => 'con-adeudo',
                             'Activa'       => 'activa',
-                            'Inactiva'     => 'inactiva',
                             'Cancelada'    => 'cancelada',
                             default        => 'inactiva',
                         };
+                        $loteEliminado    = $concesion->lote?->trashed();
+                        $titularEliminado = $concesion->titular?->trashed();
                     @endphp
 
                     {{-- Una sola card, con data-bs-toggle para abrir el modal --}}
@@ -80,9 +79,9 @@
                         data-bs-toggle="modal"
                         data-bs-target="#showConcesionModal"
                         data-id="{{ $concesion->id_concesion }}"
-                        data-lote="{{ $concesion->lote->numero ?? '—' }}"
-                        data-titular="{{ $concesion->titular->familia }}"
-                        data-uso="{{ $concesion->usoFunerario->nombre }}"
+                        data-lote="{{ $concesion->lote?->numero ?? '—' }}"
+                        data-titular="{{ $concesion->titular?->familia ?? '—' }}"
+                        data-uso="{{ $concesion->usoFunerario?->nombre ?? '—' }}"
                         data-tipo="{{ $concesion->tipo }}"
                         data-estatus="{{ $estatusNombre }}"
                         data-clase="{{ $claseEstatus }}"
@@ -99,7 +98,9 @@
                             {{-- Número de lote --}}
                             <div class="card-lote">
                                 <i class="bi bi-geo-alt-fill lote-icon"></i>
-                                <span class="lote-num">{{ $concesion->lote->numero ?? '—' }}</span>
+                                <span class="lote-num {{ $loteEliminado ? 'text-danger' : '' }}">
+                                    {{ $concesion->lote?->numero ?? '—' }}
+                                </span>
                                 <span class="lote-sub">Lote</span>
                             </div>
 
@@ -107,11 +108,19 @@
                             <div class="card-data">
                                 <div class="data-item">
                                     <span class="data-label">Titular</span>
-                                    <span class="data-value">{{ $concesion->titular->familia }}</span>
+                                    <span class="data-value">
+                                        @if($titularEliminado)
+                                            <span class="text-danger border-danger fw-normal">
+                                                {{ $concesion->titular?->familia ?? '—' }}
+                                            </span>
+                                        @else
+                                            {{ $concesion->titular?->familia ?? '—' }}
+                                        @endif
+                                    </span>
                                 </div>
                                 <div class="data-item">
                                     <span class="data-label">Uso funerario</span>
-                                    <span class="data-value">{{ $concesion->usoFunerario->nombre }}</span>
+                                    <span class="data-value">{{ $concesion->usoFunerario?->nombre ?? '—' }}</span>
                                 </div>
                                 <div class="data-item">
                                     <span class="data-label">Fecha inicio</span>

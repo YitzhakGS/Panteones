@@ -40,22 +40,35 @@
                     @forelse ($espaciosFisicos as $espacio)
                         <tr>
                             <td class="text-center text-muted small">{{ $loop->iteration }}</td>
+
                             <td>
-                                <span class="badge rounded-pill border text-dark fw-normal bg-light">
-                                    <i class="bi bi-geo me-1"></i> {{ $espacio->seccion->nombre }}
+                                <span class="badge rounded-pill border fw-normal
+                                    {{ $espacio->seccion?->trashed() ? 'bg-danger-subtle text-danger border-danger' : 'bg-light text-dark' }}">
+                                    <i class="bi bi-geo me-1"></i>
+                                    {{ $espacio->seccion?->nombre ?? 'Sin sección' }}
+                                    @if($espacio->seccion?->trashed())
+                                        <i class="bi bi-trash3 ms-1" title="Esta sección fue eliminada"></i>
+                                    @endif
                                 </span>
                             </td>
+
                             <td class="column-highlight">
                                 <div class="d-flex align-items-center">
-                                    <span class="espacio-tipo-inline text-truncate">
-                                        <i class="bi bi-geo-alt-fill me-1 text-primary"></i>{{ $espacio->tipoEspacioFisico->nombre }}
+                                    <span class="espacio-tipo-inline text-truncate
+                                        {{ $espacio->tipoEspacioFisico?->trashed() ? 'text-danger' : '' }}">
+                                        <i class="bi bi-geo-alt-fill me-1 text-primary"></i>
+                                        {{ $espacio->tipoEspacioFisico?->nombre ?? 'Sin tipo' }}
+                                        @if($espacio->tipoEspacioFisico?->trashed())
+                                            <i class="bi bi-trash3 ms-1 text-danger" title="Este tipo fue eliminado"></i>
+                                        @endif
                                     </span>
-                                    <span class="mx-2 text-muted opacity-50">|</span> 
+                                    <span class="mx-2 text-muted opacity-50">|</span>
                                     <span class="espacio-nombre-inline text-truncate">{{ $espacio->nombre }}</span>
                                 </div>
                             </td>
+
                             <td class="text-end" style="padding-right: 20px;">
-                                <button type="button" class="btn btn-secondary" 
+                                <button type="button" class="btn btn-secondary"
                                     data-bs-toggle="modal" data-bs-target="#editEspacioFisicoModal"
                                     data-id="{{ $espacio->id_espacio_fisico }}"
                                     data-nombre="{{ $espacio->nombre }}"
@@ -66,7 +79,8 @@
                                 </button>
                                 <form action="{{ route('espacios_fisicos.destroy', $espacio) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-danger" onclick="return confirm('¿Eliminar este espacio?')">
+                                    <button type="submit" class="btn btn-danger"
+                                        onclick="return confirm('¿Eliminar este espacio?')">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>

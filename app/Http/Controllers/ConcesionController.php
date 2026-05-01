@@ -24,8 +24,8 @@ class ConcesionController extends Controller
     public function index(Request $request): View
     {
         $query = Concesion::with([
-            'lote',
-            'titular',
+            'lote'           => fn($q) => $q->withTrashed(),
+            'titular'        => fn($q) => $q->withTrashed(),
             'usoFunerario',
             'estatus',
             'ultimoRefrendo',
@@ -140,8 +140,8 @@ class ConcesionController extends Controller
     public function show(Concesion $concesion): mixed
     {
         $concesion->load([
-            'lote',
-            'titular',
+            'lote'     => fn($q) => $q->withTrashed(),
+            'titular'  => fn($q) => $q->withTrashed(),
             'usoFunerario',
             'estatus',
             'ultimoRefrendo',

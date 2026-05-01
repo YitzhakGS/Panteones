@@ -64,6 +64,9 @@
                             'Cancelado' => 'cancelada',
                             default     => 'inactiva',
                         };
+                        $concesionEliminada = $refrendo->concesion?->trashed();
+                        $loteEliminado      = $refrendo->concesion?->lote?->trashed();
+                        $titularEliminado   = $refrendo->concesion?->titular?->trashed();
                     @endphp
 
                     <div class="concesion-card"
@@ -71,8 +74,8 @@
                          data-bs-toggle="modal"
                          data-bs-target="#showRefrendoModal"
                          data-id="{{ $refrendo->id_refrendo }}"
-                         data-lote="{{ $refrendo->concesion->lote->numero ?? '—' }}"
-                         data-titular="{{ $refrendo->concesion->titular->familia ?? '—' }}"
+                         data-lote="{{ $refrendo->concesion->lote?->numero ?? '—' }}"
+                         data-titular="{{ $refrendo->concesion->titular?->familia ?? '—' }}"
                          data-tipo="{{ $refrendo->tipo_refrendo }}"
                          data-monto="{{ $refrendo->monto ?? '0.00' }}"
                          data-fecha-limite="{{ $refrendo->fecha_limite_pago?->format('d/m/Y') ?? '—' }}"
@@ -95,7 +98,9 @@
                             {{-- Lote --}}
                             <div class="card-lote">
                                 <i class="bi bi-geo-alt-fill lote-icon"></i>
-                                <span class="lote-num">{{ $refrendo->concesion->lote->numero ?? '—' }}</span>
+                                <span class="lote-num {{ $loteEliminado || $concesionEliminada ? 'text-danger' : '' }}">
+                                    {{ $refrendo->concesion?->lote?->numero ?? '—' }}
+                                </span>
                                 <span class="lote-sub">Lote</span>
                             </div>
 
@@ -103,7 +108,13 @@
                             <div class="card-data">
                                 <div class="data-item">
                                     <span class="data-label">Titular</span>
-                                    <span class="data-value">{{ $refrendo->concesion->titular->familia ?? '—' }}</span>
+                                    @if($titularEliminado || $concesionEliminada)
+                                        <span class="text-danger border-danger fw-normal">
+                                            {{ $refrendo->concesion?->titular?->familia ?? '—' }}
+                                        </span>
+                                    @else
+                                        {{ $refrendo->concesion?->titular?->familia ?? '—' }}
+                                    @endif
                                 </div>
                                 <div class="data-item">
                                     <span class="data-label">Monto</span>

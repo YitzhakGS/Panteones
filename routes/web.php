@@ -79,6 +79,9 @@ Route::get('/espacios_fisicos/{espacio_fisico}/data',
 )->name('espacios_fisicos.data');
 
 
+Route::get('titulares/tipos-documento', [TitularesController::class, 'tiposDocumento'])
+    ->name('titulares.tipos-documento');
+    
 // Rutas para loa titulares
 Route::resource('titulares', TitularesController::class)
     ->parameters([
@@ -198,3 +201,4 @@ Route::prefix('finados')->group(function () {
 
 Route::get('/reportes/exhumaciones', [ReporteFinadoController::class, 'exhumaciones'])->name('reportes.exhumaciones');
 Route::get('/reportes/concesiones',  [ReporteFinadoController::class, 'concesiones'])->name('reportes.concesiones');
+

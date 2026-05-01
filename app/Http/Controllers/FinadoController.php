@@ -116,7 +116,7 @@ class FinadoController extends Controller
                     'fecha_defuncion' => 'required|date',
                     'sexo'            => 'required|in:Masculino,Femenino',
                     'id_ubicacion_actual' => 'required|exists:concesiones,id_concesion',
-                    'tipo_construccion' => 'nullable|in:cripta,capilla',
+                    'tipo_construccion' => 'nullable|in:Cortina,Juego de lozas,Fosa derecha,Cortina con lozas',
                 ]);
 
                 $finado = Finado::create($request->only([

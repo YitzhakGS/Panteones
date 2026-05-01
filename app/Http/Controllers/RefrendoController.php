@@ -21,8 +21,9 @@ class RefrendoController extends Controller
     public function index(Request $request): View
     {
         $query = Refrendo::with([
-            'concesion.lote',
-            'concesion.titular',
+            'concesion.lote'    => fn($q) => $q->withTrashed(),
+            'concesion.titular' => fn($q) => $q->withTrashed(),
+            'concesion'         => fn($q) => $q->withTrashed(),
             'pago',
         ]);
 
@@ -143,11 +144,12 @@ class RefrendoController extends Controller
      */
     public function show(Refrendo $refrendo): View
     {
-        $refrendo->load(
-            'concesion.lote',
-            'concesion.titular',
-            'pago' // 👈 ESTA ES LA CLAVE
-        );
+        $refrendo->load([
+            'concesion.lote'    => fn($q) => $q->withTrashed(),
+            'concesion.titular' => fn($q) => $q->withTrashed(),
+            'concesion'         => fn($q) => $q->withTrashed(),
+            'pago',
+        ]);
 
         return view('refrendos.show', compact('refrendo'));
     }
@@ -179,7 +181,12 @@ class RefrendoController extends Controller
      */
     public function getData(Refrendo $refrendo): \Illuminate\Http\JsonResponse
     {
-        $refrendo->load('concesion.lote', 'concesion.titular', 'pago');
+        $refrendo->load([
+            'concesion.lote'    => fn($q) => $q->withTrashed(),
+            'concesion.titular' => fn($q) => $q->withTrashed(),
+            'concesion'         => fn($q) => $q->withTrashed(),
+            'pago',
+        ]);
 
         return response()->json([
             'id_refrendo'       => $refrendo->id_refrendo,
@@ -194,8 +201,8 @@ class RefrendoController extends Controller
             'estado_label'      => $refrendo->estado_label,
             'esta_vencido'      => $refrendo->esta_vencido,
             'observaciones'     => $refrendo->observaciones,
-            'lote'              => $refrendo->concesion->lote->numero ?? null,
-            'titular'           => $refrendo->concesion->titular->familia ?? null,
+            'lote'              => $refrendo->concesion->lote?->numero ?? null,
+            'titular'           => $refrendo->concesion->titular?->familia ?? null,
             // Datos del pago si ya existe
             'pago' => $refrendo->pago ? [
                 'fecha_pago'   => $refrendo->pago->fecha_pago->format('d/m/Y'),

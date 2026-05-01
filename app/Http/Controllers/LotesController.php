@@ -18,8 +18,9 @@ class LotesController extends Controller
     public function index(Request $request): View
     {
         $query = Lote::with([
-            'espaciosActuales.seccion',
-            'espaciosActuales.tipoEspacioFisico'
+            'espaciosActuales.seccion'           => fn($q) => $q->withTrashed(),
+            'espaciosActuales.tipoEspacioFisico' => fn($q) => $q->withTrashed(),
+            'espaciosActuales'                   => fn($q) => $q->withTrashed(),
         ]);
 
         if ($request->filled('search')) {
@@ -130,8 +131,9 @@ class LotesController extends Controller
     public function getData($lote)
     {
         $lote = \App\Models\Lote::with([
-            'espaciosActuales.seccion',
-            'espaciosActuales.tipoEspacioFisico'
+            'espaciosActuales.seccion'           => fn($q) => $q->withTrashed(),
+            'espaciosActuales.tipoEspacioFisico' => fn($q) => $q->withTrashed(),
+            'espaciosActuales'                   => fn($q) => $q->withTrashed(),
         ])->findOrFail($lote);
 
         $espacio = $lote->espaciosActuales->first();

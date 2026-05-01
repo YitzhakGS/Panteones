@@ -332,5 +332,15 @@ class TitularesController extends Controller
             ->route('titulares.index')
             ->with('success', 'Titular marcado como fallecido. El primer beneficiario ahora es titular.');
     }
-    
+
+    // En TitularesController
+    public function tiposDocumento()
+    {
+        $tipos = TipoDocumento::whereHas('entidades', function ($q) {
+            $q->where('modelo', \App\Models\Titular::class);
+        })->get(['id_tipo_documento', 'nombre']);
+
+        return response()->json($tipos);
+    }
+        
 }

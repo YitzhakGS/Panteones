@@ -127,29 +127,35 @@
                         </div>
                     </div>
 
-                    {{-- SECCIÓN 4: Documentos --}}
-                    @if($tiposDocumentoTitular->isNotEmpty())
-                    <div class="section-block mb-1">
-                        <span class="section-label">Documentos <span class="text-muted fw-normal">(opcional)</span></span>
+                    {{-- SECCIÓN: Documentos --}}
+                    <div class="section-block mb-1" id="seccionDocumentosCreate">
+                        <span class="section-label">
+                            Documentos <span class="text-muted fw-normal">(opcional)</span>
+                        </span>
+
                         <div class="row g-3 mt-1">
+
                             @foreach($tiposDocumentoTitular as $tipo)
-                            <div class="{{ $tiposDocumentoTitular->count() === 1 ? 'col-12' : 'col-md-6' }}">
-                                <label class="form-label fw-semibold">
-                                    <i class="bi bi-file-earmark me-1 text-muted"></i>
-                                    {{ $tipo->nombre }}
-                                </label>
-                                <input type="file"
-                                    name="documentos[{{ $tipo->id_tipo_documento }}][archivo]"
-                                    class="form-control"
-                                    accept=".pdf,.jpg,.jpeg,.png">
-                                <input type="hidden"
-                                    name="documentos[{{ $tipo->id_tipo_documento }}][id_tipo_documento]"
-                                    value="{{ $tipo->id_tipo_documento }}">
-                            </div>
+                                <div class="{{ $tiposDocumentoTitular->count() === 1 ? 'col-12' : 'col-md-6' }}">
+                                    
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-file-earmark me-1 text-muted"></i>
+                                        {{ $tipo->nombre }}
+                                    </label>
+
+                                    <input type="file"
+                                        name="documentos[{{ $tipo->id_tipo_documento }}][archivo]"
+                                        class="form-control"
+                                        accept=".pdf,.jpg,.jpeg,.png">
+
+                                    <input type="hidden"
+                                        name="documentos[{{ $tipo->id_tipo_documento }}][id_tipo_documento]"
+                                        value="{{ $tipo->id_tipo_documento }}">
+                                </div>
                             @endforeach
+
                         </div>
                     </div>
-                    @endif
 
                     {{-- Botones --}}
                     <div class="col-12 d-flex justify-content-end gap-2 mt-3">

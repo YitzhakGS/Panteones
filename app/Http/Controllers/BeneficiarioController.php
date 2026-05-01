@@ -18,7 +18,10 @@ class BeneficiarioController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Beneficiario::with('titular', 'documentos.tipoDocumento');
+        $query = Beneficiario::with([
+            'titular'              => fn($q) => $q->withTrashed(),
+            'documentos.tipoDocumento' => fn($q) => $q->withTrashed(),
+        ]);
 
         if ($request->filled('search')) {
 

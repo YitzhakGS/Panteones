@@ -169,6 +169,7 @@
 @push('scripts')
 <script>
 
+// scroll paginación
 document.querySelectorAll('.pagination a').forEach(link => {
     link.addEventListener('click', () => {
         document.querySelector('.cards-scroll-container')
@@ -178,22 +179,23 @@ document.querySelectorAll('.pagination a').forEach(link => {
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    // ── Modal SHOW ──────────────────────────────────────────────
     const showModal = document.getElementById('showTitularModal');
 
     if (showModal) {
         showModal.addEventListener('show.bs.modal', function (event) {
             const card = event.relatedTarget;
-        document.getElementById('show_id').value              = card.dataset.id;
-        document.getElementById('show_fallecido').value = card.dataset.fallecido;
-        document.getElementById('show_familia').textContent   = card.dataset.familia;
-        document.getElementById('show_domicilio').textContent = card.dataset.domicilio;
-        document.getElementById('show_colonia').textContent   = card.dataset.colonia;
-        document.getElementById('show_cp').textContent        = card.dataset.cp;
-        document.getElementById('show_municipio').textContent = card.dataset.municipio;
-        document.getElementById('show_estado').textContent    = card.dataset.estado;
-        document.getElementById('show_telefono').textContent  = card.dataset.telefono ?? '—';
 
-            // Documentos
+            document.getElementById('show_id').value              = card.dataset.id;
+            document.getElementById('show_fallecido').value       = card.dataset.fallecido;
+            document.getElementById('show_familia').textContent   = card.dataset.familia;
+            document.getElementById('show_domicilio').textContent = card.dataset.domicilio;
+            document.getElementById('show_colonia').textContent   = card.dataset.colonia;
+            document.getElementById('show_cp').textContent        = card.dataset.cp;
+            document.getElementById('show_municipio').textContent = card.dataset.municipio;
+            document.getElementById('show_estado').textContent    = card.dataset.estado;
+            document.getElementById('show_telefono').textContent  = card.dataset.telefono ?? '—';
+
             const documentos = JSON.parse(card.dataset.documentos || '[]');
             const container  = document.getElementById('show_documentos_container');
             container.innerHTML = '';
@@ -224,6 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
 });
 </script>
 @endpush

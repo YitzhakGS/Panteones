@@ -19,6 +19,7 @@ return new class extends Migration
             ->on('tipo_documentos');
         $table->string('modelo', 255); // App\Models\Titular, App\Models\Beneficiario...
         $table->timestamps();
+        $table->softDeletes();
     });
     }
 

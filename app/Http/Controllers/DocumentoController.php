@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Documento;
-use App\Models\TipoDocumento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,30 +25,29 @@ class DocumentoController extends Controller
         $request->validate([
             'documentable_id'   => 'required',
             'documentable_type' => 'required|string',
-            'documentos'        => 'required|array|min:1',
+            'documentos'        => 'nullable|array',
             'documentos.*.id_tipo_documento' => 'required|exists:tipo_documentos,id_tipo_documento',
-            'documentos.*.archivo'           => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'documentos.*.archivo'           => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
-        // Carpeta según el modelo  App\Models\Titular → titulares
-        $carpeta = strtolower(class_basename($request->documentable_type)) . 's';
+        $carpeta = Str::plural(strtolower(class_basename($request->documentable_type)));
 
-        // Pila donde iremos acumulando los archivos guardados físicamente
-        // para poder borrarlos si algo falla
         $archivosGuardados = [];
-
-        // Pila de registros a insertar en BD
         $registros = [];
 
         try {
             DB::beginTransaction();
 
-            foreach ($request->file('documentos') as $index => $item) {
+            foreach ($request->file('documentos') ?? [] as $index => $item) {
+
+                // 🔥 Si no subieron archivo, lo saltamos
+                if (!isset($item['archivo'])) continue;
+
                 $archivo = $item['archivo'];
+
                 $nombre  = Str::uuid() . '.' . $archivo->getClientOriginalExtension();
                 $ruta    = $archivo->storeAs('documentos/' . $carpeta, $nombre, 'public');
 
-                // Guardamos la ruta por si hay que revertir
                 $archivosGuardados[] = $ruta;
 
                 $registros[] = [
@@ -64,8 +62,10 @@ class DocumentoController extends Controller
                 ];
             }
 
-            // Insertamos todos los registros de golpe
-            Documento::insert($registros);
+            // 🔥 Solo insertamos si hay algo
+            if (!empty($registros)) {
+                Documento::insert($registros);
+            }
 
             DB::commit();
 
@@ -73,15 +73,14 @@ class DocumentoController extends Controller
 
             DB::rollBack();
 
-            // Borramos los archivos físicos que alcanzaron a guardarse
             foreach ($archivosGuardados as $ruta) {
                 Storage::disk('public')->delete($ruta);
             }
 
-            return back()->with('error', 'Ocurrió un error al guardar los documentos, intente de nuevo.');
+            return back()->with('error', 'Ocurrió un error al guardar los documentos.');
         }
 
-        return back()->with('success', 'Documentos subidos correctamente.');
+        return back()->with('success', 'Documentos procesados correctamente.');
     }
 
     public function show($id)
@@ -99,6 +98,11 @@ class DocumentoController extends Controller
     public function destroy($id)
     {
         $documento = Documento::findOrFail($id);
+
+        if ($documento->archivo && Storage::disk('public')->exists($documento->archivo)) {
+            Storage::disk('public')->delete($documento->archivo);
+        }
+
         $documento->delete();
 
         return back()->with('success', 'Documento eliminado.');

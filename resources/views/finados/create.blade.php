@@ -87,8 +87,10 @@
                                 </label>
                                 <select name="tipo_construccion" class="form-control">
                                     <option value="">Sin construcción</option>
-                                    <option value="cripta">Cripta</option>
-                                    <option value="capilla">Capilla</option>
+                                    <option value="Cortina">Cortina</option>
+                                    <option value="Juego de lozas">Juego de lozas</option>
+                                    <option value="Fosa derecha">Fosa derecha</option>
+                                    <option value="Cortina con lozas">Cortina con lozas</option>
                                 </select>
                                 <small class="text-muted">Tipo de obra en la concesión, si aplica</small>
                             </div>
