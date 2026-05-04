@@ -30,7 +30,6 @@ class ReporteFinadoService
 
         $paginado = $query->paginate(16);
 
-        // Transformar sin romper la paginación
         $paginado->getCollection()->transform(function ($m) {
             $finado = $m->finado;
 
@@ -42,9 +41,11 @@ class ReporteFinadoService
                 'dia'               => $m->fecha->format('d'),
                 'mes'               => ucfirst($m->fecha->translatedFormat('F')),
                 'anio'              => $m->fecha->format('Y'),
-                'nombre_finado'     => trim("{$finado->nombre} {$finado->apellido_paterno} {$finado->apellido_materno}"),
+                'nombre_finado'     => $finado
+                    ? trim("{$finado->nombre} {$finado->apellido_paterno} {$finado->apellido_materno}")
+                    : '— Finado eliminado —',
                 'ubicacion_panteon' => $m->ubicacion_anterior ?? '—',
-                'fecha_defuncion'   => optional($finado->fecha_defuncion)->format('d/m/Y') ?? '—',
+                'fecha_defuncion'   => optional($finado?->fecha_defuncion)->format('d/m/Y') ?? '—',
                 'solicitante'       => $m->solicitante ?? '—',
                 'ubicacion_nueva'   => $ubicacionNueva ?? '—',
             ];
@@ -53,18 +54,16 @@ class ReporteFinadoService
         return $paginado;
     }
 
-    // =========================================================
-    // REPORTE 2: CONCESIONES / REFRENDO (SIN PAGINACIÓN)
-    // =========================================================
-
     public function reporteConcesiones(array $filtros = [])
     {
         $query = MovimientoFinado::query()
             ->with([
                 'finado',
-                'ubicacionActual.titular',
-                'ubicacionActual.lote.espaciosActuales.seccion',
-                'ubicacionActual.lote.espaciosActuales.tipoEspacioFisico'
+                'ubicacionActual'        => fn($q) => $q->withTrashed(),
+                'ubicacionActual.titular' => fn($q) => $q->withTrashed(),
+                'ubicacionActual.lote'   => fn($q) => $q->withTrashed(),
+                'ubicacionActual.lote.espaciosActuales.seccion'           => fn($q) => $q->withTrashed(),
+                'ubicacionActual.lote.espaciosActuales.tipoEspacioFisico' => fn($q) => $q->withTrashed(),
             ])
             ->whereIn('tipo', ['inhumacion', 'reinhumacion'])
             ->when(
@@ -82,9 +81,9 @@ class ReporteFinadoService
             ->groupBy('id_ubicacion_actual')
             ->map(function ($movimientos) {
 
-                $primero    = $movimientos->first();
-                $concesion  = $primero?->ubicacionActual;
-                $titular    = $concesion?->titular;
+                $primero   = $movimientos->first();
+                $concesion = $primero?->ubicacionActual;
+                $titular   = $concesion?->titular;
 
                 $finados = $movimientos
                     ->pluck('finado')
@@ -100,7 +99,7 @@ class ReporteFinadoService
                 $tieneReinhumacion = $todosMovimientos->contains('tipo', 'reinhumacion');
 
                 return [
-                    'nombre_contribuyente' => $titular?->familia ?? '—',
+                    'nombre_contribuyente' => $titular?->familia ?? '— Titular eliminado —',
                     'numero_lote'          => $primero->ubicacion_actual ?? '—',
                     'fecha_refrendo'       => optional($concesion?->ultimoRefrendo?->fecha_refrendo)->format('d/m/Y') ?? '—',
                     'nombres_occisos'      => $finados
@@ -116,7 +115,6 @@ class ReporteFinadoService
             })
             ->values();
 
-        // 👇 PAGINACIÓN MANUAL
         $perPage = request()->get('per_page', 16);
         $page    = request()->get('page', 1);
 
