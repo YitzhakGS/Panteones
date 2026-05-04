@@ -104,15 +104,19 @@ class LotesController extends Controller
         return view('lotes.edit', compact('lote'));
     }
 
-    public function update(Request $request, Lote $lote, LoteService $loteService): RedirectResponse
+    public function update(Request $request, Lote $lote, LoteService $loteService): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $request->validate([
             'numero' => 'required|string|max:50',
-            'id_espacio_fisico' => 'required|exists:espacios_fisicos,id_espacio_fisico',
-            // ... resto de validaciones se mantienen igual
+            'id_espacio_fisico' => 'nullable|exists:espacios_fisicos,id_espacio_fisico',
         ]);
 
         $loteService->update($lote, $request->all());
+
+        // Si es request JSON (viene del modal de finados), devuelve JSON
+        if ($request->wantsJson() || $request->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
 
         return redirect()
             ->route('lotes.index')
@@ -138,30 +142,38 @@ class LotesController extends Controller
 
         $espacio = $lote->espaciosActuales->first();
 
+        // Buscar la concesión activa de este lote
+        $concesionActiva = \App\Models\Concesion::where('id_lote', $lote->id_lote)
+            ->whereNull('fecha_fin')
+            ->whereNull('deleted_at')
+            ->first();
+
         return response()->json([
-            'numero' => $lote->numero,
+            'numero'           => $lote->numero,
             'metros_cuadrados' => $lote->metros_cuadrados,
 
-            'med_norte' => $lote->med_norte,
-            'med_sur' => $lote->med_sur,
-            'med_oriente' => $lote->med_oriente,
-            'med_poniente' => $lote->med_poniente,
+            'med_norte'        => $lote->med_norte,
+            'med_sur'          => $lote->med_sur,
+            'med_oriente'      => $lote->med_oriente,
+            'med_poniente'     => $lote->med_poniente,
 
-            'col_norte' => $lote->col_norte,
-            'col_sur' => $lote->col_sur,
-            'col_oriente' => $lote->col_oriente,
-            'col_poniente' => $lote->col_poniente,
+            'col_norte'        => $lote->col_norte,
+            'col_sur'          => $lote->col_sur,
+            'col_oriente'      => $lote->col_oriente,
+            'col_poniente'     => $lote->col_poniente,
 
-            'referencias' => $lote->referencias,
+            'referencias'      => $lote->referencias,
 
-            'id_seccion' => $espacio->seccion->id_seccion ?? null,
-            'id_espacio_fisico' => $espacio->id_espacio_fisico ?? null,
+            'id_seccion'       => $espacio?->seccion?->id_seccion ?? null,
+            'id_espacio_fisico'=> $espacio?->id_espacio_fisico ?? null,
 
-            'nombre_seccion' => $espacio->seccion->nombre ?? null,
-            'tipo_espacio' => $espacio->tipoEspacioFisico->nombre ?? null,
-            'nombre_espacio' => $espacio->nombre ?? null
+            'nombre_seccion'   => $espacio?->seccion?->nombre ?? null,
+            'tipo_espacio'     => $espacio?->tipoEspacioFisico?->nombre ?? null,
+            'nombre_espacio'   => $espacio?->nombre ?? null,
+
+            // ← esto es lo nuevo
+            'concesion_activa_id' => $concesionActiva?->id_concesion,
         ]);
     }
-
 
 }

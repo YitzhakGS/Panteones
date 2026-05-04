@@ -37,13 +37,12 @@ class Finado extends Model
     public function ultimoMovimiento()
     {
         return $this->hasOne(MovimientoFinado::class, 'id_finado', 'id_finado')
-            ->latest('fecha')
-            ->latest('id_movimiento');
+            ->latestOfMany('id_movimiento'); // ← más confiable que fecha
     }
 
     public function ultimoMovimientoOnly(): HasOne
     {
         return $this->hasOne(MovimientoFinado::class, 'id_finado', 'id_finado')
-            ->latestOfMany('fecha');
+            ->latestOfMany('id_movimiento');
     }
 }

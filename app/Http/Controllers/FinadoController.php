@@ -41,11 +41,12 @@ class FinadoController extends Controller
     public function index(Request $request)
     {
         $query = Finado::with([
-            'ultimoMovimiento',
+            'ultimoMovimiento.ubicacionActual.lote.espaciosActuales.seccion',
+            'ultimoMovimiento.ubicacionActual.lote.espaciosActuales.tipoEspacioFisico',
             'ultimoMovimientoOnly',
+            'movimientos' => fn($q) => $q->whereIn('tipo', ['inhumacion'])->latest('id_movimiento')->limit(1),
         ]);
 
-        // ── BUSCADOR ──────────────────────────────────────────
         if ($request->filled('search')) {
             $terms = preg_split('/\s+/', trim($request->search));
 
@@ -54,13 +55,12 @@ class FinadoController extends Controller
                     $like = '%' . mb_strtolower($term) . '%';
 
                     $q->where(function ($q2) use ($like) {
-                        $q2->whereRaw('LOWER(COALESCE(nombre,          "")) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(COALESCE(apellido_paterno,"")) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(COALESCE(apellido_materno,"")) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(COALESCE(sexo,           "")) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(COALESCE(observaciones,  "")) LIKE ?', [$like])
+                        $q2->whereRaw('LOWER(COALESCE(nombre,           "")) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(apellido_paterno, "")) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(apellido_materno, "")) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(sexo,             "")) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(observaciones,    "")) LIKE ?', [$like])
                         ->orWhereRaw('LOWER(COALESCE(tipo_construccion,"")) LIKE ?', [$like])
-                        // buscar por ubicación desde el último movimiento
                         ->orWhereHas('ultimoMovimiento', fn($r) =>
                             $r->whereRaw('LOWER(COALESCE(ubicacion_actual,"")) LIKE ?', [$like])
                         );
@@ -69,19 +69,18 @@ class FinadoController extends Controller
             });
         }
 
-        // ── FILTRO ESTADO ─────────────────────────────────────
         $estado = $request->input('estado');
 
         if ($estado && $estado !== 'todos') {
             match($estado) {
-                'inhumado' => $query->whereHas('ultimoMovimiento', fn($q) =>
+                'inhumado'       => $query->whereHas('ultimoMovimiento', fn($q) =>
                     $q->whereIn('tipo', ['inhumacion', 'reinhumacion', 'movimiento'])
                 ),
-                'exhumado' => $query->whereHas('ultimoMovimiento', fn($q) =>
+                'exhumado'       => $query->whereHas('ultimoMovimiento', fn($q) =>
                     $q->where('tipo', 'exhumacion')
                 ),
                 'sin_movimientos' => $query->whereDoesntHave('ultimoMovimiento'),
-                default => null,
+                default           => null,
             };
         }
 
@@ -242,10 +241,33 @@ class FinadoController extends Controller
 
     public function mover(Request $request, Finado $finado)
     {
-        return $this->runMovimiento(fn() =>
-            response()->json(
-                $this->service->mover($finado, $request->id_ubicacion_actual, $request->all())
-            )
-        );
+        return $this->runMovimiento(function () use ($request, $finado) {
+
+            $estado = $this->service->obtenerEstadoActual($finado);
+
+            // Si está exhumado, reinhumar
+            if ($estado === 'exhumado') {
+                return response()->json(
+                    $this->service->reinhumar($finado, (int) $request->id_ubicacion_actual, $request->all())
+                );
+            }
+
+            // Mover a otro lote
+            if ($request->filled('id_lote')) {
+                return response()->json(
+                    $this->service->moverALote(
+                        $finado,
+                        (int) $request->id_ubicacion_actual,
+                        (int) $request->id_lote,
+                        $request->all()
+                    )
+                );
+            }
+
+            // Misma ubicación
+            return response()->json(
+                $this->service->moverMismaUbicacion($finado, (int) $request->id_ubicacion_actual, $request->all())
+            );
+        });
     }
 }

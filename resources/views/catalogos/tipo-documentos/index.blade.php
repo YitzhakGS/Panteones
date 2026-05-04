@@ -68,16 +68,19 @@
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <form action="{{ route('tipo-documentos.destroy', $tipo->id_tipo_documento) }}"
-                                        method="POST" class="d-inline">
+                                        method="POST" class="d-inline"
+                                        id="formDeleteTipo_{{ $tipo->id_tipo_documento }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger"
-                                            onclick="return confirm('¿Eliminar este tipo de documento?')"
+                                        <button type="button" class="btn btn-danger"
+                                            data-id="{{ $tipo->id_tipo_documento }}"
+                                            data-nombre="{{ $tipo->nombre }}"
+                                            data-documentos="{{ $tipo->documentos()->withTrashed()->count() }}"
+                                            onclick="confirmarEliminarTipo(this)"
                                             title="Eliminar">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
-                                
                             </td>
                         </tr>
 
@@ -136,6 +139,40 @@ document.addEventListener('DOMContentLoaded', function() {
             tsEdit.setValue(modelosActivos);
         });
     }
+
+    window.confirmarEliminarTipo = function(btn) {
+        const id         = btn.dataset.id;
+        const nombre     = btn.dataset.nombre;
+        const totalDocs  = parseInt(btn.dataset.documentos);
+
+        if (totalDocs > 0) {
+            Swal.fire({
+                title: 'No se puede eliminar',
+                html: `<p>El tipo <strong>${nombre}</strong> tiene <strong>${totalDocs}</strong> documento(s) registrado(s).</p>
+                    <p class="text-muted small mb-0">Primero elimina los documentos asociados para poder eliminar este tipo.</p>`,
+                icon: 'warning',
+                confirmButtonColor: '#6c757d',
+                confirmButtonText: 'Entendido',
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: '¿Eliminar tipo de documento?',
+            html: `<p>Estás a punto de eliminar <strong>${nombre}</strong>.</p>
+                <p class="text-danger small mb-0">Esta acción no se puede deshacer.</p>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`formDeleteTipo_${id}`).submit();
+            }
+        });
+    };
 
 });
 </script>

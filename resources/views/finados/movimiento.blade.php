@@ -78,37 +78,6 @@
 
                         </div>
 
-                        <!-- 🔥 SUBTIPO SOLO PARA INTERNO -->
-                        <div id="subtipo_lote" class="ms-3 mt-2" style="display:none;">
-
-                            <label class="form-label small text-muted mb-1">
-                                ¿Cómo deseas mover el lote?
-                            </label>
-
-                            <div class="d-flex gap-3">
-
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio"
-                                        name="mov_modo_lote" id="radio_lote_editar" value="editar" checked>
-                                    <label class="form-check-label" for="radio_lote_editar">
-                                        <i class="bi bi-pencil-square me-1"></i>
-                                        Editar lote actual
-                                    </label>
-                                </div>
-
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio"
-                                        name="mov_modo_lote" id="radio_lote_existente" value="existente" >
-                                    <label class="form-check-label" for="radio_lote_existente">
-                                        <i class="bi bi-box-seam me-1"></i>
-                                        Usar lote existente
-                                    </label>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- INTERNO: CONCESIÓN --}}
                     <div class="col-12" id="wrapper_interno" style="display:none;">
 
@@ -116,26 +85,19 @@
                             Nueva ubicación <span class="text-danger">*</span>
                         </label>
 
-                        <div class="col-12">
+                        <div class="col-12 mb-3">
                             <label class="form-label fw-semibold">Ubicación actual</label>
-
                             <div class="form-control bg-light">
                                 <span id="mov_ubicacion_texto">Sin ubicación</span>
                             </div>
-
-                            <small class="text-muted">
-                                Esta es la ubicación actual del finado
-                            </small>
+                            <small class="text-muted">Esta es la ubicación actual del finado</small>
                         </div>
 
-                        {{-- 👇 NUEVO --}}
-                        <div id="subform_lote" style="display:none;">
-                            @include('lotes._form', ['secciones' => $secciones])
-                        </div>
-
-                        <div id="wrapper_lote_existente" style="display:none;">
-                            <label class="form-label">Seleccionar lote existente</label>
-
+                        {{-- Seleccionar lote existente --}}
+                        <div id="wrapper_lote_existente">
+                            <label class="form-label fw-semibold">
+                                Seleccionar lote destino <span class="text-danger">*</span>
+                            </label>
                             <select id="select_lote_existente" class="form-control">
                                 <option value="">Buscar lote...</option>
                                 @foreach($lotes as $l)
@@ -181,43 +143,42 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+(function () {
 
-    let tomLotes;
+    // 🔒 evitar múltiples inicializaciones
+    if (window.movimientoFinadoInit) return;
+    window.movimientoFinadoInit = true;
+
+    let tomLotes = null;
+    let procesando = false;
+
     const modal = document.getElementById('movimientoFinadoModal');
-    const btnGuardar = document.getElementById('mov_btn_guardar');
+    if (!modal) return;
+
+    // 🔥 eliminar listeners duplicados
+    const originalBtn = document.getElementById('mov_btn_guardar');
+    if (!originalBtn) return;
+
+    const btnGuardar = originalBtn.cloneNode(true);
+    originalBtn.parentNode.replaceChild(btnGuardar, originalBtn);
 
     let formSubmitted = false;
 
     // -------------------------
-    // CONTROL VISUAL (RADIOS)
+    // UI DINÁMICA
     // -------------------------
     function actualizarUI() {
-        const tipo = document.querySelector('input[name="mov_tipo_destino"]:checked')?.value;
 
+        const tipo    = document.querySelector('input[name="mov_tipo_destino"]:checked')?.value;
         const interno = document.getElementById('wrapper_interno');
         const externo = document.getElementById('wrapper_externo');
-        const subtipo = document.getElementById('subtipo_lote');
 
-        if (interno) interno.style.display = tipo === 'interno' ? '' : 'none';
-        if (externo) externo.style.display = tipo === 'externo' ? '' : 'none';
+        if (interno) interno.style.display = (tipo === 'interno') ? '' : 'none';
+        if (externo) externo.style.display = (tipo === 'externo') ? '' : 'none';
 
-        // SOLO controlas los radios secundarios aquí
-        if (subtipo) subtipo.style.display = tipo === 'interno' ? '' : 'none';
-    }
-
-    document.querySelectorAll('input[name="mov_tipo_destino"]').forEach(radio => {
-        radio.addEventListener('change', actualizarUI);
-    });
-
-    // -------------------------
-    // EVENTOS DEL MODAL
-    // -------------------------
-    if (modal) {
-
-        modal.addEventListener('shown.bs.modal', function () {
-            actualizarUI();
-            if (!tomLotes) {
+        // init TomSelect SOLO una vez
+        if (tipo === 'interno' && !tomLotes) {
+            setTimeout(() => {
                 tomLotes = new TomSelect('#select_lote_existente', {
                     valueField: 'value',
                     labelField: 'text',
@@ -225,164 +186,117 @@ document.addEventListener('DOMContentLoaded', function () {
                     placeholder: 'Buscar lote...',
                     create: false,
                 });
-            }
-            document.querySelector('input[name="mov_modo_lote"]:checked')?.dispatchEvent(new Event('change'));
-        });
-
-        modal.addEventListener('hidden.bs.modal', function () {
-            if (!formSubmitted) {
-                window.location.href = "/finados";
-            }
-            formSubmitted = false;
-        });
+            }, 100);
+        }
     }
 
-    // -------------------------
-    // SUBFORM (LOTES)
-    // -------------------------
-    // 👇 SOLO UNA VEZ (NO dentro del modal)
-    document.querySelectorAll('.lote-measure-input').forEach(input => {
-        input.addEventListener('input', function () {
-            calcularSuperficie('lote');
-        });
+    document.addEventListener('change', function (e) {
+        if (e.target.name === 'mov_tipo_destino') {
+            actualizarUI();
+        }
     });
 
-    document.getElementById('lote_seccion')?.addEventListener('change', function () {
-        cargarEspaciosFisicos({
-            seccionId: this.value,
-            selectId: 'lote_espacio'
-        });
+    modal.addEventListener('shown.bs.modal', actualizarUI);
+
+    modal.addEventListener('hidden.bs.modal', function () {
+        if (!formSubmitted) {
+            console.log('↩️ Modal cerrado sin guardar');
+        }
+        formSubmitted = false;
+        procesando = false;
+        btnGuardar.disabled = false;
     });
 
     // -------------------------
-    // GUARDAR MOVIMIENTO
+    // GUARDAR
     // -------------------------
-    btnGuardar?.addEventListener('click', async function () {
+    btnGuardar.onclick = async function () {
 
+        if (procesando) return;
+
+        procesando = true;
+        btnGuardar.disabled = true;
         formSubmitted = true;
 
-        const idFinado            = document.getElementById('mov_id_finado').value;
-        const fecha               = document.getElementById('mov_fecha').value;
-        const solicitante         = document.getElementById('mov_solicitante').value;
-        const observaciones       = document.getElementById('mov_observaciones').value;
-        const tipoDestino         = document.querySelector('input[name="mov_tipo_destino"]:checked')?.value;
-        const id_ubicacion_actual = document.getElementById('mov_concesion_actual')?.value;
+        const idFinado        = document.getElementById('mov_id_finado').value;
+        const fecha           = document.getElementById('mov_fecha').value;
+        const solicitante     = document.getElementById('mov_solicitante').value;
+        const observaciones   = document.getElementById('mov_observaciones').value;
+        const tipoDestino     = document.querySelector('input[name="mov_tipo_destino"]:checked')?.value;
+        const concesionActual = document.getElementById('mov_concesion_actual')?.value;
 
+        // VALIDACIÓN
+        if (!fecha || !solicitante || !tipoDestino) {
+            console.error('❌ Validación fallida', {
+                fecha,
+                solicitante,
+                tipoDestino
+            });
 
-        // ---------------- VALIDACIONES
-        if (!fecha) {
-            Swal.fire('Error', 'La fecha es requerida', 'error');
-            formSubmitted = false;
-            return;
-        }
-
-        if (!solicitante) {
-            Swal.fire('Error', 'El solicitante es requerido', 'error');
-            formSubmitted = false;
-            return;
-        }
-
-        if (!tipoDestino) {
-            Swal.fire('Error', 'Selecciona un tipo de movimiento', 'error');
+            procesando = false;
+            btnGuardar.disabled = false;
             formSubmitted = false;
             return;
         }
 
         let endpoint = '';
-        let payload = {
+        let payload  = {
             fecha,
             solicitante,
             observaciones,
-            id_ubicacion_actual
+            id_ubicacion_actual: concesionActual
         };
 
-        console.log(payload);
-
-        // ---------------- LOGICA
+        // -------------------------
+        // LÓGICA
+        // -------------------------
         if (tipoDestino === 'externo') {
 
             endpoint = 'exhumar';
-            payload.es_externo = true;
-            payload.ubicacion_externa =
-                document.getElementById('mov_destino_externo').value;
+            payload.es_externo        = true;
+            payload.ubicacion_externa = document.getElementById('mov_destino_externo').value;
 
         } else if (tipoDestino === 'misma') {
 
-            endpoint = 'exhumar';
-            payload.es_externo = false;
-            payload.ubicacion_externa = null;
+            endpoint = 'mover';
+            payload.id_lote = null;
+            payload.es_misma_ubicacion = true;
 
         } else if (tipoDestino === 'interno') {
 
-            const modo = document.querySelector('input[name="mov_modo_lote"]:checked')?.value;
-
-            let id_lote = null;
-
-            // 🔥 1. DECIDIR DE DÓNDE SALE EL LOTE
-            if (modo === 'existente') {
-
-                if (!tomLotes) {
-                    Swal.fire('Error', 'El selector de lotes no está listo', 'error');
-                    formSubmitted = false;
-                    return;
-                }
-
-                id_lote = tomLotes.getValue();// 👈 TomSelect
-
-                if (!id_lote) {
-                    Swal.fire('Error', 'Selecciona un lote existente', 'error');
-                    formSubmitted = false;
-                    return;
-                }
-
-                payload.modo = 'existente';
-
-            } else {
-
-                id_lote = document.getElementById('lote_id')?.value
-                    || document.getElementById('mov_lote_id')?.value;
-
-                if (!id_lote) {
-                    Swal.fire('Error', 'No hay lote seleccionado', 'error');
-                    formSubmitted = false;
-                    return;
-                }
-
-                payload.modo = 'editar';
-
-                // 🔥 SOLO SI EDITAS, mandas datos del lote
-                payload.numero = document.getElementById('lote_numero')?.value;
-                payload.metros_cuadrados = document.getElementById('lote_metros_cuadrados')?.value;
-
-                payload.med_norte = document.getElementById('lote_med_norte')?.value;
-                payload.med_sur = document.getElementById('lote_med_sur')?.value;
-                payload.med_oriente = document.getElementById('lote_med_oriente')?.value;
-                payload.med_poniente = document.getElementById('lote_med_poniente')?.value;
-
-                payload.col_norte = document.getElementById('lote_col_norte')?.value;
-                payload.col_sur = document.getElementById('lote_col_sur')?.value;
-                payload.col_oriente = document.getElementById('lote_col_oriente')?.value;
-                payload.col_poniente = document.getElementById('lote_col_poniente')?.value;
-
-                payload.referencias = document.getElementById('lote_referencias')?.value;
-
-                payload.id_espacio_fisico = document.getElementById('lote_espacio')?.value;
+            if (!tomLotes) {
+                console.error('❌ TomSelect no inicializado');
+                reset();
+                return;
             }
 
-            // 🔥 SIEMPRE mandas el lote (sea modo que sea)
-            payload.id_lote = id_lote;
+            const loteDestino = tomLotes.getValue();
 
-            // ---------------- endpoint (igual que ya tenías)
-            const estadoActual =
-                document.getElementById('show_estado')?.textContent?.trim().toUpperCase()
-                || window.finadoActual?.estado?.toUpperCase();
+            if (!loteDestino) {
+                console.error('❌ No seleccionaste lote');
+                reset();
+                return;
+            }
 
-            endpoint = estadoActual === 'EXHUMADO'
-                ? 'reinhumar'
-                : 'mover';
+            payload.id_lote = loteDestino;
+            endpoint = 'mover';
         }
 
-        // ---------------- REQUEST
+        // DEBUG
+        console.log('📤 REQUEST:', {
+            url: `/finados/${idFinado}/${endpoint}`,
+            payload
+        });
+
+        if (payload.id_lote) {
+            console.log('🆕 LOTE DESTINO:', payload.id_lote);
+        } else {
+            console.log('📍 MISMA UBICACIÓN / EXTERNO');
+        }
+
+        // -------------------------
+        // FETCH
+        // -------------------------
         try {
             const res = await fetch(`/finados/${idFinado}/${endpoint}`, {
                 method: 'POST',
@@ -395,42 +309,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const data = await res.json();
 
+            console.log('📥 RESPONSE:', data);
+
             if (!res.ok) {
-                Swal.fire('Error', data.error ?? 'Ocurrió un error', 'error');
-                formSubmitted = false;
-                return;
+                throw new Error(data.error || 'Error desconocido');
             }
 
-            Swal.fire({
-                icon: 'success',
-                title: 'Movimiento registrado correctamente',
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => window.location.reload());
+            console.log('✅ Movimiento guardado correctamente');
+
+            // 🔥 SIN RECARGAR
+            // aquí puedes actualizar UI manual si quieres
+            // por ahora solo cerramos modal
+            const modalInstance = bootstrap.Modal.getInstance(modal);
+            modalInstance.hide();
 
         } catch (e) {
-            Swal.fire('Error', 'Error de conexión', 'error');
+            console.error('❌ ERROR:', e.message);
+            reset();
+        }
+
+        function reset() {
+            procesando = false;
+            btnGuardar.disabled = false;
             formSubmitted = false;
         }
-    });
+    };
 
-    document.querySelectorAll('input[name="mov_modo_lote"]').forEach(radio => {
-        radio.addEventListener('change', function () {
-
-            const subform = document.getElementById('subform_lote');
-            const selector = document.getElementById('wrapper_lote_existente');
-
-            if (this.value === 'editar') {
-                subform.style.display = '';
-                selector.style.display = 'none';
-            } else {
-                subform.style.display = 'none';
-                selector.style.display = '';
-            }
-        });
-    });
-
-    
-
-});
+})();
 </script>
