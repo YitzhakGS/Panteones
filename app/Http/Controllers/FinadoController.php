@@ -246,11 +246,18 @@ class FinadoController extends Controller
             $estado = $this->service->obtenerEstadoActual($finado);
 
             // Si está exhumado, reinhumar
+            
             if ($estado === 'exhumado') {
-                return response()->json(
-                    $this->service->reinhumar($finado, (int) $request->id_ubicacion_actual, $request->all())
-                );
+                return [
+                    'success' => false,
+                    'message' => 'No se puede mover un finado exhumado'
+                ];
             }
+
+            if ($estado !== 'inhumado') {
+                throw new Exception('El finado debe estar inhumado para moverlo');
+            }
+
 
             // Mover a otro lote
             if ($request->filled('id_lote')) {

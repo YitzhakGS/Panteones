@@ -317,11 +317,12 @@
 
             console.log('✅ Movimiento guardado correctamente');
 
-            // 🔥 SIN RECARGAR
-            // aquí puedes actualizar UI manual si quieres
-            // por ahora solo cerramos modal
-            const modalInstance = bootstrap.Modal.getInstance(modal);
-            modalInstance.hide();
+            Swal.fire({
+                icon: 'success',
+                title: 'Movimiento registrado correctamente',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => window.location.reload());
 
         } catch (e) {
             console.error('❌ ERROR:', e.message);

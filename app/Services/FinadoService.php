@@ -72,7 +72,7 @@ class FinadoService
             throw new Exception('El finado debe estar inhumado para moverlo');
         }
 
-        // 1️⃣ Guardar texto anterior desde el último movimiento — ANTES de tocar nada
+        // 1️⃣ Ubicación anterior desde el snapshot del último movimiento
         $ubicacionAnterior = $this->ubicacionAnteriorTexto($finado);
 
         // 2️⃣ Cargar concesión actual
@@ -81,10 +81,15 @@ class FinadoService
             'lote.espaciosActuales.tipoEspacioFisico',
         ])->findOrFail($idConcesion);
 
-        // 3️⃣ Actualizar la concesión con el nuevo lote
+        // 3️⃣ Verificar que el lote destino sea diferente al actual
+        if ($concesion->id_lote == $idNuevoLote) {
+            throw new Exception('El lote destino es el mismo que el actual');
+        }
+
+        // 4️⃣ Actualizar la concesión con el nuevo lote
         $concesion->update(['id_lote' => $idNuevoLote]);
 
-        // 4️⃣ Recargar con nuevo lote
+        // 5️⃣ Recargar con nuevo lote
         $concesion->load([
             'lote.espaciosActuales.seccion',
             'lote.espaciosActuales.tipoEspacioFisico',
@@ -92,12 +97,7 @@ class FinadoService
 
         $ubicacionNueva = $this->formatearUbicacion($concesion);
 
-        if ($ubicacionAnterior === $ubicacionNueva) {
-            // Revertir el cambio en la concesión
-            $concesion->update(['id_lote' => $concesion->getOriginal('id_lote')]);
-            throw new Exception('El lote destino genera la misma ubicación que la actual');
-        }
-
+        // 6️⃣ Registrar movimiento
         return MovimientoFinado::create([
             'id_finado'           => $finado->id_finado,
             'id_ubicacion_actual' => $idConcesion,
