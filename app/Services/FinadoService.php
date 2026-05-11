@@ -5,18 +5,10 @@ namespace App\Services;
 use App\Models\Finado;
 use App\Models\Concesion;
 use App\Models\MovimientoFinado;
-use App\Models\Lote;
 use Exception;
 
 class FinadoService
 {
-    protected LoteService $loteService;
-
-    public function __construct(LoteService $loteService)
-    {
-        $this->loteService = $loteService;
-    }
-
     // -------------------------
     // Helper — genera texto snapshot de una concesión
     // -------------------------
@@ -33,15 +25,15 @@ class FinadoService
     }
 
     // -------------------------
-    // Helper — ubicación actual texto
+    // Helper — texto del último movimiento
     // -------------------------
-    private function ubicacionActualTexto(Finado $finado): ?string
+    private function ubicacionAnteriorTexto(Finado $finado): ?string
     {
         return $finado->ultimoMovimiento?->ubicacion_actual;
     }
 
     // -------------------------
-    // INHUMAR
+    // INHUMAR — registro inicial
     // -------------------------
     public function inhumar(Finado $finado, int $idConcesion, array $data = [])
     {
@@ -55,22 +47,107 @@ class FinadoService
         ])->findOrFail($idConcesion);
 
         return MovimientoFinado::create([
-            'id_finado'          => $finado->id_finado,
-            'id_ubicacion_actual'=> $idConcesion,
-            'ubicacion_actual'   => $this->formatearUbicacion($concesion),
-            'ubicacion_anterior' => null,
-            'tipo'               => 'inhumacion',
-            'fecha'              => $data['fecha'] ?? now(),
-            'solicitante'        => $data['solicitante'] ?? null,
-            'observaciones'      => $data['observaciones'] ?? null,
-            'es_misma_ubicacion' => false,
-            'es_externo'         => false,
-            'ubicacion_externa'  => null,
+            'id_finado'           => $finado->id_finado,
+            'id_ubicacion_actual' => $idConcesion,
+            'ubicacion_actual'    => $this->formatearUbicacion($concesion),
+            'ubicacion_anterior'  => null,
+            'tipo'                => 'inhumacion',
+            'fecha'               => $data['fecha'] ?? now(),
+            'solicitante'         => $data['solicitante'] ?? null,
+            'observaciones'       => $data['observaciones'] ?? null,
+            'es_misma_ubicacion'  => false,
+            'es_externo'          => false,
+            'ubicacion_externa'   => null,
         ]);
     }
 
     // -------------------------
-    // EXHUMAR
+    // MOVER A OTRO LOTE
+    // Modifica la concesión para que apunte al nuevo lote
+    // y registra el movimiento
+    // -------------------------
+    public function moverALote(Finado $finado, int $idConcesion, int $idNuevoLote, array $data = [])
+    {
+        if ($this->obtenerEstadoActual($finado) !== 'inhumado') {
+            throw new Exception('El finado debe estar inhumado para moverlo');
+        }
+
+        // 1️⃣ Ubicación anterior desde el snapshot del último movimiento
+        $ubicacionAnterior = $this->ubicacionAnteriorTexto($finado);
+
+        // 2️⃣ Cargar concesión actual
+        $concesion = Concesion::with([
+            'lote.espaciosActuales.seccion',
+            'lote.espaciosActuales.tipoEspacioFisico',
+        ])->findOrFail($idConcesion);
+
+        // 3️⃣ Verificar que el lote destino sea diferente al actual
+        if ($concesion->id_lote == $idNuevoLote) {
+            throw new Exception('El lote destino es el mismo que el actual');
+        }
+
+        // 4️⃣ Actualizar la concesión con el nuevo lote
+        $concesion->update(['id_lote' => $idNuevoLote]);
+
+        // 5️⃣ Recargar con nuevo lote
+        $concesion->load([
+            'lote.espaciosActuales.seccion',
+            'lote.espaciosActuales.tipoEspacioFisico',
+        ]);
+
+        $ubicacionNueva = $this->formatearUbicacion($concesion);
+
+        // 6️⃣ Registrar movimiento
+        return MovimientoFinado::create([
+            'id_finado'           => $finado->id_finado,
+            'id_ubicacion_actual' => $idConcesion,
+            'ubicacion_actual'    => $ubicacionNueva,
+            'ubicacion_anterior'  => $ubicacionAnterior,
+            'tipo'                => 'movimiento',
+            'fecha'               => $data['fecha'] ?? now(),
+            'solicitante'         => $data['solicitante'] ?? null,
+            'observaciones'       => $data['observaciones'] ?? null,
+            'es_misma_ubicacion'  => false,
+            'es_externo'          => false,
+            'ubicacion_externa'   => null,
+        ]);
+    }
+
+    // -------------------------
+    // MOVER A MISMA UBICACIÓN
+    // No cambia la concesión ni el lote, solo registra el movimiento
+    // -------------------------
+    public function moverMismaUbicacion(Finado $finado, int $idConcesion, array $data = [])
+    {
+        if ($this->obtenerEstadoActual($finado) !== 'inhumado') {
+            throw new Exception('El finado debe estar inhumado');
+        }
+
+        $concesion = Concesion::with([
+            'lote.espaciosActuales.seccion',
+            'lote.espaciosActuales.tipoEspacioFisico',
+        ])->findOrFail($idConcesion);
+
+        $ubicacionTexto = $this->formatearUbicacion($concesion);
+
+        return MovimientoFinado::create([
+            'id_finado'           => $finado->id_finado,
+            'id_ubicacion_actual' => $idConcesion,
+            'ubicacion_actual'    => $ubicacionTexto,
+            'ubicacion_anterior'  => $this->ubicacionAnteriorTexto($finado),
+            'tipo'                => 'movimiento',
+            'fecha'               => $data['fecha'] ?? now(),
+            'solicitante'         => $data['solicitante'] ?? null,
+            'observaciones'       => $data['observaciones'] ?? null,
+            'es_misma_ubicacion'  => true,
+            'es_externo'          => false,
+            'ubicacion_externa'   => null,
+        ]);
+    }
+
+    // -------------------------
+    // EXHUMAR / EXTERNO
+    // id_ubicacion_actual queda nulo, ubicacion_actual es texto libre
     // -------------------------
     public function exhumar(Finado $finado, array $data = [])
     {
@@ -79,27 +156,27 @@ class FinadoService
         }
 
         return MovimientoFinado::create([
-            'id_finado'          => $finado->id_finado,
-            'id_ubicacion_actual'=> null,
-            'ubicacion_actual'   => $data['ubicacion_externa'] ?? null,
-            'ubicacion_anterior' => $this->ubicacionActualTexto($finado),
-            'tipo'               => 'exhumacion',
-            'fecha'              => $data['fecha'] ?? now(),
-            'solicitante'        => $data['solicitante'] ?? null,
-            'observaciones'      => $data['observaciones'] ?? null,
-            'es_misma_ubicacion' => false,
-            'es_externo'         => (bool) ($data['es_externo'] ?? false),
-            'ubicacion_externa'  => $data['ubicacion_externa'] ?? null,
+            'id_finado'           => $finado->id_finado,
+            'id_ubicacion_actual' => null, // ← sin concesión registrada
+            'ubicacion_actual'    => $data['ubicacion_externa'] ?? null,
+            'ubicacion_anterior'  => $this->ubicacionAnteriorTexto($finado),
+            'tipo'                => 'exhumacion',
+            'fecha'               => $data['fecha'] ?? now(),
+            'solicitante'         => $data['solicitante'] ?? null,
+            'observaciones'       => $data['observaciones'] ?? null,
+            'es_misma_ubicacion'  => false,
+            'es_externo'          => (bool) ($data['es_externo'] ?? false),
+            'ubicacion_externa'   => $data['ubicacion_externa'] ?? null,
         ]);
     }
 
     // -------------------------
-    // REINHUMAR
+    // REINHUMAR — después de exhumación
     // -------------------------
     public function reinhumar(Finado $finado, int $idConcesion, array $data = [])
     {
         if ($this->obtenerEstadoActual($finado) !== 'exhumado') {
-            throw new Exception('El finado debe estar exhumado');
+            throw new Exception('El finado debe estar exhumado para reinhumarlo');
         }
 
         $concesion = Concesion::with([
@@ -108,88 +185,17 @@ class FinadoService
         ])->findOrFail($idConcesion);
 
         return MovimientoFinado::create([
-            'id_finado'          => $finado->id_finado,
-            'id_ubicacion_actual'=> $idConcesion,
-            'ubicacion_actual'   => $this->formatearUbicacion($concesion),
-            'ubicacion_anterior' => $this->ubicacionActualTexto($finado),
-            'tipo'               => 'reinhumacion',
-            'fecha'              => $data['fecha'] ?? now(),
-            'solicitante'        => $data['solicitante'] ?? null,
-            'observaciones'      => $data['observaciones'] ?? null,
-            'es_misma_ubicacion' => false,
-            'es_externo'         => false,
-            'ubicacion_externa'  => null,
-        ]);
-    }
-
-    // -------------------------
-    // MOVER
-    // -------------------------
-    public function mover(Finado $finado, int $idConcesion, array $data = [])
-    {
-
-        $idConcesion = $data['id_ubicacion_actual'] ?? null;
-
-        if (!$idConcesion) {
-            throw new Exception('No se proporcionó la concesión actual');
-        }
-
-        if ($this->obtenerEstadoActual($finado) !== 'inhumado') {
-            throw new Exception('El finado debe estar inhumado para moverlo');
-        }
-
-        // 1️⃣ Guardar ubicación anterior (TEXTO)
-        $ubicacionAnterior = $this->ubicacionActualTexto($finado);
-
-        // 2️⃣ Actualizar lote (si aplica)
-        if (!empty($data['id_lote'])) {
-
-            $lote = \App\Models\Lote::findOrFail($data['id_lote']);
-
-            if ($lote) {
-                app(\App\Services\LoteService::class)->update($lote, [
-                    'numero'           => $data['numero'] ?? $lote->numero,
-                    'metros_cuadrados' => $data['metros_cuadrados'] ?? $lote->metros_cuadrados,
-
-                    'col_norte'        => $data['col_norte'] ?? null,
-                    'col_sur'          => $data['col_sur'] ?? null,
-                    'col_oriente'      => $data['col_oriente'] ?? null,
-                    'col_poniente'     => $data['col_poniente'] ?? null,
-
-                    'med_norte'        => $data['med_norte'] ?? null,
-                    'med_sur'          => $data['med_sur'] ?? null,
-                    'med_oriente'      => $data['med_oriente'] ?? null,
-                    'med_poniente'     => $data['med_poniente'] ?? null,
-
-                    'referencias'      => $data['referencias'] ?? null,
-
-                    'id_espacio_fisico'=> $data['id_espacio_fisico'] ?? null,
-                ]);
-            }
-        }
-
-        // 3️⃣ Volver a cargar concesión con datos actualizados
-        $concesion = Concesion::with([
-            'lote.espaciosActuales.seccion',
-            'lote.espaciosActuales.tipoEspacioFisico',
-        ])->findOrFail($idConcesion);
-
-        // 4️⃣ Generar nueva ubicación (TEXTO)
-        $ubicacionNueva = $this->formatearUbicacion($concesion);
-
-        // 5️⃣ Guardar movimiento
-        return MovimientoFinado::create([
-            'id_finado'          => $finado->id_finado,
-            'id_ubicacion_actual'=> $idConcesion,
-            'ubicacion_actual'   => $ubicacionNueva,
-            'ubicacion_anterior' => $ubicacionAnterior,
-            'tipo'               => 'movimiento',
-            'fecha'              => $data['fecha'] ?? now(),
-            'solicitante'        => $data['solicitante'] ?? null,
-            'observaciones'      => $data['observaciones'] ?? null,
-            'es_misma_ubicacion' => false,
-            'es_externo'         => false,
-            'ubicacion_externa'  => null,
+            'id_finado'           => $finado->id_finado,
+            'id_ubicacion_actual' => $idConcesion,
+            'ubicacion_actual'    => $this->formatearUbicacion($concesion),
+            'ubicacion_anterior'  => $this->ubicacionAnteriorTexto($finado),
+            'tipo'                => 'reinhumacion',
+            'fecha'               => $data['fecha'] ?? now(),
+            'solicitante'         => $data['solicitante'] ?? null,
+            'observaciones'       => $data['observaciones'] ?? null,
+            'es_misma_ubicacion'  => false,
+            'es_externo'          => false,
+            'ubicacion_externa'   => null,
         ]);
     }
 

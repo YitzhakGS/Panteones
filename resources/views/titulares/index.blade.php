@@ -69,11 +69,11 @@
                         data-telefono="{{ $titular->telefono }}"
                         data-fallecido="{{ $titular->fallecido ? '1' : '0' }}"
                         data-documentos='@json(
-                        $titular->documentos->map(fn($d) => [
-                        "id"=>$d->id_documento,
-                        "id_tipo_documento"=>$d->id_tipo_documento,
-                        "nombre"=>$d->tipoDocumento->nombre
-                        ])
+                            $titular->documentos->map(fn($d) => [
+                                "id"                 =>$d->id_documento,
+                                "id_tipo_documento"  =>$d->id_tipo_documento,
+                                "nombre"             =>$d->tipoDocumento?->nombre ?? "Documento sin tipo"
+                            ])
                         )'>
 
                         {{-- Avatar lateral --}}
@@ -125,7 +125,7 @@
                                     @foreach($titular->documentos as $doc)
                                         <div class="data-chip" style="background-color: #d1fae5; color: #065f46;">
                                             <i class="bi bi-file-earmark-check"></i>
-                                            <span class="chip-text">{{ $doc->tipoDocumento->nombre }}</span>
+                                            <span class="chip-text">{{ $doc->tipoDocumento?->nombre ?? 'Tipo eliminado' }}</span>
                                         </div>
                                     @endforeach
                                 @else

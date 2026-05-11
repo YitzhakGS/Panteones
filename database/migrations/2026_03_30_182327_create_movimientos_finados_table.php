@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('movimientos_finados', function (Blueprint $table) {
@@ -35,6 +36,11 @@ return new class extends Migration {
             $table->foreign('id_ubicacion_actual')
                   ->references('id_concesion')
                   ->on('concesiones');
+
+            $table->unique(
+                ['id_finado', 'tipo', 'fecha', 'solicitante'],
+                'uq_movimiento_finado_sin_duplicados'
+            );
         });
     }
 

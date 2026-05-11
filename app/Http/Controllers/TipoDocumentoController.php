@@ -56,12 +56,19 @@ class TipoDocumentoController extends Controller
             ->with('success', 'Tipo de documento actualizado');
     }
 
-    public function destroy($id)
+    public function destroy(TipoDocumento $tipo_documento)
     {
-        $tipoDocumento = TipoDocumento::findOrFail($id);
-        $tipoDocumento->delete();
+        // Verificar si tiene documentos registrados (incluyendo soft-deleted)
+        $totalDocumentos = $tipo_documento->documentos()->withTrashed()->count();
 
-        return redirect()->route('tipo-documentos.index')
-            ->with('success', 'Tipo de documento eliminado');
+        if ($totalDocumentos > 0) {
+            return back()->with('error', 
+                "No se puede eliminar \"{$tipo_documento->nombre}\" porque tiene {$totalDocumentos} documento(s) registrado(s). Primero elimina los documentos asociados."
+            );
+        }
+
+        $tipo_documento->delete();
+
+        return back()->with('success', 'Tipo de documento eliminado correctamente.');
     }
 }

@@ -408,23 +408,6 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // =========================
-    // MODAL MOVIMIENTO
-    // =========================
-
-    const modalMovimiento = document.getElementById('movimientoFinadoModal');
-
-    if (modalMovimiento) {
-        modalMovimiento.addEventListener('shown.bs.modal', function () {
-
-            // activar subform
-            bindSubformEventos();
-
-            // mostrar subform directo (porque mover = interno)
-            document.getElementById('subform_lote').style.display = '';
-        });
-    }
-
-    // =========================
     // GUARDAR
     // =========================
 

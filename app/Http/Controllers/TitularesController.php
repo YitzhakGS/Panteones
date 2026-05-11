@@ -30,7 +30,10 @@ class TitularesController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Titular::with('documentos.tipoDocumento');
+        $query = Titular::with([
+            'documentos' => fn($q) => $q->withTrashed(),
+            'documentos.tipoDocumento' => fn($q) => $q->withTrashed(),
+        ]);
 
         if ($request->filled('search')) {
 

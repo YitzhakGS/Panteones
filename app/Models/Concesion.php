@@ -147,4 +147,18 @@ class Concesion extends Model
     {
         return $this->hasMany(MovimientoFinado::class, 'id_concesion', 'id_concesion');
     }
+
+    // -------------------------------------------------------------------------
+    // Eventos del modelo
+    // -------------------------------------------------------------------------
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Concesion $concesion) {
+            $concesion->refrendos()
+                ->whereIn('estado', ['pendiente', 'vencido'])
+                ->update(['estado' => 'cancelado']);
+        });
+    }
+
 }
